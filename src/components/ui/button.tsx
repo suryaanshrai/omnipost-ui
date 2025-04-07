@@ -18,9 +18,10 @@ const buttonVariants = cva(
         secondary:
           "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80 hover:cursor-pointer",
         primary:
-        "bg-violet-500 hover:bg-violet-600 focus:outline-2 focus:outline-offset-2 focus:outline-violet-500 active:bg-violet-700 hover:cursor-pointer" ,
+        "bg-purple-400 hover:bg-purple-600 focus:outline-2 focus:outline-offset-2 focus:outline-purple-500 active:bg-purple-700 hover:cursor-pointer" ,
         ghost: "hover:bg-accent hover:text-accent-foreground hover:cursor-pointer",
         link: "text-primary underline-offset-4 hover:underline",
+        pinkButton:"bg-pink-400 hover:bg-pink-600 w-60 focus:outline-2 focus:outline-offset-2 focus:outline-pink-500 active:bg-pink-700 hover:cursor-pointer text-white mx-auto",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",
