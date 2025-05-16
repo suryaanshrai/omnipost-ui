@@ -10,6 +10,6 @@ COPY . .
 
 EXPOSE 5173
 
-RUN npm i && npm run build
+RUN npm i
 
-CMD serve -s -l 5173
+CMD npm run dev -- --host 0.0.0.0
