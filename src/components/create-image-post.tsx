@@ -7,24 +7,59 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
 import { Facebook, Instagram, Linkedin, Twitter, Upload } from "lucide-react"
+import { DateTimePicker } from "./ui/datetime-picker"
+import { toast } from "sonner"
+import conf from "@/conf"
+import useResponseHandler from "@/hooks/useResponseHandler"
 
 export default function CreateImagePost() {
-  const [image, setImage] = useState<string | null>(null)
-  const [text, setText] = useState("")
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImage(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+  const [text, setText] = useState("")
+  const [image, setImage] = useState<File | null>(null)
+  const [scheduleDateTime, setScheduleDateTime] = useState<Date | undefined>(undefined)
+
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault()
+    toast.info("Creating draft...")
+    if (!image) {
+      toast.error("Please add an image") 
+      return
     }
+    const formData = new FormData()
+    formData.append("media", image);
+    formData.append("content", text);
+    if (scheduleDateTime) {
+      formData.append("schedule", scheduleDateTime.toISOString());
+    }
+    formData.append("post_type", "IMAGE");
+    
+    fetch(`${conf.api_url}/post/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Token ${localStorage.getItem("omniUserToken")}`,
+        },
+        body: formData
+    })
+    .then((res) => useResponseHandler(res))
+    .then(data => {
+      if (data.invalid) {
+        toast.error(data.text)
+        return
+      }
+      toast.success("Draft created successfully, confirm to publish")
+      setText("")
+      setImage(null)
+      setScheduleDateTime(undefined)
+    })
   }
+  const handleImageUpload = (e) => {
+    setImage(e.target.files[0]);
+  };
 
   return (
     <div className="container py-6 px-6 ">
+      <form onSubmit={handleSubmit}>
+
       <Card className="mb-6">
         <p className="px-6 font-extralight text-sm">
         Create an Image post with caption
@@ -39,16 +74,17 @@ export default function CreateImagePost() {
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <Upload className="h-10 w-10 mb-2" />
                   <p>Image</p>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    id="image-upload"
-                    onChange={handleImageUpload}
-                  />
+                  
                   <label htmlFor="image-upload" className="mt-2">
                     <Button variant="outline" size="sm" className="cursor-pointer">
                       Upload
+                      <input
+                    type="file"
+                    accept="image/*"
+                    placeholder="none"                    
+                    id="image-upload"
+                    onChange={handleImageUpload}
+                  />
                     </Button>
                   </label>
                 </div>
@@ -61,10 +97,10 @@ export default function CreateImagePost() {
                 className="min-h-[200px]"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-              />
+                />
 
               <div className="flex justify-between mt-4">
-                
+              <DateTimePicker placeholder="Schedule" onChange={ setScheduleDateTime} />
               </div>
             </div>
           </div>
@@ -75,13 +111,7 @@ export default function CreateImagePost() {
                 </div>
         </div>
       </Card>
+                </form>
     </div>
   )
 }
-
-{/* <Button className="bg-pink-500 hover:bg-pink-600">Text</Button>
-                <Button className="bg-pink-500 hover:bg-pink-600">Image</Button>
-                <Button className="bg-pink-500 hover:bg-pink-600">Video</Button>
-                <Button className="bg-pink-500 hover:bg-pink-600">Short Form Vide</Button>
-                <Button className="bg-pink-500 hover:bg-pink-600">Image Story</Button>
-                <Button className="bg-pink-500 hover:bg-pink-600">Video Story</Button> */}

@@ -2,6 +2,7 @@
 import { UserCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import useAuthContext from '@/contexts/authContext';
 
 
 
@@ -11,7 +12,7 @@ interface UserCardProps {
 }
 
 function UserCard({ className, date="" }: UserCardProps) {
-  
+  const {user} = useAuthContext()
   return (
     <div className={`${className} inline-block`}>
 
@@ -21,7 +22,7 @@ function UserCard({ className, date="" }: UserCardProps) {
     </Avatar>
         <div>
             <div className='mb-1'>
-              username
+              {user}
                 
             </div>
             <div className='text-sm'>

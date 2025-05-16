@@ -13,6 +13,8 @@ import NotFoundPage from './pages/NotFound';
 import RegistrationPage from './pages/Register';
 import { useEffect } from 'react';
 import useAuthContext from './contexts/authContext';
+import Instance from './pages/Instance';
+import Drafts from './pages/Drafts';
 
 export default function OmniRouter() {
     return (
@@ -26,6 +28,8 @@ export default function OmniRouter() {
                     <Route path="/post-video-story" element={<CreateVideoStory />} />
                     <Route path="/post-text" element={<CreateTextPost />} />
                     <Route path="/post-short-video" element={<CreateShortVideoPost />} />
+                    <Route path="/instance" element={<Instance />} />
+                    <Route path="drafts" element={<Drafts />} />
                 </Route>
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegistrationPage />} />

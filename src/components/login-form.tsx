@@ -51,8 +51,7 @@ export function LoginForm({
       localStorage.setItem('omniUserToken', data.key);
       toast('Successfully Logged In')
 
-      // Redirect to the desired page
-      navigate("/"); // Replace "/dashboard" with your desired route
+      navigate("/");
     })
   }
   return (
