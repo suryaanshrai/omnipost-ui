@@ -1,14 +1,11 @@
 
 import { UserCircle } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 import useAuthContext from '@/contexts/authContext';
 
-
-
-
 interface UserCardProps {
   className?: string;
+  date?: string;
 }
 
 function UserCard({ className, date="" }: UserCardProps) {

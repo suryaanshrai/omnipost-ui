@@ -10,10 +10,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import conf from "@/conf"
-import useResponseHandler from "@/hooks/useResponseHandler"
+import handleApiResponse from '@/lib/handle-api-response';
 import { toast } from "sonner"
 import useAuthContext from "@/contexts/authContext"
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router";
 
 export function LoginForm({
   className,
@@ -40,7 +40,7 @@ export function LoginForm({
         password: password,
       }),
     })
-    .then(res => useResponseHandler(res))
+    .then(res => handleApiResponse(res))
     .then(data => {
       if (data.invalid) return;
 

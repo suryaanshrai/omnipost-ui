@@ -1,13 +1,28 @@
-name: Publish image to Docker Hub
+name: Build, check, and publish image
 
 on:
   push:
     branches: ["main"]
 
 jobs:
-  docker:
+  verify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  docker:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -23,6 +38,12 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: .
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: suryaanshrai515/omnipost-ui:latest
+          # :latest stays for compatibility with existing docker-compose.yml
+          # setups; the SHA tag gives a concrete rollback target that :latest
+          # alone never provided.
+          tags: |
+            suryaanshrai515/omnipost-ui:latest
+            suryaanshrai515/omnipost-ui:${{ github.sha }}

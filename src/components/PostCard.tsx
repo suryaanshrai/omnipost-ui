@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import conf from "@/conf";
-import useResponseHandler from "@/hooks/useResponseHandler";
+import handleApiResponse from '@/lib/handle-api-response';
 import ReactPlayer from 'react-player';
 import { Clock, Bell, Loader2, AlertCircle, MessageSquare } from 'lucide-react';
 import { FaInstagram, FaFacebook, FaLinkedin, FaGlobe } from 'react-icons/fa';
+import type { Post, PostNotification } from '@/types';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,10 +18,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function PostCard({ post }) {
-  const [notifications, setNotifications] = useState([]);
+export default function PostCard({ post }: { post: Post }) {
+  const [notifications, setNotifications] = useState<PostNotification[]>([]);
   const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
-  const [errorNotifications, setErrorNotifications] = useState(null);
+  const [errorNotifications, setErrorNotifications] = useState<string | null>(null);
 
   const fetchNotifications = async () => {
     if (!post || !post.id || !post.post_type) {
@@ -33,7 +34,7 @@ export default function PostCard({ post }) {
 
     try {
       const queryParams = new URLSearchParams({
-        post_id: post.id,
+        post_id: String(post.id),
         post_type: post.post_type,
       }).toString();
       const response = await fetch(`${conf.api_url}/notifications?${queryParams}`, {
@@ -42,7 +43,7 @@ export default function PostCard({ post }) {
           "Authorization": `Token ${localStorage.getItem("omniUserToken")}`,
         },
       });
-      const data = await useResponseHandler(response);
+      const data = await handleApiResponse(response);
       if (data.invalid || !response.ok) {
         const errorMsg = data.text || data.message || "Failed to fetch notifications.";
         toast.error(errorMsg);
@@ -68,12 +69,12 @@ export default function PostCard({ post }) {
       return <img src={post.image_url} alt={post.caption || "Post image"} className="max-h-60 w-auto object-contain rounded-md mx-auto my-4" />;
     }
     if (post.post_type === "VIDEO" && post.video_url) {
-      return <div className="my-4 mx-auto max-w-full aspect-video"><ReactPlayer url={post.video_url} controls width="100%" height="100%" wrapper="div" /></div>;
+      return <div className="my-4 mx-auto max-w-full aspect-video"><ReactPlayer url={post.video_url} controls width="100%" height="100%" /></div>;
     }
     return null;
   };
 
-  const getPlatformIcon = (platformName) => {
+  const getPlatformIcon = (platformName: string) => {
     switch (platformName.toLowerCase()) {
       case 'instagram':
         return <FaInstagram className="mr-1 text-pink-500" />;
@@ -87,7 +88,7 @@ export default function PostCard({ post }) {
   };
 
 
-  var publishedPlatforms = [];
+  const publishedPlatforms: string[] = [];
   const Platforms = post.post_configs ? Object.keys(post.post_configs) : [];
   for (const platform of Platforms) {
     if (post.post_configs[platform].POST_ID) {

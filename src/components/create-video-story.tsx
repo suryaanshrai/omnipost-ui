@@ -6,6 +6,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
+import { Upload } from "lucide-react"
 
 export default function CreateVideoStory() {
   const [image, setImage] = useState<string | null>(null)
@@ -70,7 +71,8 @@ export default function CreateVideoStory() {
         </CardContent>
         <div>
             <div className="px-6">
-          <Button className="bg-pink-500 hover:bg-pink-600 w-full">Create Draft</Button>
+          {/* Video stories aren't wired to the API yet — see the composer revamp roadmap. */}
+          <Button className="bg-pink-500 hover:bg-pink-600 w-full" disabled>Create Draft (Coming soon)</Button>
                 </div>
         </div>
       </Card>

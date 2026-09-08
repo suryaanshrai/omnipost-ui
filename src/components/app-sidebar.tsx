@@ -8,10 +8,10 @@ import {
   SidebarHeader,
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
-import { Grid2X2Check, ListTodo, LogOut, MessageCircleHeart, Pen, User } from "lucide-react"
+import { Grid2X2Check, ListTodo, LogOut, MessageCircleHeart, Pen } from "lucide-react"
 import UserCard from "./user-card"
 import { useEffect, useState } from "react"
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog"
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog"
 import useComponentContext from "@/contexts/componentContext"
 import { Link, useNavigate } from "react-router"
 import { Button } from "./ui/button"
@@ -22,17 +22,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [dateTime, setDateTime] = useState("");
 
   useEffect(()=> {
-    setInterval(()=> {
+    const interval = setInterval(()=> {
       setDateTime(new Date().toLocaleString("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "2-digit",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",  
+        second: "2-digit",
         hour12: true,
       }))
     }, 1000);
+    return () => clearInterval(interval);
   }, [])
   
   const { createPostDialog, openCreatePostDialog, closeCreatePostDialog } = useComponentContext();

@@ -7,12 +7,8 @@ import {
 } from "@/components/ui/sidebar"
 import './App.css'
 import { ModeToggle } from "./components/mode-toggle"
-import { Outlet, useNavigate } from "react-router"
+import { Outlet } from "react-router"
 import ComponentProvider from "./contexts/componentProvider"
-import AuthProvider from "./contexts/authProvider"
-import { Toaster } from "@/components/ui/sonner"
-import { useEffect } from "react"
-import useAuthContext from "./contexts/authContext"
 
 function App() {
   return (

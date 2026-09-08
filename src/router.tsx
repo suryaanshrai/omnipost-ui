@@ -1,4 +1,4 @@
-import {BrowserRouter, Routes, Route, useNavigate} from 'react-router';
+import {BrowserRouter, Routes, Route} from 'react-router';
 import App from './App';
 import Home from './pages/Home';
 import CreateImagePost from './components/create-image-post';
@@ -8,19 +8,17 @@ import CreateTextPost from './components/create-text-post';
 import CreateImageStory from './components/create-image-story';
 import CreateShortVideoPost from './components/create-short-video-post';
 import LoginPage from './pages/Login';
-import { RegistrationForm } from './components/registration-form';
 import NotFoundPage from './pages/NotFound';
 import RegistrationPage from './pages/Register';
-import { useEffect } from 'react';
-import useAuthContext from './contexts/authContext';
 import Instance from './pages/Instance';
 import Drafts from './pages/Drafts';
+import RequireAuth from './components/require-auth';
 
 export default function OmniRouter() {
     return (
         <BrowserRouter>
             <Routes>
-                <Route path="" element={<App />}>
+                <Route path="" element={<RequireAuth><App /></RequireAuth>}>
                     <Route path="/" element={<Home />} />
                     <Route path="/post-image" element={<CreateImagePost />} />
                     <Route path="/post-image-story" element={<CreateImageStory />} />

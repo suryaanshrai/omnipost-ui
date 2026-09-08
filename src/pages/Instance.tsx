@@ -1,10 +1,11 @@
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import conf from '@/conf'
-import useResponseHandler from '@/hooks/useResponseHandler'
+import handleApiResponse from '@/lib/handle-api-response';
 import { useEffect, useState } from 'react'
 import { FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa'
 import { toast } from 'sonner'
+import type { PlatformInstance } from '@/types'
 
 function Instance() {
   const [access_token, setAccessToken] = useState("")
@@ -13,7 +14,7 @@ function Instance() {
   const [linkedinUrn, setLinkedUrn] = useState("")
   const [facebookId, setFacebookId] = useState("")
   const [password, setPassword] = useState("")
-  const [instances, setInstances] = useState<{ platform_name: string; instance_name: string }[]>([])
+  const [instances, setInstances] = useState<PlatformInstance[]>([])
 
   useEffect(() => {
     fetch(`${conf.api_url}/platform_instance/`, {
@@ -21,8 +22,8 @@ function Instance() {
         "Authorization": `Token ${localStorage.getItem("omniUserToken")}`,
       },
     })
-      .then(res => res.json())
-      .then(data => setInstances(data))
+      .then((res) => handleApiResponse(res))
+      .then(data => setInstances(Array.isArray(data) ? data : []))
       .catch(() => setInstances([]))
   }, [])
 
@@ -40,7 +41,7 @@ function Instance() {
       },
       body: JSON.stringify({credentials:{ ACCESS_TOKEN: access_token, IG_ID: instagram_id }, platform_id:1, password:password, instance_name:instanceName}),
     })
-    .then((res) => useResponseHandler(res))
+    .then((res) => handleApiResponse(res))
     .then((data) => {
       if (data.invalid) {
         toast.error(data.text)
@@ -70,7 +71,7 @@ function Instance() {
       },
       body: JSON.stringify({credentials:{ ACCESS_TOKEN: access_token, PAGE_ID: facebookId }, platform_id:3, password:password, instance_name:instanceName}),
     })
-    .then((res) => useResponseHandler(res))
+    .then((res) => handleApiResponse(res))
     .then((data) => {
       if (data.invalid) {
         toast.error(data.text)
@@ -98,7 +99,7 @@ function Instance() {
       },
       body: JSON.stringify({credentials:{ ACCESS_TOKEN: access_token, AUTHOR_URN: linkedinUrn }, platform_id:2, password:password, instance_name:instanceName}),
     })
-    .then((res) => useResponseHandler(res))
+    .then((res) => handleApiResponse(res))
     .then((data) => {
       if (data.invalid) {
         toast.error(data.text)
@@ -106,7 +107,7 @@ function Instance() {
       }
       toast.success("LinkedIn Instance Created Successfully")
       setAccessToken("")
-      setFacebookId("")
+      setLinkedUrn("")
       setInstanceName("")
       setPassword("")
     })
@@ -196,7 +197,7 @@ function Instance() {
       <hr className='w-full' />
       <h2 className='mt-5'>Your Instances</h2>
       <div className="flex flex-col items-center gap-2 mt-4">
-        {!instances && <span className="text-gray-400">No instances found.</span>}
+        {instances.length === 0 && <span className="text-gray-400">No instances found.</span>}
         {instances.map((inst, idx) => (
           <div key={idx} className="flex items-center border rounded px-4 py-2 w-full max-w-md bg-zinc-900">
             {getPlatformIcon(inst.platform)}

@@ -1,39 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import conf from '@/conf';
-import useResponseHandler from '@/hooks/useResponseHandler';
+import handleApiResponse from '@/lib/handle-api-response';
 import { toast } from 'sonner';
-import DraftCard from '@/components/DraftCard'; // Adjust path if needed
+import DraftCard from '@/components/DraftCard';
 import { Loader2 } from 'lucide-react';
-
-// You can move this interface to a central types file if you prefer
-// export interface PostConfigDetail {
-//   CAPTION?: string;
-//   IMAGE_URL?: string;
-//   TEXT?: string;
-//   VIDEO_URL?: string;
-// }
-
-// export interface PostConfigs {
-//   Facebook: PostConfigDetail;
-//   LinkedIn: PostConfigDetail;
-//   Instagram: PostConfigDetail;
-// }
-
-// export interface Draft {
-//   id: number;
-//   user_id: number;
-//   created_at: string;
-//   post_configs: PostConfigs;
-//   schedule: string | null;
-//   published: boolean;
-//   caption?: string;
-//   text?: string;
-//   image?: string;
-//   image_url?: string;
-//   video?: string; // Add if your API returns this for video posts
-//   video_url?: string; // Add if your API returns this for video posts
-//   post_type: "IMAGE" | "TEXT" | "VIDEO"; // Add "VIDEO" if applicable
-// }
+import type { Draft } from '@/types';
 
 function Drafts() {
   const [drafts, setDrafts] = useState<Draft[]>([]);
@@ -50,7 +21,7 @@ function Drafts() {
           "Authorization": `Token ${localStorage.getItem("omniUserToken")}`,
         },
       });
-      const data = await useResponseHandler(response);
+      const data = await handleApiResponse(response);
 
       if (data.invalid || !response.ok) {
         toast.error(data.text || data.message || "Failed to fetch drafts.");

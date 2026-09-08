@@ -2,21 +2,32 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent } from "@/components/ui/card"
-import { Facebook, Instagram, Linkedin, Twitter, Upload } from "lucide-react"
+import { Upload, X } from "lucide-react"
 import { DateTimePicker } from "./ui/datetime-picker"
 import { toast } from "sonner"
 import conf from "@/conf"
-import useResponseHandler from "@/hooks/useResponseHandler"
+import handleApiResponse from '@/lib/handle-api-response';
 
-export default function CreateImagePost() {
+export default function CreateVideoPost() {
 
   const [text, setText] = useState("")
   const [image, setImage] = useState<File | null>(null)
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null)
   const [scheduleDateTime, setScheduleDateTime] = useState<Date | undefined>(undefined)
+
+  useEffect(() => {
+    if (!image) {
+      setVideoPreviewUrl(null)
+      return
+    }
+    const url = URL.createObjectURL(image)
+    setVideoPreviewUrl(url)
+    return () => URL.revokeObjectURL(url)
+  }, [image])
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault()
@@ -40,7 +51,7 @@ export default function CreateImagePost() {
         },
         body: formData
     })
-    .then((res) => useResponseHandler(res))
+    .then((res) => handleApiResponse(res))
     .then(data => {
       if (data.invalid) {
         toast.error(data.text)
@@ -52,8 +63,8 @@ export default function CreateImagePost() {
       setScheduleDateTime(undefined)
     })
   }
-  const handleImageUpload = (e) => {
-    setImage(e.target.files[0]);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImage(e.target.files?.[0] ?? null);
   };
 
   return (
@@ -67,24 +78,38 @@ export default function CreateImagePost() {
         <CardContent className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-md p-6 min-h-[200px]">
-              {image ? (
+              {image && videoPreviewUrl ? (
                 <div className="relative w-full h-[200px]">
+                  <video
+                    src={videoPreviewUrl}
+                    controls
+                    className="w-full h-full object-contain rounded-md"
+                  />
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="icon"
+                    className="absolute top-1 right-1 h-7 w-7"
+                    onClick={() => setImage(null)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center text-muted-foreground">
                   <Upload className="h-10 w-10 mb-2" />
                   <p>Video</p>
-                  
-                  <label htmlFor="image-upload" className="mt-2">
-                    <Button variant="outline" size="sm" className="cursor-pointer">
-                      Upload
-                      <input
-                    type="file"
-                    accept="video/*"
-                    placeholder="none"                    
-                    id="image-upload"
-                    onChange={handleImageUpload}
-                  />
+
+                  <label htmlFor="video-upload" className="mt-2">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      id="video-upload"
+                      className="hidden"
+                      onChange={handleImageUpload}
+                    />
+                    <Button variant="outline" size="sm" className="cursor-pointer" asChild>
+                      <span>Upload</span>
                     </Button>
                   </label>
                 </div>

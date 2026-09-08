@@ -1,15 +1,16 @@
 import conf from "@/conf"
 import useAuthContext from "@/contexts/authContext"
-import useResponseHandler from "@/hooks/useResponseHandler"
+import handleApiResponse from '@/lib/handle-api-response';
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom" // Changed from "react-router"
+import { useNavigate } from "react-router"
 import { toast } from "sonner"
-import PostCard from "@/components/PostCard" // Import PostCard
+import PostCard from "@/components/PostCard"
+import type { Post } from "@/types"
 
 export default function Home() {
   const {toggleSignedIn, updateUser} = useAuthContext()
   const navigate = useNavigate()
-  const [posts, setPosts] = useState([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [isLoadingPosts, setIsLoadingPosts] = useState(false)
   const [errorPosts, setErrorPosts] = useState<string | null>(null)
 
@@ -24,7 +25,7 @@ export default function Home() {
           Authorization: `Token ${token}`,
         },
       })
-      .then((res) => useResponseHandler(res))
+      .then((res) => handleApiResponse(res))
       .then(data => {
         if (data.invalid) {
           localStorage.removeItem("omniUserToken")
@@ -47,7 +48,7 @@ export default function Home() {
             Authorization: `Token ${token}`,
           },
         })
-        .then((res) => useResponseHandler(res))
+        .then((res) => handleApiResponse(res))
         .then(postData => {
           if (postData.invalid) {
             toast.error(postData.text || postData.message || "Failed to fetch posts.")
@@ -90,7 +91,7 @@ export default function Home() {
       {!isLoadingPosts && !errorPosts && posts.length === 0 && <p>No posts to display.</p>}
       <div className="flex flex-col items-center">
         {posts.map(post => (
-          <PostCard key={(post as any).id} post={post} />
+          <PostCard key={post.id} post={post} />
         ))}
       </div>
     </div>

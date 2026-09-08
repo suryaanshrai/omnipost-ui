@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AuthContext } from './authContext';
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 const AuthProvider = ({children}: {children: ReactNode}) => {
     const [user, setUser] = useState("");

@@ -4,9 +4,9 @@ export const AuthContext = createContext({
     user: "",
     signedIn: false,
     token: "",
-    updateUser: (user: string) => {},
-    toggleSignedIn: (signedIn: boolean) => {},
-    updateToken: (token: string) => {},
+    updateUser: (_user: string) => {},
+    toggleSignedIn: (_signedIn: boolean) => {},
+    updateToken: (_token: string) => {},
 });
 
 export default function useAuthContext() {

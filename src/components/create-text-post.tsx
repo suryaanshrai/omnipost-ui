@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { DateTimePicker } from "./ui/datetime-picker"
 import { toast } from "sonner"
 import conf from "@/conf"
-import useResponseHandler from "@/hooks/useResponseHandler"
+import handleApiResponse from '@/lib/handle-api-response';
 
 export default function CreateTextPost() {
   const [text, setText] = useState("")
@@ -25,7 +25,7 @@ export default function CreateTextPost() {
       },
       body: JSON.stringify({ content:text, schedule:scheduleDateTime, post_type:"TEXT" }),
     })
-    .then((res) => useResponseHandler(res))
+    .then((res) => handleApiResponse(res))
     .then((data) => {
       if (data.invalid) {
         toast.error(data.message)

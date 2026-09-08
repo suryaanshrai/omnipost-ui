@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import conf from "@/conf";
-import useResponseHandler from "@/hooks/useResponseHandler";
+import handleApiResponse from '@/lib/handle-api-response';
 import ReactPlayer from 'react-player';
-// import { Draft } from '@/pages/Drafts'; // Adjust path if you put Draft interface elsewhere
+import type { Draft, PlatformInstance } from '@/types';
 import { Clock, Edit3, Send, Trash2, Loader2 } from 'lucide-react';
 import { Checkbox } from "@/components/ui/checkbox";
 import { FaInstagram, FaFacebook, FaLinkedin } from 'react-icons/fa';
@@ -20,25 +20,17 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 
+interface DraftCardProps {
+  draft: Draft;
+  onPublishSuccess: (draftId: number) => void;
+}
 
-// interface DraftCardProps {
-//   draft;
-//   onPublishSuccess: (draftId: number) => void;
-// }
-
-// interface PlatformInstance {
-//   id: number;
-//   platform: string;
-//   instance_name: string;
-// }
-
-export default function DraftCard({ draft, onPublishSuccess }) {
+export default function DraftCard({ draft, onPublishSuccess }: DraftCardProps) {
   const [isPublishing, setIsPublishing] = useState(false);
-  const [platformInstances, setPlatformInstances] = useState([]);
+  const [platformInstances, setPlatformInstances] = useState<PlatformInstance[]>([]);
   const [selectedInstances, setSelectedInstances] = useState<number[]>([]);
   const [isLoadingInstances, setIsLoadingInstances] = useState(true);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -53,7 +45,7 @@ export default function DraftCard({ draft, onPublishSuccess }) {
             "Authorization": `Token ${localStorage.getItem("omniUserToken")}`,
           },
         });
-        const data = await useResponseHandler(response);
+        const data = await handleApiResponse(response);
         if (data.invalid || !response.ok) {
           toast.error(data.text || "Failed to fetch platform instances.");
           setPlatformInstances([]);
@@ -111,7 +103,7 @@ export default function DraftCard({ draft, onPublishSuccess }) {
         }),
       });
 
-      const data = await useResponseHandler(response);
+      const data = await handleApiResponse(response);
       setPasswordInput(""); // Clear password input
 
       if (data.invalid || !response.ok) {
@@ -135,7 +127,7 @@ export default function DraftCard({ draft, onPublishSuccess }) {
       return <img src={draft.image_url} alt={draft.caption || "Draft image"} className="max-h-48 w-auto object-contain rounded-md mx-auto" />;
     }
     if (draft.post_type === "VIDEO" && draft.video_url) { // Assuming video_url for video posts
-      return <ReactPlayer url={draft.video_url} controls width="100%" height="auto" wrapper="div" style={{ maxHeight: '200px', margin: 'auto' }} />;
+      return <ReactPlayer url={draft.video_url} controls width="100%" height="auto" style={{ maxHeight: '200px', margin: 'auto' }} />;
     }
     return null;
   };
