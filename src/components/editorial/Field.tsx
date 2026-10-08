@@ -11,51 +11,65 @@ export default function Field({
   errors,
   hint,
   className,
-  multiline,
   ...props
-}: {
-  label: ReactNode
-  errors?: string[]
-  hint?: ReactNode
-  className?: string
-  multiline?: boolean
-} & ComponentPropsWithoutRef<"input"> &
-  Pick<ComponentPropsWithoutRef<"textarea">, "rows">) {
+}: { label: ReactNode; errors?: string[]; hint?: ReactNode; className?: string } & ComponentPropsWithoutRef<"input">) {
   const generated = useId()
   const id = props.id ?? generated
-  const errorId = `${id}-error`
   const invalid = !!errors?.length
-
   return (
     <div className={cn("flex flex-col", className)}>
       <label htmlFor={id} className="eyebrow">
         {label}
       </label>
-      {multiline ? (
-        <textarea
-          id={id}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? errorId : undefined}
-          className={cn(CONTROL, "resize-y leading-[1.6]", invalid && "border-rust")}
-          {...(props as ComponentPropsWithoutRef<"textarea">)}
-        />
-      ) : (
-        <input
-          id={id}
-          aria-invalid={invalid || undefined}
-          aria-describedby={invalid ? errorId : undefined}
-          className={cn(CONTROL, invalid && "border-rust")}
-          {...props}
-        />
-      )}
-      {hint && !invalid && <p className="mt-2 text-[12px] text-ink-45">{hint}</p>}
-      {invalid && (
-        <p id={errorId} className="mt-2 text-[12px] leading-[1.5] text-rust">
-          {errors!.join(" ")}
-        </p>
-      )}
+      <input
+        id={id}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? `${id}-error` : undefined}
+        className={cn(CONTROL, invalid && "border-rust")}
+        {...props}
+      />
+      <FieldNote id={id} hint={hint} errors={errors} />
     </div>
   )
+}
+
+/** The same treatment for a multi-line textarea. */
+export function TextareaField({
+  label,
+  errors,
+  hint,
+  className,
+  ...props
+}: { label: ReactNode; errors?: string[]; hint?: ReactNode; className?: string } & ComponentPropsWithoutRef<"textarea">) {
+  const generated = useId()
+  const id = props.id ?? generated
+  const invalid = !!errors?.length
+  return (
+    <div className={cn("flex flex-col", className)}>
+      <label htmlFor={id} className="eyebrow">
+        {label}
+      </label>
+      <textarea
+        id={id}
+        aria-invalid={invalid || undefined}
+        aria-describedby={invalid ? `${id}-error` : undefined}
+        className={cn(CONTROL, "resize-y leading-[1.6]", invalid && "border-rust")}
+        {...props}
+      />
+      <FieldNote id={id} hint={hint} errors={errors} />
+    </div>
+  )
+}
+
+function FieldNote({ id, hint, errors }: { id: string; hint?: ReactNode; errors?: string[] }) {
+  if (errors?.length) {
+    return (
+      <p id={`${id}-error`} className="mt-2 text-[12px] leading-[1.5] text-rust">
+        {errors.join(" ")}
+      </p>
+    )
+  }
+  return hint ? <p className="mt-2 text-[12px] text-ink-45">{hint}</p> : null
 }
 
 /** Same rule-and-eyebrow treatment for a native <select>. */

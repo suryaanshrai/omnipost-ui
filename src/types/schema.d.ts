@@ -1215,6 +1215,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * @description Read-only publish history. `?post=` backs the Posts screen's
+         *     per-post delivery log (one request per expanded post, instead of
+         *     paging through every attempt in the workspace to match target ids
+         *     client-side); `?post_target=` narrows to one target.
+         */
         get: operations["publish_attempts_list"];
         put?: never;
         post?: never;
@@ -1231,6 +1237,12 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /**
+         * @description Read-only publish history. `?post=` backs the Posts screen's
+         *     per-post delivery log (one request per expanded post, instead of
+         *     paging through every attempt in the workspace to match target ids
+         *     client-side); `?post_target=` narrows to one target.
+         */
         get: operations["publish_attempts_retrieve"];
         put?: never;
         post?: never;
@@ -1581,6 +1593,36 @@ export interface components {
         };
         /** @enum {unknown} */
         BlankEnum: "";
+        /**
+         * @description One PostTarget as the calendar draws it: the target plus just enough
+         *     of its parent post (kind, text, status) to label the entry, so the
+         *     calendar doesn't need a second request per post to say what's going out.
+         */
+        CalendarEntry: {
+            readonly id: number;
+            post: number;
+            channel: number;
+            format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
+            text_override?: string;
+            media?: number[];
+            readonly parts: components["schemas"]["PostTargetPart"][];
+            readonly status: components["schemas"]["PostTargetStatusEnum"];
+            /** Format: date-time */
+            run_at?: string | null;
+            readonly remote_id: string;
+            /** Format: uri */
+            readonly permalink: string;
+            /** Format: date-time */
+            readonly published_at: string | null;
+            readonly epoch: number;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly updated_at: string;
+            readonly post_kind: string;
+            readonly post_text: string;
+            readonly post_status: string;
+        };
         Channel: {
             readonly id: number;
             workspace: number;
@@ -1782,6 +1824,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["BlackoutWindow"][];
+        };
+        PaginatedCalendarEntryList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["CalendarEntry"][];
         };
         PaginatedChannelList: {
             /** @example 123 */
@@ -2635,6 +2692,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3046,6 +3105,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3194,6 +3255,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3388,6 +3451,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3561,6 +3626,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3759,6 +3826,10 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only this post's targets. */
+                post?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -3832,6 +3903,10 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Comma-separated statuses, e.g. `draft,failed`. */
+                status?: string;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -4185,7 +4260,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PaginatedPostTargetList"];
+                    "application/json": components["schemas"]["PaginatedCalendarEntryList"];
                 };
             };
         };
@@ -4222,6 +4297,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -4370,6 +4447,10 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only attempts for this post's targets. */
+                post?: number;
+                /** @description Only attempts for this target. */
+                post_target?: number;
             };
             header?: never;
             path?: never;
@@ -4412,10 +4493,14 @@ export interface operations {
     queue_slots_list: {
         parameters: {
             query?: {
+                /** @description Only this channel's slots. */
+                channel?: number;
                 /** @description Number of results to return per page. */
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -4564,6 +4649,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;
@@ -4737,6 +4824,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
             };
             header?: never;
             path?: never;

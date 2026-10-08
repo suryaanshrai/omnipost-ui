@@ -1,26 +1,29 @@
-import {BrowserRouter, Routes, Route, Navigate} from 'react-router';
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router';
 import App from './App';
-import Home from './pages/Home';
-import CreateImagePost from './components/create-image-post';
-import CreateVideoPost from './components/create-video-post';
-import CreateVideoStory from './components/create-video-story';
-import CreateTextPost from './components/create-text-post';
-import CreateImageStory from './components/create-image-story';
-import CreateShortVideoPost from './components/create-short-video-post';
-import Auth from './pages/Auth';
-import NotFoundPage from './pages/NotFound';
-import Instance from './pages/Instance';
-import Drafts from './pages/Drafts';
-import Landing from './pages/Landing';
-import OAuthCallback from './pages/OAuthCallback';
 import RequireAuth from './components/require-auth';
+import Auth from './pages/Auth';
+import Drafts from './pages/Drafts';
+import Instance from './pages/Instance';
+import Landing from './pages/Landing';
+import NotFoundPage from './pages/NotFound';
+import OAuthCallback from './pages/OAuthCallback';
 import Placeholder from './pages/Placeholder';
+import Posts from './pages/Posts';
 
-// Landing owns "/" (Phase B); the authenticated app lives under /app/*
-// (Phase D onward gives it its own visual pass — for now these are the
-// same screens that used to hang off the bare "/", just remounted here).
-// The old bare paths still work as redirects, so an existing bookmark or a
-// stale link doesn't 404.
+// The six retired composer pages, mapped to the compose modal's kinds —
+// both their /app/post-* and their original bare /post-* paths redirect to
+// /app?compose=<kind>, which opens the modal at step two.
+const COMPOSER_REDIRECTS: [string, string][] = [
+    ['post-text', 'text'],
+    ['post-image', 'image'],
+    ['post-image-story', 'story'],
+    ['post-video', 'video'],
+    ['post-video-story', 'story'],
+    ['post-short-video', 'short_video'],
+];
+
+// Landing owns "/"; the authenticated app lives under /app/*. Old bare
+// paths still redirect so an existing bookmark or a stale link doesn't 404.
 export default function OmniRouter() {
     return (
         <BrowserRouter>
@@ -31,26 +34,20 @@ export default function OmniRouter() {
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
                 <Route path="/app" element={<RequireAuth><App /></RequireAuth>}>
-                    <Route index element={<Home />} />
+                    <Route index element={<Posts />} />
                     <Route path="drafts" element={<Drafts />} />
                     <Route path="connections" element={<Instance />} />
                     <Route path="calendar" element={<Placeholder eyebrow="Schedule" title="Calendar" />} />
                     <Route path="analytics" element={<Placeholder eyebrow="Performance" title="Analytics" />} />
                     <Route path="settings" element={<Placeholder eyebrow="Workspace" title="Settings" />} />
-                    <Route path="post-image" element={<CreateImagePost />} />
-                    <Route path="post-image-story" element={<CreateImageStory />} />
-                    <Route path="post-video" element={<CreateVideoPost />} />
-                    <Route path="post-video-story" element={<CreateVideoStory />} />
-                    <Route path="post-text" element={<CreateTextPost />} />
-                    <Route path="post-short-video" element={<CreateShortVideoPost />} />
+                    {COMPOSER_REDIRECTS.map(([path, kind]) => (
+                        <Route key={path} path={path} element={<Navigate to={`/app?compose=${kind}`} replace />} />
+                    ))}
                 </Route>
 
-                <Route path="/post-image" element={<Navigate to="/app/post-image" replace />} />
-                <Route path="/post-image-story" element={<Navigate to="/app/post-image-story" replace />} />
-                <Route path="/post-video" element={<Navigate to="/app/post-video" replace />} />
-                <Route path="/post-video-story" element={<Navigate to="/app/post-video-story" replace />} />
-                <Route path="/post-text" element={<Navigate to="/app/post-text" replace />} />
-                <Route path="/post-short-video" element={<Navigate to="/app/post-short-video" replace />} />
+                {COMPOSER_REDIRECTS.map(([path, kind]) => (
+                    <Route key={path} path={`/${path}`} element={<Navigate to={`/app?compose=${kind}`} replace />} />
+                ))}
                 <Route path="/instance" element={<Navigate to="/app/connections" replace />} />
                 <Route path="/drafts" element={<Navigate to="/app/drafts" replace />} />
 

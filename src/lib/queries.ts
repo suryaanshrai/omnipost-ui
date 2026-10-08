@@ -4,7 +4,7 @@
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch, type Page } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
-import type { Channel, Connector, Post, UserDetails } from "@/types/api"
+import type { Channel, Connector, MediaAsset, Post, UserDetails } from "@/types/api"
 
 /** Count of posts in the active workspace with a given status — the nav badges. */
 export function usePostCount(status: string, enabled = true) {
@@ -48,4 +48,14 @@ export function useChannelMap() {
   const map = new Map<number, Channel>()
   for (const c of channels.data ?? []) map.set(c.id, c)
   return { ...channels, map }
+}
+
+/** One MediaAsset by id (Post.base_media is ids only). Dimensions fill in asynchronously after upload. */
+export function useMediaAsset(id: number | undefined) {
+  return useQuery({
+    queryKey: ["media", id],
+    queryFn: () => apiFetch<MediaAsset>(`/media/${id}/`),
+    enabled: id != null,
+    staleTime: 60_000,
+  })
 }
