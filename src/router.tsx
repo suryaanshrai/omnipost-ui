@@ -14,6 +14,7 @@ import Drafts from './pages/Drafts';
 import Landing from './pages/Landing';
 import OAuthCallback from './pages/OAuthCallback';
 import RequireAuth from './components/require-auth';
+import Placeholder from './pages/Placeholder';
 
 // Landing owns "/" (Phase B); the authenticated app lives under /app/*
 // (Phase D onward gives it its own visual pass — for now these are the
@@ -33,6 +34,9 @@ export default function OmniRouter() {
                     <Route index element={<Home />} />
                     <Route path="drafts" element={<Drafts />} />
                     <Route path="connections" element={<Instance />} />
+                    <Route path="calendar" element={<Placeholder eyebrow="Schedule" title="Calendar" />} />
+                    <Route path="analytics" element={<Placeholder eyebrow="Performance" title="Analytics" />} />
+                    <Route path="settings" element={<Placeholder eyebrow="Workspace" title="Settings" />} />
                     <Route path="post-image" element={<CreateImagePost />} />
                     <Route path="post-image-story" element={<CreateImageStory />} />
                     <Route path="post-video" element={<CreateVideoPost />} />

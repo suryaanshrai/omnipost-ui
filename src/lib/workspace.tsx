@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import type { Workspace } from "@/types/api"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { PrimaryButton } from "@/components/editorial/Buttons"
+import Field from "@/components/editorial/Field"
+import Wordmark from "@/components/editorial/Wordmark"
 
 const ACTIVE_WORKSPACE_KEY = "omniActiveWorkspaceId"
 
@@ -77,8 +78,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-page text-ink-55 text-sm">
-        Loading your workspace…
+      <div className="flex min-h-screen items-center justify-center bg-page">
+        <span className="eyebrow">Loading your workspace…</span>
       </div>
     )
   }
@@ -109,10 +110,6 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// A plain, functional prompt rather than the design's editorial treatment —
-// the shell it lives inside (App.tsx) doesn't get its visual pass until
-// Phase D. It's built on the same tokenized shadcn components everything
-// else uses, so it's already on-palette even before that pass.
 function NoWorkspace({
   onCreate,
   isCreating,
@@ -132,23 +129,32 @@ function NoWorkspace({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-page px-6">
-      <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
-        <h1 className="font-display text-3xl text-ink">Name your workspace</h1>
-        <p className="text-sm text-ink-55">
+    <div className="flex min-h-screen flex-col justify-between bg-page px-4 py-8 text-ink sm:px-12 sm:py-11">
+      <Wordmark />
+      <form onSubmit={handleSubmit} className="rise-in flex w-full max-w-[420px] flex-col">
+        <div className="eyebrow mb-5">Step one · Workspace</div>
+        <h1 className="display text-[40px] leading-[1.02] sm:text-[46px]">
+          Name your <em className="text-rust italic">workspace</em>.
+        </h1>
+        <p className="mt-5 text-[15px] leading-[1.6] text-pretty text-ink-55">
           One workspace holds your connected channels, drafts, and posts. You can add more later.
         </p>
-        <Input
+        <Field
+          className="mt-9"
+          label="Workspace name"
           autoFocus
           placeholder="Acme Co."
           value={name}
           onChange={(e) => setName(e.target.value)}
           disabled={isCreating}
         />
-        <Button type="submit" disabled={isCreating || !name.trim()}>
+        <PrimaryButton type="submit" className="mt-9 self-start" disabled={isCreating || !name.trim()}>
           {isCreating ? "Creating…" : "Create workspace"}
-        </Button>
+        </PrimaryButton>
       </form>
+      <div className="border-t border-hair pt-5">
+        <span className="eyebrow">OmniPost · 2026</span>
+      </div>
     </div>
   )
 }
