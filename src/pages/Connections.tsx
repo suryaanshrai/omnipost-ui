@@ -13,10 +13,12 @@ import { apiFetch, ApiError } from "@/lib/api"
 import { connectorSummary } from "@/lib/connectors"
 import { platformHue, platformTint } from "@/lib/platforms"
 import { useChannels, useConnectors } from "@/lib/queries"
+import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector } from "@/types/api"
 
 export default function Connections() {
+  const eyebrow = useSectionEyebrow("/app/connections", "Accounts")
   const connectors = useConnectors()
   const channels = useChannels()
   const [connecting, setConnecting] = useState<Connector | null>(null)
@@ -40,7 +42,7 @@ export default function Connections() {
 
   return (
     <div className="max-w-[900px]">
-      <SectionHeader eyebrow="04 · Accounts" title="Connections" aside="Official APIs" />
+      <SectionHeader eyebrow={eyebrow} title="Connections" aside="Official APIs" />
 
       {connectors.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {connectors.isError && <p className="mt-10 text-[14px] text-rust">Could not load the platform list.</p>}

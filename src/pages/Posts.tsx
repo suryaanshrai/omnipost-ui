@@ -11,6 +11,7 @@ import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue } from "@/lib/posts"
 import { useChannelMap, usePostCount } from "@/lib/queries"
+import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { Channel, Post, PostTarget, PublishAttempt } from "@/types/api"
@@ -28,6 +29,7 @@ function postStamp(post: Post): string {
 }
 
 export default function Posts() {
+  const eyebrow = useSectionEyebrow("/app", "Published")
   const { activeWorkspace } = useWorkspace()
   const { map: channels } = useChannelMap()
 
@@ -57,7 +59,7 @@ export default function Posts() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow="01 · Published" title="Your posts" aside={`${published.data ?? 0} published`} />
+      <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
 
       {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {query.isError && (

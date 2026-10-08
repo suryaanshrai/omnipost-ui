@@ -83,3 +83,10 @@ const HEALTH_LABELS: Record<ChannelHealth, string> = {
 export function healthLabel(health: ChannelHealth): string {
   return HEALTH_LABELS[health]
 }
+
+/**
+ * Connectors whose fetch_metrics() is implemented server-side. Every other
+ * connector reports nothing to Analytics — say so rather than draw zeros.
+ * Keep in step with omnipost-api's connectors/platforms/*.fetch_metrics.
+ */
+export const METRICS_CONNECTORS = new Set(["bluesky", "mastodon"])

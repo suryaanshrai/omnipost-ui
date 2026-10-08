@@ -23,7 +23,10 @@ export function targetSpecsFor(
     const spec: PostTargetWrite = { channel }
     if (prev?.format) spec.format = prev.format
     if (prev?.media?.length) spec.media = prev.media
-    const text = overrides && channel in overrides ? overrides[channel] : prev?.text_override
+    // `overrides`, when given, is the whole truth (the composer's editor —
+    // a channel missing from it was reset to the main post on purpose);
+    // without it, keep whatever the target already had.
+    const text = overrides ? overrides[channel] : prev?.text_override
     if (text) spec.text_override = text
     return spec
   })

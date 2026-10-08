@@ -7,6 +7,7 @@ import { useCompose } from "@/components/compose/compose-context"
 import { useTheme } from "@/components/theme-provider"
 import useAuthContext from "@/contexts/authContext"
 import { apiFetch, setToken } from "@/lib/api"
+import { navItems } from "@/lib/nav"
 import { useMe, usePostCount } from "@/lib/queries"
 import { formatClock } from "@/lib/format"
 import { useWorkspace } from "@/lib/workspace"
@@ -43,15 +44,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const drafts = usePostCount("draft")
   const inReview = usePostCount("in_review", approvals)
 
-  const items = [
-    { to: "/app", label: "Posts", end: true },
-    { to: "/app/drafts", label: "Drafts", badge: drafts.data },
-    ...(approvals ? [{ to: "/app/approvals", label: "Approvals", badge: inReview.data }] : []),
-    { to: "/app/calendar", label: "Calendar" },
-    { to: "/app/connections", label: "Connections" },
-    { to: "/app/analytics", label: "Analytics" },
-    { to: "/app/settings", label: "Settings" },
-  ]
+  const badges: Record<string, number | undefined> = {
+    "/app/drafts": drafts.data,
+    "/app/approvals": inReview.data,
+  }
+  const items = navItems(approvals).map((item) => ({ ...item, badge: badges[item.to] }))
 
   const username = me.data?.username ?? ""
 

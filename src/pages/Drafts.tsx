@@ -13,12 +13,14 @@ import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue, targetSpecsFor } from "@/lib/posts"
 import { useChannels, useConnectors } from "@/lib/queries"
+import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
 
 const EDITABLE = new Set(["draft", "failed"])
 
 export default function Drafts() {
+  const eyebrow = useSectionEyebrow("/app/drafts", "Waiting")
   const { activeWorkspace } = useWorkspace()
   const channels = useChannels()
   const connectors = useConnectors()
@@ -35,7 +37,7 @@ export default function Drafts() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow="02 · Waiting" title="Drafts" aside={`${list.length} waiting`} />
+      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${list.length} waiting`} />
 
       {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {drafts.isError && (

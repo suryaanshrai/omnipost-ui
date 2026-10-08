@@ -3,6 +3,7 @@ import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
+import Block from "@/components/app/Block"
 import HealthDot from "@/components/app/HealthDot"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
@@ -11,6 +12,7 @@ import SectionHeader from "@/components/editorial/SectionHeader"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { healthLabel } from "@/lib/connectors"
 import { formatStamp, timezoneOptions, WEEKDAYS } from "@/lib/format"
+import { useSectionEyebrow } from "@/lib/nav"
 import { useConnectors } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
@@ -21,6 +23,7 @@ export default function ChannelDetail() {
   const channelId = Number(id)
   const { activeWorkspace } = useWorkspace()
   const connectors = useConnectors()
+  const eyebrow = useSectionEyebrow("/app/connections", "Accounts")
 
   const channel = useQuery({
     queryKey: ["channel", channelId],
@@ -32,7 +35,7 @@ export default function ChannelDetail() {
   if (channel.isError || !channel.data || channel.data.workspace !== activeWorkspace.id) {
     return (
       <div className="max-w-[760px]">
-        <SectionHeader eyebrow="04 · Accounts" title="Channel not found" />
+        <SectionHeader eyebrow={eyebrow} title="Channel not found" />
         <p className="mt-8 text-[15px] text-ink-55">
           It may have been removed, or it belongs to another workspace.{" "}
           <Link to="/app/connections" className="text-ink underline underline-offset-4 hover:text-rust">
@@ -70,18 +73,6 @@ export default function ChannelDetail() {
       <BestTimesBlock channel={ch} />
       <DangerBlock channel={ch} />
     </div>
-  )
-}
-
-function Block({ title, aside, children }: { title: string; aside?: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-14">
-      <div className="flex items-end justify-between border-b border-hair pb-4">
-        <h2 className="eyebrow text-ink">{title}</h2>
-        {aside && <span className="eyebrow">{aside}</span>}
-      </div>
-      <div className="mt-6">{children}</div>
-    </section>
   )
 }
 
