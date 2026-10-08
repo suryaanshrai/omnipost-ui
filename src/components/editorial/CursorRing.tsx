@@ -23,6 +23,9 @@ export default function CursorRing() {
     if (!finePointer || reducedMotion) return
 
     const onMove = (e: MouseEvent) => {
+      // Hidden until the first move, so it doesn't sit at (0,0) on load.
+      if (ringRef.current) ringRef.current.style.opacity = "1"
+      if (dotRef.current) dotRef.current.style.opacity = "1"
       if (dotRef.current) {
         dotRef.current.style.left = `${e.clientX}px`
         dotRef.current.style.top = `${e.clientY}px`
@@ -59,13 +62,13 @@ export default function CursorRing() {
         ref={ringRef}
         aria-hidden="true"
         className="pointer-events-none fixed top-0 left-0 z-[500] -ml-[15px] -mt-[15px] h-[30px] w-[30px] rounded-full border border-page transition-[transform] duration-300 ease-[cubic-bezier(.16,1,.3,1)]"
-        style={{ mixBlendMode: "difference" }}
+        style={{ mixBlendMode: "difference", opacity: 0 }}
       />
       <div
         ref={dotRef}
         aria-hidden="true"
         className="pointer-events-none fixed top-0 left-0 z-[500] -ml-[2.5px] -mt-[2.5px] h-[5px] w-[5px] rounded-full bg-page"
-        style={{ mixBlendMode: "difference" }}
+        style={{ mixBlendMode: "difference", opacity: 0 }}
       />
     </>
   )
