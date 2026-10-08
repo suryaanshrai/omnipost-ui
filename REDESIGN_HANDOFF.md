@@ -167,6 +167,52 @@ Root: `flex h-screen overflow-hidden`, FilmGrain .26, **no custom cursor**. Side
 
 ---
 
+## 4b. Phases B–G — done, pushed on `editorial-redesign`
+
+Phase map as built: B landing, C auth, D shell, E Posts/Drafts/compose, F
+Connections/OAuth callback/channel detail, G calendar/approvals/AI/analytics/settings.
+
+### omnipost-api (on top of Phase A)
+- `?workspace=` on every `WorkspaceScopedViewSet` list (narrows within the user's memberships);
+  `?post=`/`?post_target=` on `/publish-attempts/`, `?channel=` on `/queue-slots/`, `?post=` on
+  `/post-targets/`. A non-integer filter is a 400.
+- `/posts/calendar/` returns `CalendarEntry` (PostTarget + `post_kind`, `post_text`, `post_status`).
+- Local-storage media served by Django under DEBUG only (`static()` in `app/urls.py`).
+- `/oauth/complete/`: forged/stale `state` → 400; `ConnectorError` → 400 `safe_detail`; network
+  failure on start/complete → 502.
+- 271 tests pass; ruff, mypy, `makemigrations --check` clean; `schema.yml` regenerated.
+
+### omnipost-ui
+- Shared pieces: `components/editorial/{SectionHeader,Blip,Wordmark,Field,Buttons,Modal,ConfirmDialog}`,
+  `components/app/{Sidebar,ChannelChip,MediaBand,HealthDot,Block}`, `lib/{queries,format,media,posts,
+  platforms,connectors,nav,use-debounced}.ts`. Page eyebrow numbers come from `lib/nav.ts`, so they
+  shift with the sidebar when Approvals appears.
+- Drafts' channel toggles PATCH `target_specs` carrying each kept target's `format`/`text_override`/
+  `media` (`targetSpecsFor`), because the PATCH replaces every target.
+- Posts shows published/publishing/failed plus scheduled posts whose hour has come; Drafts shows
+  draft/in_review/approved plus future-scheduled.
+- Removed everything §3 listed (old composers, cards, `src/types.ts`, `handle-api-response.ts`,
+  `ui/{sidebar,skeleton,card}.tsx`, `mode-toggle.tsx`, `framer-motion`, `react-player`, `react-icons`).
+- `npm run lint`: 0 errors, 6 pre-existing warnings (fast-refresh exports, `datetime-picker` deps).
+
+### Verified, and what wasn't
+Run natively (Postgres + Redis + `runserver` + `rqworker` + Vite + Playwright on the bundled Chromium),
+not via `docker compose`. Checked: landing at 375/1280/1440 with no horizontal scroll, the rail and the
+constellation; register/login with inline errors; the shell in Day/Night with no flash on reload; no
+custom cursor under `/app`; 24 landing↔app round trips with WebGL contexts still alive; Discord
+connected by credentials; compose → Drafts → dispatch → Posts with a delivery log; LinkedIn's
+register-app → OAuth redirect; the callback's error states; queue slots, blackouts, CSV import,
+recurrence rules, approvals, settings; every app route at 375 and 1280 in both themes.
+**Not verified:** a successful publish or a completed OAuth round trip against a live platform
+(the sandbox's egress blocked them, so publishing failed and retried as designed); AI output (only the
+error path, since there was no real provider key).
+
+### Follow-ups worth a look
+- Production self-host without S3 has nothing serving `/media/` (Django only does it under DEBUG);
+  the `omnipost` compose/nginx setup needs a route to the `media-data` volume.
+- Queue-slot ghosts on the calendar are drawn in browser-local time, but slots are read in each
+  channel's own timezone (the calendar says so in a note).
+
 ## 5. Gotchas
 
 - **Windows + Git Bash + Docker:** prefix docker commands with `export MSYS_NO_PATHCONV=1` and use Windows host paths in `-v` (`-v "D:\…\omnipost-api:/app"`), or MSYS mangles `/app` into `C:/Program Files/Git/app`.
