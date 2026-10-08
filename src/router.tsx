@@ -7,9 +7,8 @@ import CreateVideoStory from './components/create-video-story';
 import CreateTextPost from './components/create-text-post';
 import CreateImageStory from './components/create-image-story';
 import CreateShortVideoPost from './components/create-short-video-post';
-import LoginPage from './pages/Login';
+import Auth from './pages/Auth';
 import NotFoundPage from './pages/NotFound';
-import RegistrationPage from './pages/Register';
 import Instance from './pages/Instance';
 import Drafts from './pages/Drafts';
 import Landing from './pages/Landing';
@@ -26,8 +25,8 @@ export default function OmniRouter() {
         <BrowserRouter>
             <Routes>
                 <Route path="/" element={<Landing />} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<RegistrationPage />} />
+                <Route path="/login" element={<Auth mode="login" />} />
+                <Route path="/register" element={<Auth mode="register" />} />
                 <Route path="/oauth/callback" element={<OAuthCallback />} />
 
                 <Route path="/app" element={<RequireAuth><App /></RequireAuth>}>
