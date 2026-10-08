@@ -1,8 +1,4 @@
-// The shared fetch layer. Replaces src/lib/handle-api-response.ts (kept
-// alongside this, for now, only because a handful of not-yet-rewritten
-// screens still import it — each phase that rewrites a screen switches its
-// calls over to apiFetch and drops that import).
-//
+// The shared fetch layer. Replaced the old src/lib/handle-api-response.ts:
 // handleApiResponse returned `any` and fired a toast from inside the fetch
 // layer itself, so every call site had to separately re-check `data.invalid`
 // after already getting a rejected promise. apiFetch<T>() is typed, throws a
@@ -67,7 +63,19 @@ function parseDrfError(status: number, body: unknown): ApiError {
     }
     return new ApiError(status, detail || `Request failed (${status})`, fieldErrors)
   }
-  return new ApiError(status, typeof body === "string" && body ? body : `Request failed (${status})`)
+  // DRF renders a bare `raise ValidationError("message")` as a JSON array
+  // of strings, not an object.
+  if (Array.isArray(body) && body.length) {
+    return new ApiError(status, body.map(String).join(" "))
+  }
+  // A non-JSON body (a proxy's or Django's HTML error page) is never shown verbatim.
+  if (typeof body === "string" && body && !/^\s*</.test(body) && body.length < 300) {
+    return new ApiError(status, body)
+  }
+  return new ApiError(
+    status,
+    status >= 500 ? `The server hit an error (${status}). Try again in a moment.` : `Request failed (${status})`
+  )
 }
 
 function isPlainBody(body: unknown): body is Record<string, unknown> {

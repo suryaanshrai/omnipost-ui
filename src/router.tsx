@@ -3,7 +3,8 @@ import App from './App';
 import RequireAuth from './components/require-auth';
 import Auth from './pages/Auth';
 import Drafts from './pages/Drafts';
-import Instance from './pages/Instance';
+import ChannelDetail from './pages/ChannelDetail';
+import Connections from './pages/Connections';
 import Landing from './pages/Landing';
 import NotFoundPage from './pages/NotFound';
 import OAuthCallback from './pages/OAuthCallback';
@@ -36,7 +37,8 @@ export default function OmniRouter() {
                 <Route path="/app" element={<RequireAuth><App /></RequireAuth>}>
                     <Route index element={<Posts />} />
                     <Route path="drafts" element={<Drafts />} />
-                    <Route path="connections" element={<Instance />} />
+                    <Route path="connections" element={<Connections />} />
+                    <Route path="connections/:id" element={<ChannelDetail />} />
                     <Route path="calendar" element={<Placeholder eyebrow="Schedule" title="Calendar" />} />
                     <Route path="analytics" element={<Placeholder eyebrow="Performance" title="Analytics" />} />
                     <Route path="settings" element={<Placeholder eyebrow="Workspace" title="Settings" />} />

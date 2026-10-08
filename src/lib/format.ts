@@ -44,3 +44,13 @@ export function pluralize(n: number, one: string, many = `${one}s`): string {
 }
 
 export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+/** Every IANA timezone the browser knows, for a timezone <datalist>. */
+export function timezoneOptions(): string[] {
+  try {
+    // ES2022 API; the app targets ES2020 lib typings.
+    return (Intl as unknown as { supportedValuesOf: (key: string) => string[] }).supportedValuesOf("timeZone")
+  } catch {
+    return []
+  }
+}
