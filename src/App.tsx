@@ -5,7 +5,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import './App.css'
 import { ModeToggle } from "./components/mode-toggle"
 import { Outlet } from "react-router"
 import ComponentProvider from "./contexts/componentProvider"

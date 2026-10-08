@@ -50,7 +50,7 @@ export function RegistrationForm({
         toggleSignedIn(true);
         localStorage.setItem("omniUserToken", data.key);
         toast("Successfully Registered");
-        navigate("/");
+        navigate("/app");
       });
   }
 

@@ -53,12 +53,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <AlertDialogHeader>
             <AlertDialogTitle>Choose a type of post to create</AlertDialogTitle>
             <AlertDialogDescription className="grid grid-cols-2">
-              <Link to="/post-text" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Text</Button></Link>
-              <Link to="/post-image" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Image</Button></Link>
-              <Link to="/post-video" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Video</Button></Link>
-              <Link to="/post-short-video" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Short Video</Button></Link>
-              <Link to="/post-image-story" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Image Story</Button></Link>
-              <Link to="/post-video-story" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Video Story</Button></Link>
+              <Link to="/app/post-text" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Text</Button></Link>
+              <Link to="/app/post-image" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Image</Button></Link>
+              <Link to="/app/post-video" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Video</Button></Link>
+              <Link to="/app/post-short-video" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Short Video</Button></Link>
+              <Link to="/app/post-image-story" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Image Story</Button></Link>
+              <Link to="/app/post-video-story" className="m-1 h-10"><Button onClick={closeCreatePostDialog} className="w-full">Video Story</Button></Link>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -67,7 +67,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </AlertDialogContent>
       </AlertDialog>
       <SidebarHeader>
-        <Link to="/">
+        <Link to="/app">
         <img src={Logo} alt="Logo" />
         </Link>
       </SidebarHeader>
@@ -77,19 +77,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Pen/> Create Post
         </SidebarMenuButton>
 
-        <Link to="/">
+        <Link to="/app">
           <SidebarMenuButton>
             <MessageCircleHeart /> Posts
           </SidebarMenuButton>
         </Link>
-        
-        <Link to="/drafts">
+
+        <Link to="/app/drafts">
         <SidebarMenuButton>
         <ListTodo /> Drafts
         </SidebarMenuButton>
         </Link>
 
-        <Link to="/instance">
+        <Link to="/app/connections">
         <SidebarMenuButton>
           <Grid2X2Check /> Instances
         </SidebarMenuButton>

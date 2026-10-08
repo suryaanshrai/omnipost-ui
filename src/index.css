@@ -1,13 +1,43 @@
+/* Self-hosted fonts (design uses a Google Fonts CDN <link>; the app ships
+   behind nginx in a Docker image, so an external font request at runtime is
+   a needless dependency and a render-blocking round trip). Weights match
+   what the design actually uses: Manrope 300–700, Instrument Serif 400
+   roman + italic (the italic carries the design's "emphasised word"). */
+@import "@fontsource/instrument-serif/400.css";
+@import "@fontsource/instrument-serif/400-italic.css";
+@import "@fontsource/manrope/300.css";
+@import "@fontsource/manrope/400.css";
+@import "@fontsource/manrope/500.css";
+@import "@fontsource/manrope/600.css";
+@import "@fontsource/manrope/700.css";
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
+/* "Editorial Dispatch" — the palette and rhythm from App v2.dc.html /
+   Landing Page v2.dc.html (Claude Design project 2d5f77c7-a090-4d77-a094-
+   ca4f9ac877d5). Bone paper, near-black ink, one rust accent; zero
+   border-radius; structure from 1px hairlines, never cards or shadows. */
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+
+  --font-display: "Instrument Serif", serif;
+  --font-sans: "Manrope", sans-serif;
+
+  --color-page: var(--page);
+  --color-ink: var(--ink);
+  --color-ink-55: var(--ink-55);
+  --color-ink-45: var(--ink-45);
+  --color-ink-38: var(--ink-38);
+  --color-hair: var(--hair);
+  --color-rust: var(--rust);
+  --color-ember: var(--ember);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -42,72 +72,99 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0px;
+
+  /* The "Day" palette (App v2.dc.html's `this.DAY`). */
+  --page: #EAE3D7;
+  --ink: #12100E;
+  --hair: rgba(18, 16, 14, .14);
+  --ink-55: rgba(18, 16, 14, .6);
+  --ink-45: rgba(18, 16, 14, .45);
+  --ink-38: rgba(18, 16, 14, .38);
+  --rust: #C4501E;
+  --ember: #E0602A;
+
+  /* shadcn/ui slots, mapped onto the palette above. Most existing
+     components (button, input, dialog, …) restyle for free from this alone
+     — no cards or shadows in the design, so --card/--popover just track
+     --page/--ink like everything else. */
+  --background: var(--page);
+  --foreground: var(--ink);
+  --card: var(--page);
+  --card-foreground: var(--ink);
+  --popover: var(--page);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--page);
+  --secondary: var(--page);
+  --secondary-foreground: var(--ink);
+  --muted: var(--page);
+  --muted-foreground: var(--ink-55);
+  --accent: var(--rust);
+  --accent-foreground: var(--page);
+  --destructive: var(--rust);
+  --border: var(--hair);
+  --input: var(--hair);
+  --ring: var(--rust);
+  --chart-1: var(--rust);
+  --chart-2: var(--ink-55);
+  --chart-3: var(--ink-38);
+  --chart-4: #1877F2;
+  --chart-5: #0A66C2;
+  --sidebar: var(--page);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--page);
+  --sidebar-accent: var(--hair);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hair);
+  --sidebar-ring: var(--rust);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* The "Night" palette (App v2.dc.html's `this.NIGHT`) — a deliberate
+     second state of the same paper-and-ink language, not a separate design
+     system. The landing page never applies this class; it is Day-only. */
+  --page: #14110D;
+  --ink: #EAE3D7;
+  --hair: rgba(234, 227, 215, .16);
+  --ink-55: rgba(234, 227, 215, .6);
+  --ink-45: rgba(234, 227, 215, .45);
+  --ink-38: rgba(234, 227, 215, .38);
+  --rust: #C4501E;
+  --ember: #E0602A;
+
+  --background: var(--page);
+  --foreground: var(--ink);
+  --card: var(--page);
+  --card-foreground: var(--ink);
+  --popover: var(--page);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--page);
+  --secondary: var(--page);
+  --secondary-foreground: var(--ink);
+  --muted: var(--page);
+  --muted-foreground: var(--ink-55);
+  --accent: var(--ember);
+  --accent-foreground: var(--page);
+  --destructive: var(--ember);
+  --border: var(--hair);
+  --input: var(--hair);
+  --ring: var(--ember);
+  --chart-1: var(--ember);
+  --chart-2: var(--ink-55);
+  --chart-3: var(--ink-38);
+  --chart-4: #1877F2;
+  --chart-5: #0A66C2;
+  --sidebar: var(--page);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--page);
+  --sidebar-accent: var(--hair);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hair);
+  --sidebar-ring: var(--ember);
 }
 
 @layer base {
@@ -117,4 +174,47 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* The two type treatments that repeat on every screen in the design: the
+   uppercase tracked-out label above a headline ("01 · Published"), and the
+   serif display headline itself. Real utility classes instead of the
+   design's per-element inline `style="font-size:9.5px; letter-spacing:..."`
+   repeated at every call site. */
+@utility eyebrow {
+  font-size: 9.5px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-45);
+}
+
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* Set by CursorRing.tsx while it's mounted (landing page only) — hides the
+   system cursor everywhere so the custom ring/dot reads as the only
+   cursor, matching Landing Page v2.dc.html's
+   `@media (pointer: fine) { * { cursor: none } }`. The component itself
+   already gates on `(pointer: fine)` and prefers-reduced-motion before
+   adding this class, so the rule can be unconditional here. */
+html.cursor-none,
+html.cursor-none * {
+  cursor: none !important;
+}
+
+/* Film-grain overlay (see src/components/editorial/FilmGrain.tsx) shares
+   this noise SVG across every mount rather than inlining the data: URI
+   per-component. */
+@utility film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.55'/></svg>");
 }

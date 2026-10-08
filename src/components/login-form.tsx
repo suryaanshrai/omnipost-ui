@@ -51,7 +51,7 @@ export function LoginForm({
       localStorage.setItem('omniUserToken', data.key);
       toast('Successfully Logged In')
 
-      navigate("/");
+      navigate("/app");
     })
   }
   return (
