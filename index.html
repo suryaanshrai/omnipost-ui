@@ -2,12 +2,31 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="/src/assets/favicon.png" />
+    <!-- Was "/src/assets/favicon.png" — an absolute dev-only path Vite
+         neither hashes nor copies into dist/, so production shipped no
+         favicon at all. Files under public/ are served verbatim at the
+         site root in both dev and the built image. -->
+    <link rel="icon" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>OmniPost</title>
     <!-- Populated at container start from $VITE_API_URL (see docker/entrypoint.sh).
          Lets the same built image be pointed at a different API without a rebuild. -->
     <script src="/config.js"></script>
+    <script>
+      // Applies the stored Day/Night choice before the React bundle loads,
+      // so a Night-mode visitor doesn't see a flash of the (very visible,
+      // paper-colored) Day background on every load. Mirrors the storage
+      // key/values ThemeProvider owns at runtime — see
+      // src/components/theme-provider.tsx.
+      (function () {
+        try {
+          var stored = localStorage.getItem("vite-ui-theme");
+          document.documentElement.classList.add(stored === "dark" ? "dark" : "light");
+        } catch (e) {
+          document.documentElement.classList.add("light");
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

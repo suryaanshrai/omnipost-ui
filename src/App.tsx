@@ -1,45 +1,59 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import './App.css'
-import { ModeToggle } from "./components/mode-toggle"
+import { useState } from "react"
 import { Outlet } from "react-router"
-import ComponentProvider from "./contexts/componentProvider"
+import Sidebar from "@/components/app/Sidebar"
+import { ComposeProvider } from "@/components/compose/ComposeProvider"
+import FilmGrain from "@/components/editorial/FilmGrain"
+import Wordmark from "@/components/editorial/Wordmark"
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { WorkspaceProvider } from "@/lib/workspace"
 
-function App() {
+/**
+ * The authenticated shell: fixed 252px sidebar + a scrolling content pane.
+ * WorkspaceProvider is mounted here (inside RequireAuth, see router.tsx)
+ * and never above the router — the anonymous landing page must not fire
+ * an authenticated /workspaces/ request. No custom cursor in here, ever.
+ */
+export default function App() {
+  const [menuOpen, setMenuOpen] = useState(false)
+  // Widening past md while the sheet is open drops straight into the docked sidebar.
+  const isMobile = useIsMobile()
+
   return (
-            <>
-    <ComponentProvider>
-    <SidebarProvider>
-      <AppSidebar />
-      <div className="flex flex-col min-h-screen w-full">
-        <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator orientation="vertical" className="mr-2 h-4" />
-            <h1
-              className="text-2xl tracking-tight italic bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 bg-clip-text text-transparent"
-              style={{ fontFamily: 'cursive' }}
-            >
-              OmniPost Dashboard
-            </h1>
-            <div className="flex-1" />
-            <ModeToggle />
-          </header>
-        </SidebarInset>
-        <main className="flex flex-col items-center justify-center flex-1 w-full py-8">
-          <Outlet />
-        </main>
-      </div>
-    </SidebarProvider>
-    </ComponentProvider>
+    <WorkspaceProvider>
+      <ComposeProvider>
+        <div className="flex h-screen flex-col overflow-hidden bg-page text-ink md:flex-row">
+          <FilmGrain opacity={0.26} />
 
-    </>
+          <aside className="hidden w-[252px] shrink-0 border-r border-hair md:block">
+            <Sidebar />
+          </aside>
+
+          {/* Below md the sidebar becomes a sheet behind a top bar. */}
+          <header className="flex items-center justify-between border-b border-hair px-4 py-4 md:hidden">
+            <Wordmark size={20} />
+            <button
+              type="button"
+              onClick={() => setMenuOpen(true)}
+              className="border border-hair px-3 py-2 text-[10px] font-bold tracking-[0.16em] uppercase"
+              aria-label="Open menu"
+            >
+              Menu
+            </button>
+          </header>
+          <Sheet open={menuOpen && isMobile} onOpenChange={setMenuOpen}>
+            <SheetContent side="left" className="w-[280px] gap-0 border-hair bg-page p-0 text-ink">
+              <SheetTitle className="sr-only">Navigation</SheetTitle>
+              <SheetDescription className="sr-only">Sections of the app, compose, and account controls.</SheetDescription>
+              <Sidebar onNavigate={() => setMenuOpen(false)} />
+            </SheetContent>
+          </Sheet>
+
+          <main className="min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-16 sm:px-8 md:px-14 md:pt-[52px] md:pb-[90px]">
+            <Outlet />
+          </main>
+        </div>
+      </ComposeProvider>
+    </WorkspaceProvider>
   )
 }
-
-export default App
