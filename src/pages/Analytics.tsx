@@ -13,6 +13,7 @@ import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, Post, PostMetric, PostPerformanceEntry, PostTarget } from "@/types/api"
+import Loading from "@/components/fx/Loading"
 
 const PAGE = 20
 
@@ -91,7 +92,7 @@ export default function Analytics() {
       {measurable.length > 0 && <p className="mt-2 text-[12px] text-ink-45">Latest snapshot per post, across the posts loaded below.</p>}
 
       <Block title="Posts">
-        {posts.isLoading && <p className="eyebrow">Loading…</p>}
+        {posts.isLoading && <Loading label="Reading the numbers" state="solving" />}
         {posts.isSuccess && list.length === 0 && <p className="text-[15px] text-ink-55">Nothing published yet.</p>}
         <ul className="-mt-6">
           {list.map((p, i) => (
@@ -201,7 +202,7 @@ function History({ target }: { target: PostTarget }) {
   const rows = history.data ?? []
   return (
     <div className="mt-3 border-l border-hair pl-5">
-      {history.isLoading && <p className="eyebrow">Loading…</p>}
+      {history.isLoading && <Loading label="Reading the history" state="solving" />}
       {rows.length > 0 && (
         <table className="w-full max-w-[520px] text-left text-[12.5px]">
           <thead>

@@ -7,6 +7,7 @@ import Wordmark from "@/components/editorial/Wordmark"
 import { apiFetch, ApiError, getToken } from "@/lib/api"
 import { OAUTH_STASH_KEY, type OAuthStash } from "@/lib/connectors"
 import type { Channel } from "@/types/api"
+import Orb from "@/components/fx/Orb"
 
 /**
  * Where a connector's OAuth redirect lands: exchanges `code` + `state` via
@@ -78,7 +79,8 @@ export default function OAuthCallback() {
           </>
         ) : (
           <>
-            <Blip className="mb-5">Connecting</Blip>
+            <Orb state="connecting" size={64} label="Linking your account" className="mb-8 -ml-2" />
+            <Blip className="mb-5" orb="connecting">Connecting</Blip>
             <h1 className="display text-[40px] leading-[1.05]">
               Linking your <em className="text-rust italic">account</em>…
             </h1>

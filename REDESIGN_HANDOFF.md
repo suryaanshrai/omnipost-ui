@@ -88,6 +88,29 @@ Buttons: primary = ink block, page text, uppercase 10.5–12.5px tracked, paddin
 - `Banner` — ink bottom-center toast (sonner reskin; keep calling `toast()`).
 - Section header pattern everywhere: eyebrow `01 · Published` above a serif h1 (~44px app / clamp(30px,3.4vw,46px) landing), count/label right-aligned in eyebrow style, hairline under it.
 
+### FX layer (libraries.dev effects)
+Effects from libraries.dev's npm packages, recoloured to the palette. Call sites use the wrappers in
+`src/components/fx/`, never the packages directly; `src/lib/fx.ts` resolves the theme (the app toggle,
+or a pinned `FxScope` — the landing is `light`, its `#14110D` bands `dark`) and the hex palette the
+libraries need.
+- `Beam` (border-beam): rewrites the colour literals in the library's generated stylesheet to
+  rust/ember (it has no colour prop). `surface="ink"` for beams on ink buttons; `overlay` whenever the
+  wrapped content holds beams of its own (the library's selectors leak into nested beams). Used on the
+  sidebar Compose, `PrimaryButton beam`, focused `Field` rules, the AI panel, dispatching posts, failed
+  deliveries, health dots, the landing nav/CTA.
+- `Orb` / `Loading` (thinking-orbs): every loading line, `pending` on Primary/Outline buttons (with an
+  `orb` state per action), the avatar ring, `Blip orb=…`, the OAuth callback.
+- `LiquidIndicator` (liquid-gooey `move`): the sidebar nav marker, the Day/Night thumb, the AI tabs.
+  `ChannelToggleGroup` gives channel chips a liquid fill; its goo only runs while a fill moves.
+- `GeneratingImage` (img-fx, lazy, pulls in three.js): AI image generation, uploads, `MediaBand`. Swaps to
+  a plain `<img>` once revealed; on software WebGL (SwiftShader/llvmpipe) it never mounts the shader —
+  it stalls the page there — and shows an orb instead.
+- `MetalCta` (metal-fx, lazy): the landing hero CTA only, gold, square, no halo.
+Glow is allowed on these effect layers only; surfaces stay radius 0 with hairline structure. Beams and
+orbs hold still under `prefers-reduced-motion` and behind an open `Modal` (its backdrop blur would
+otherwise re-run every frame). WebGL budget: metal-fx and img-fx each share one context, on top of
+Constellation's.
+
 ### Landing Page v2 (Phase B) — copy and structure
 - Fixed nav (padding 26px 40px): wordmark "OmniPost" (serif 23px) + "v1" eyebrow; right: "Pricing" link (underline grows on hover), "Sign in" → `/login`, magnetic ink "Get started" → `/register`. If a token exists, show "Dashboard" → `/app` instead of Sign in.
 - Fixed left rail (left:40px, vertically centred): 56px vertical progress line (rust fill = scroll %), then vertical-rl labels `01 Intro, 02 Craft, 03 Flow, 04 Platforms, 05 Pricing` linking `#top #craft #flow #platforms #pricing`; active one rust (section top ≤ 45% viewport).

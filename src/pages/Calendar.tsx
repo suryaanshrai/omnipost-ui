@@ -266,7 +266,7 @@ function BlackoutBlock({ channels, windows }: { channels: Channel[]; windows: Bl
           <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
         )}
         <div className="sm:col-span-2">
-          <OutlineButton type="submit" disabled={!starts || !ends || add.isPending}>
+          <OutlineButton type="submit" pending={add.isPending} disabled={!starts || !ends}>
             Add blackout
           </OutlineButton>
         </div>
@@ -414,7 +414,7 @@ function RecurrenceBlock() {
             <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
           )}
           <div className="sm:col-span-2">
-            <OutlineButton type="submit" disabled={!variants.trim() || !next || !interval || add.isPending}>
+            <OutlineButton type="submit" pending={add.isPending} disabled={!variants.trim() || !next || !interval}>
               Add recurring post
             </OutlineButton>
           </div>
@@ -470,7 +470,7 @@ function ImportBlock() {
             e.target.value = ""
           }}
         />
-        <PrimaryButton type="button" disabled={!file || upload.isPending} onClick={() => upload.mutate()}>
+        <PrimaryButton type="button" disabled={!file} pending={upload.isPending} onClick={() => upload.mutate()}>
           {upload.isPending ? "Importing…" : "Import"}
         </PrimaryButton>
       </div>

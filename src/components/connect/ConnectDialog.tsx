@@ -193,7 +193,7 @@ export default function ConnectDialog({
               Cancel
             </TextButton>
             {step !== "method" && (
-              <PrimaryButton type="submit" form="connect-form" disabled={pending || missingRequired || appCredentials.isLoading}>
+              <PrimaryButton type="submit" form="connect-form" beam pending={pending} disabled={missingRequired || appCredentials.isLoading}>
                 {pending
                   ? "One moment…"
                   : step === "app"

@@ -1,5 +1,7 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import type { ReactNode } from "react"
+import Beam from "@/components/fx/Beam"
+import { FxOverlayContext, useOverlayOpen } from "@/lib/fx"
 import { cn } from "@/lib/utils"
 
 /**
@@ -16,6 +18,7 @@ export default function Modal({
   children,
   footer,
   width = 560,
+  busy = false,
   className,
 }: {
   open: boolean
@@ -26,8 +29,11 @@ export default function Modal({
   children?: ReactNode
   footer?: ReactNode
   width?: number
+  /** Work in flight: a rust glow travels along the footer's top rule. */
+  busy?: boolean
   className?: string
 }) {
+  useOverlayOpen(open)
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
@@ -39,19 +45,28 @@ export default function Modal({
           )}
           style={{ maxWidth: width }}
         >
-          <div className="overflow-y-auto p-6 sm:p-10">
-            {eyebrow && <div className="eyebrow mb-3">{eyebrow}</div>}
-            <DialogPrimitive.Title className="display text-[32px] leading-[1.05] sm:text-[36px]">{title}</DialogPrimitive.Title>
-            {description ? (
-              <DialogPrimitive.Description className="mt-3 text-[14.5px] leading-[1.6] text-pretty text-ink-55">
-                {description}
-              </DialogPrimitive.Description>
-            ) : (
-              <DialogPrimitive.Description className="sr-only">{typeof title === "string" ? title : "Dialog"}</DialogPrimitive.Description>
+          <FxOverlayContext.Provider value={true}>
+            <div className="overflow-y-auto p-6 sm:p-10">
+              {eyebrow && <div className="eyebrow mb-3">{eyebrow}</div>}
+              <DialogPrimitive.Title className="display text-[32px] leading-[1.05] sm:text-[36px]">{title}</DialogPrimitive.Title>
+              {description ? (
+                <DialogPrimitive.Description className="mt-3 text-[14.5px] leading-[1.6] text-pretty text-ink-55">
+                  {description}
+                </DialogPrimitive.Description>
+              ) : (
+                <DialogPrimitive.Description className="sr-only">{typeof title === "string" ? title : "Dialog"}</DialogPrimitive.Description>
+              )}
+              {children && <div className="mt-7">{children}</div>}
+            </div>
+            {footer && (
+              <>
+                <Beam size="line" active={busy} duration={2.4}>
+                  <div className="h-px bg-hair" />
+                </Beam>
+                <div className="flex items-center justify-between gap-4 px-6 py-5 sm:px-10">{footer}</div>
+              </>
             )}
-            {children && <div className="mt-7">{children}</div>}
-          </div>
-          {footer && <div className="flex items-center justify-between gap-4 border-t border-hair px-6 py-5 sm:px-10">{footer}</div>}
+          </FxOverlayContext.Provider>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>

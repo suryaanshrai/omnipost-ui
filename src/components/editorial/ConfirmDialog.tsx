@@ -44,7 +44,7 @@ export default function ConfirmDialog({
             <PrimaryButton
               type="button"
               onClick={onConfirm}
-              disabled={pending}
+              pending={pending}
               className={tone === "rust" ? "bg-rust hover:bg-ink" : undefined}
             >
               {pending ? "Working…" : confirmLabel}

@@ -4,6 +4,7 @@ import MagneticLink from "@/components/editorial/MagneticLink"
 import Wordmark from "@/components/editorial/Wordmark"
 import { getToken } from "@/lib/api"
 import { cn } from "@/lib/utils"
+import Beam from "@/components/fx/Beam"
 
 export default function LandingNav() {
   const signedIn = !!getToken()
@@ -44,12 +45,15 @@ export default function LandingNav() {
             Sign in
           </Link>
         )}
-        <MagneticLink
-          as={Link}
-          to="/register"
-          className="inline-block bg-ink px-4 py-3 text-[10.5px] font-bold tracking-[0.18em] text-page uppercase transition-colors duration-300 hover:bg-rust sm:px-[26px] sm:py-[15px]"
-        >
-          Get started
+        <MagneticLink as="span" className="inline-block">
+          <Beam size="sm" surface="ink" strength={0.9} duration={2.8} className="inline-flex">
+            <Link
+              to="/register"
+              className="inline-block bg-ink px-4 py-3 text-[10.5px] font-bold tracking-[0.18em] text-page uppercase transition-colors duration-300 hover:bg-rust sm:px-[26px] sm:py-[15px]"
+            >
+              Get started
+            </Link>
+          </Beam>
         </MagneticLink>
       </div>
     </nav>

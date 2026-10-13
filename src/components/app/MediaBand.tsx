@@ -1,3 +1,4 @@
+import GeneratingImage from "@/components/fx/GeneratingImage"
 import { useMediaAsset } from "@/lib/queries"
 import { mediaUrl } from "@/lib/media"
 import { cn } from "@/lib/utils"
@@ -15,7 +16,10 @@ export default function MediaBand({ mediaId, className }: { mediaId: number | un
         (isVideo ? (
           <video src={src} className="h-full w-full object-cover" muted playsInline controls preload="metadata" />
         ) : (
-          <img src={src} alt={data.alt_text || ""} className="h-full w-full object-cover" loading="lazy" />
+          // The picture develops out of img-fx's mosaic instead of popping in.
+          <div role={data.alt_text ? "img" : undefined} aria-label={data.alt_text || undefined} className="h-full w-full">
+            <GeneratingImage src={src} preset="pixels-organic" className="h-full w-full" />
+          </div>
         ))}
     </div>
   )

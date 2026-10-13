@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { ChannelChip, ChannelToggle } from "@/components/app/ChannelChip"
+import { ChannelChip, ChannelToggle, ChannelToggleGroup } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel, useCompose } from "@/components/compose/compose-context"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import Loading from "@/components/fx/Loading"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue, targetSpecsFor } from "@/lib/posts"
@@ -39,7 +40,7 @@ export default function Drafts() {
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${list.length} waiting`} />
 
-      {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {drafts.isLoading && <Loading className="mt-10" label="Gathering your drafts" state="composing" />}
       {drafts.isError && (
         <p className="mt-10 text-[14px] text-rust">
           {drafts.error instanceof ApiError ? drafts.error.detail : "Could not load your drafts."}
@@ -188,11 +189,11 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
       <div className="eyebrow mt-7 mb-3">Publish to</div>
       {editable ? (
         eligible.length ? (
-          <div className="flex flex-wrap gap-2">
+          <ChannelToggleGroup>
             {eligible.map((c) => (
               <ChannelToggle key={c.id} channel={c} selected={selected.includes(c.id)} onToggle={() => toggle(c.id)} />
             ))}
-          </div>
+          </ChannelToggleGroup>
         ) : (
           <p className="text-[13.5px] text-ink-55">
             No connected channel takes {kindLabel(post.kind).toLowerCase()} posts.{" "}
@@ -218,7 +219,7 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
         ) : (
           <>
             {canDispatch && (
-              <PrimaryButton type="button" onClick={() => setConfirm("dispatch")} disabled={busy || selected.length === 0}>
+              <PrimaryButton type="button" beam onClick={() => setConfirm("dispatch")} disabled={busy || selected.length === 0}>
                 {future ? "Schedule" : "Dispatch now"}
               </PrimaryButton>
             )}

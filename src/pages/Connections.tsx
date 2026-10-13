@@ -16,6 +16,7 @@ import { useChannels, useConnectors } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector } from "@/types/api"
+import Loading from "@/components/fx/Loading"
 
 export default function Connections() {
   const eyebrow = useSectionEyebrow("/app/connections", "Accounts")
@@ -44,7 +45,7 @@ export default function Connections() {
     <div className="max-w-[900px]">
       <SectionHeader eyebrow={eyebrow} title="Connections" aside="Official APIs" />
 
-      {connectors.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {connectors.isLoading && <Loading className="mt-10" label="Finding connectors" state="connecting" />}
       {connectors.isError && <p className="mt-10 text-[14px] text-rust">Could not load the platform list.</p>}
 
       <div>

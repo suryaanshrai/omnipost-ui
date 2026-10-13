@@ -161,7 +161,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
           hint="The queue never places two posts on this channel closer than this."
         />
         <div className="sm:col-span-2">
-          <PrimaryButton type="submit" disabled={!dirty || save.isPending}>
+          <PrimaryButton type="submit" pending={save.isPending} disabled={!dirty}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>
           {error && !error.fieldErrors.timezone && !error.fieldErrors.min_gap_minutes && (

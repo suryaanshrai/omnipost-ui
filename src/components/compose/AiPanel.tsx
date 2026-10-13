@@ -1,4 +1,8 @@
 import { useState } from "react"
+import Beam from "@/components/fx/Beam"
+import GeneratingImage from "@/components/fx/GeneratingImage"
+import LiquidIndicator from "@/components/fx/LiquidIndicator"
+import Orb, { type OrbState } from "@/components/fx/Orb"
 import type { Dispatch, SetStateAction } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
@@ -32,6 +36,14 @@ export interface AiPanelProps {
 }
 
 type Tab = "variants" | "repurpose" | "image" | "alt"
+
+/** The generated-image stage takes the shape the image will have. */
+const ASPECT_BOX: Record<AspectRatio, string> = {
+  square_1x1: "aspect-square w-[220px]",
+  portrait_4x5: "aspect-[4/5] w-[200px]",
+  vertical_9x16: "aspect-[9/16] w-[150px]",
+  landscape_16x9: "aspect-video w-full max-w-[360px]",
+}
 
 const ASPECTS: { value: AspectRatio; label: string }[] = [
   { value: "square_1x1", label: "Square 1:1" },
@@ -70,6 +82,10 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
   const [aspect, setAspect] = useState<AspectRatio>("square_1x1")
   const [variantFindings, setVariantFindings] = useState<Record<number, ValidateFinding[]>>({})
   const [error, setError] = useState<string | null>(null)
+  // The image stage: `run` remounts the mosaic per generation; `asset` is what it dissolves into.
+  const [stage, setStage] = useState<{ run: number; aspect: AspectRatio; asset: MediaAsset | null } | null>(null)
+  const [tablist, setTablist] = useState<HTMLElement | null>(null)
+  const [activeTab, setActiveTab] = useState<HTMLElement | null>(null)
 
   const usage = useQuery({
     queryKey: ["ai-usage", activeWorkspace.id],
@@ -129,6 +145,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
   })
 
   const image = useMutation({
+    onMutate: () => setStage((s) => ({ run: (s?.run ?? 0) + 1, aspect, asset: null })),
     mutationFn: () =>
       apiFetch<MediaAsset>("/ai/images/", {
         method: "POST",
@@ -136,10 +153,14 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
       }),
     onSuccess: (asset) => {
       setError(null)
+      setStage((s) => (s ? { ...s, asset } : s))
       onMedia((prev) => [...prev, asset])
       refreshUsage()
     },
-    onError: (err) => setError(aiError(err)),
+    onError: (err) => {
+      setStage(null)
+      setError(aiError(err))
+    },
   })
 
   const altText = useMutation({
@@ -161,215 +182,255 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
     { id: "alt", label: "Alt text", show: media.some((m) => m.kind === "image") },
   ]
   const pending = variants.isPending || repurpose.isPending || image.isPending || altText.isPending
+  const working: OrbState = variants.isPending
+    ? "composing"
+    : repurpose.isPending
+      ? "weaving"
+      : image.isPending
+        ? "shaping"
+        : altText.isPending
+          ? "searching"
+          : "breathing"
   const overrideChannels = channels.filter((c) => overrides[c.id] != null)
 
   return (
-    <div className="border border-hair">
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
-      >
-        <span className="eyebrow text-ink">✳ Draft with AI</span>
-        <span className="eyebrow">
-          {open ? quotaLabel(usage.data?.ai_text_generation, "this month") ?? "—" : overrideChannels.length ? `${overrideChannels.length} per-channel` : "Open"}
-        </span>
-      </button>
+    // Open, the panel breathes a rust glow inside its rule; while the model works the beam travels the border.
+    <Beam overlay size={pending ? "md" : "pulse-inner"} active={open} strength={pending ? 0.9 : 0.6}>
+      <div className="border border-hair bg-page">
+        <button
+          type="button"
+          aria-expanded={open}
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left"
+        >
+          <span className="inline-flex items-center gap-2.5">
+            <Orb state={working} size={20} label={pending ? "Working" : undefined} />
+            <span className="eyebrow text-ink">Draft with AI</span>
+          </span>
+          <span className="eyebrow">
+            {open ? quotaLabel(usage.data?.ai_text_generation, "this month") ?? "—" : overrideChannels.length ? `${overrideChannels.length} per-channel` : "Open"}
+          </span>
+        </button>
 
-      {open && (
-        <div className="border-t border-hair px-4 pt-4 pb-5">
-          <div role="tablist" className="flex gap-6 border-b border-hair">
-            {tabs
-              .filter((t) => t.show)
-              .map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === t.id}
-                  onClick={() => {
-                    setTab(t.id)
-                    setError(null)
-                  }}
-                  className={cn(
-                    "-mb-px border-b pb-2.5 text-[10px] font-bold tracking-[0.16em] uppercase",
-                    tab === t.id ? "border-rust text-ink" : "border-transparent text-ink-45 hover:text-ink"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-          </div>
-
-          <div className="mt-5 flex flex-col gap-5">
-            {(tab === "variants" || tab === "repurpose") && (voices.data?.length ?? 0) > 0 && (
-              <SelectField label="Voice" value={voice || String(voiceId ?? "")} onChange={(e) => setVoice(e.target.value)}>
-                <option value="">No voice profile</option>
-                {voices.data!.map((v) => (
-                  <option key={v.id} value={v.id}>
-                    {v.name}
-                  </option>
-                ))}
-              </SelectField>
-            )}
-
-            {tab === "variants" && (
-              <>
-                <TextareaField
-                  label="Brief"
-                  rows={2}
-                  placeholder={text ? "Leave empty to work from the post above" : "What's the post about?"}
-                  value={brief}
-                  onChange={(e) => setBrief(e.target.value)}
-                />
-                <div>
-                  <OutlineButton
+        {open && (
+          <div className="border-t border-hair px-4 pt-4 pb-5">
+            <div ref={setTablist} role="tablist" className="relative flex gap-6 border-b border-hair">
+              <LiquidIndicator
+                container={tablist}
+                target={activeTab}
+                shape={(r) => ({ x: r.x, y: r.y + r.h - 2, w: r.w, h: 3 })}
+                blur={1.5}
+              />
+              {tabs
+                .filter((t) => t.show)
+                .map((t) => (
+                  <button
+                    key={t.id}
+                    ref={tab === t.id ? setActiveTab : undefined}
                     type="button"
-                    onClick={() => variants.mutate()}
-                    disabled={pending || channels.length === 0 || !(brief.trim() || text.trim())}
+                    role="tab"
+                    aria-selected={tab === t.id}
+                    onClick={() => {
+                      setTab(t.id)
+                      setError(null)
+                    }}
+                    className={cn(
+                      "relative z-10 -mb-px pb-2.5 text-[10px] font-bold tracking-[0.16em] uppercase",
+                      tab === t.id ? "text-ink" : "text-ink-45 hover:text-ink"
+                    )}
                   >
-                    {variants.isPending ? "Writing…" : "Write a version per channel"}
-                  </OutlineButton>
-                  {channels.length === 0 && <p className="mt-2 text-[12px] text-ink-45">Pick channels below first.</p>}
-                </div>
-              </>
-            )}
+                    {t.label}
+                  </button>
+                ))}
+            </div>
 
-            {tab === "repurpose" && (
-              <>
-                <TextareaField
-                  label="Source"
-                  rows={3}
-                  placeholder="Paste text or a URL — leave empty to rework the post above"
-                  value={source}
-                  onChange={(e) => setSource(e.target.value)}
-                />
-                <OutlineButton
-                  type="button"
-                  className="self-start"
-                  onClick={() => repurpose.mutate()}
-                  disabled={pending || !(source.trim() || text.trim())}
-                >
-                  {repurpose.isPending ? "Reworking…" : "Repurpose"}
-                </OutlineButton>
-                {repurposed && (
-                  <ul className="flex flex-col gap-4">
-                    {Object.entries(repurposed).map(([fmt, out]) => {
-                      const targets = channels.filter((c) => c.connector_slug === fmt)
-                      return (
-                        <li key={fmt} className="border-l border-hair pl-4">
-                          <span className="eyebrow">{fmt.replace(/_/g, " ")}</span>
-                          <p className="mt-1 text-[13.5px] leading-[1.6] whitespace-pre-line">{out || "—"}</p>
-                          {out && (
-                            <div className="mt-2 flex gap-5">
-                              <TextButton type="button" onClick={() => onText(out)}>
-                                Use as the post
-                              </TextButton>
-                              {targets.length > 0 && (
-                                <TextButton
-                                  type="button"
-                                  tone="muted"
-                                  onClick={() =>
-                                    onOverrides((prev) => ({ ...prev, ...Object.fromEntries(targets.map((c) => [c.id, out])) }))
-                                  }
-                                >
-                                  Use for {targets.map((c) => c.display_name).join(", ")}
-                                </TextButton>
-                              )}
-                            </div>
-                          )}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                )}
-              </>
-            )}
-
-            {tab === "image" && (
-              <>
-                <Field label="Describe the image" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
-                <SelectField label="Shape" value={aspect} onChange={(e) => setAspect(e.target.value as AspectRatio)}>
-                  {ASPECTS.map((a) => (
-                    <option key={a.value} value={a.value}>
-                      {a.label}
+            <div className="mt-5 flex flex-col gap-5">
+              {(tab === "variants" || tab === "repurpose") && (voices.data?.length ?? 0) > 0 && (
+                <SelectField label="Voice" value={voice || String(voiceId ?? "")} onChange={(e) => setVoice(e.target.value)}>
+                  <option value="">No voice profile</option>
+                  {voices.data!.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name}
                     </option>
                   ))}
                 </SelectField>
-                <div className="flex items-center gap-4">
-                  <OutlineButton type="button" onClick={() => image.mutate()} disabled={pending || !prompt.trim()}>
-                    {image.isPending ? "Generating…" : "Generate image"}
+              )}
+
+              {tab === "variants" && (
+                <>
+                  <TextareaField
+                    label="Brief"
+                    rows={2}
+                    placeholder={text ? "Leave empty to work from the post above" : "What's the post about?"}
+                    value={brief}
+                    onChange={(e) => setBrief(e.target.value)}
+                  />
+                  <div>
+                    <OutlineButton
+                      type="button"
+                      onClick={() => variants.mutate()}
+                      pending={variants.isPending}
+                      orb="composing"
+                      disabled={pending || channels.length === 0 || !(brief.trim() || text.trim())}
+                    >
+                      {variants.isPending ? "Writing…" : "Write a version per channel"}
+                    </OutlineButton>
+                    {channels.length === 0 && <p className="mt-2 text-[12px] text-ink-45">Pick channels below first.</p>}
+                  </div>
+                </>
+              )}
+
+              {tab === "repurpose" && (
+                <>
+                  <TextareaField
+                    label="Source"
+                    rows={3}
+                    placeholder="Paste text or a URL — leave empty to rework the post above"
+                    value={source}
+                    onChange={(e) => setSource(e.target.value)}
+                  />
+                  <OutlineButton
+                    type="button"
+                    className="self-start"
+                    onClick={() => repurpose.mutate()}
+                    pending={repurpose.isPending}
+                    orb="weaving"
+                    disabled={pending || !(source.trim() || text.trim())}
+                  >
+                    {repurpose.isPending ? "Reworking…" : "Repurpose"}
                   </OutlineButton>
-                  <span className="eyebrow">{quotaLabel(usage.data?.ai_image_generation, "images")}</span>
-                </div>
-              </>
-            )}
+                  {repurposed && (
+                    <ul className="flex flex-col gap-4">
+                      {Object.entries(repurposed).map(([fmt, out]) => {
+                        const targets = channels.filter((c) => c.connector_slug === fmt)
+                        return (
+                          <li key={fmt} className="border-l border-hair pl-4">
+                            <span className="eyebrow">{fmt.replace(/_/g, " ")}</span>
+                            <p className="mt-1 text-[13.5px] leading-[1.6] whitespace-pre-line">{out || "—"}</p>
+                            {out && (
+                              <div className="mt-2 flex gap-5">
+                                <TextButton type="button" onClick={() => onText(out)}>
+                                  Use as the post
+                                </TextButton>
+                                {targets.length > 0 && (
+                                  <TextButton
+                                    type="button"
+                                    tone="muted"
+                                    onClick={() =>
+                                      onOverrides((prev) => ({ ...prev, ...Object.fromEntries(targets.map((c) => [c.id, out])) }))
+                                    }
+                                  >
+                                    Use for {targets.map((c) => c.display_name).join(", ")}
+                                  </TextButton>
+                                )}
+                              </div>
+                            )}
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </>
+              )}
 
-            {tab === "alt" && (
-              <ul className="flex flex-col gap-4">
-                {media
-                  .filter((m) => m.kind === "image")
-                  .map((m) => (
-                    <li key={m.id} className="grid grid-cols-[56px_1fr] gap-3">
-                      <img src={mediaUrl(m.file)} alt="" className="h-14 w-14 border border-hair object-cover" />
-                      <div>
-                        <p className="text-[13px] leading-[1.5] text-ink-55">{m.alt_text || "No alt text yet."}</p>
-                        <TextButton type="button" className="mt-1.5" onClick={() => altText.mutate(m)} disabled={pending}>
-                          {altText.isPending && altText.variables?.id === m.id ? "Describing…" : m.alt_text ? "Rewrite" : "Write alt text"}
-                        </TextButton>
-                      </div>
-                    </li>
+              {tab === "image" && (
+                <>
+                  <Field label="Describe the image" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+                  <SelectField label="Shape" value={aspect} onChange={(e) => setAspect(e.target.value as AspectRatio)}>
+                    {ASPECTS.map((a) => (
+                      <option key={a.value} value={a.value}>
+                        {a.label}
+                      </option>
+                    ))}
+                  </SelectField>
+                  <div className="flex items-center gap-4">
+                    <OutlineButton type="button" onClick={() => image.mutate()} disabled={pending || !prompt.trim()} pending={image.isPending} orb="shaping">
+                      {image.isPending ? "Generating…" : "Generate image"}
+                    </OutlineButton>
+                    <span className="eyebrow">{quotaLabel(usage.data?.ai_image_generation, "images")}</span>
+                  </div>
+                  {stage && (
+                    <div>
+                      <GeneratingImage
+                        key={stage.run}
+                        src={stage.asset ? mediaUrl(stage.asset.file) : undefined}
+                        preset="pixels-organic"
+                        className={cn(ASPECT_BOX[stage.aspect], "border border-hair")}
+                      />
+                      <p className="eyebrow mt-2" aria-live="polite">
+                        {stage.asset ? "Added to the post's media" : "Generating…"}
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {tab === "alt" && (
+                <ul className="flex flex-col gap-4">
+                  {media
+                    .filter((m) => m.kind === "image")
+                    .map((m) => (
+                      <li key={m.id} className="grid grid-cols-[56px_1fr] gap-3">
+                        <img src={mediaUrl(m.file)} alt="" className="h-14 w-14 border border-hair object-cover" />
+                        <div>
+                          <p className="text-[13px] leading-[1.5] text-ink-55">{m.alt_text || "No alt text yet."}</p>
+                          <TextButton type="button" className="mt-1.5" onClick={() => altText.mutate(m)} disabled={pending}>
+                            {altText.isPending && altText.variables?.id === m.id && <Orb state="searching" size={20} className="-my-1" />}
+                            {altText.isPending && altText.variables?.id === m.id ? "Describing…" : m.alt_text ? "Rewrite" : "Write alt text"}
+                          </TextButton>
+                        </div>
+                      </li>
+                    ))}
+                </ul>
+              )}
+
+              {error && (
+                <p role="alert" className="text-[13px] leading-[1.5] text-rust">
+                  {error}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        {overrideChannels.length > 0 && (
+          <div className="border-t border-hair px-4 pt-4 pb-5">
+            <div className="eyebrow mb-4">Per-channel versions</div>
+            <div className="flex flex-col gap-5">
+              {overrideChannels.map((c) => (
+                <div key={c.id}>
+                  <TextareaField
+                    label={c.display_name}
+                    rows={3}
+                    value={overrides[c.id]}
+                    onChange={(e) => onOverrides((prev) => ({ ...prev, [c.id]: e.target.value }))}
+                  />
+                  {(variantFindings[c.id] ?? []).map((f, i) => (
+                    <p key={i} className={cn("mt-1 text-[12px]", f.blocking ? "text-rust" : "text-ink-55")}>
+                      {f.blocking ? "✕ " : "· "}
+                      {f.message}
+                    </p>
                   ))}
-              </ul>
-            )}
-
-            {error && (
-              <p role="alert" className="text-[13px] leading-[1.5] text-rust">
-                {error}
-              </p>
-            )}
+                  <TextButton
+                    type="button"
+                    tone="muted"
+                    className="mt-2"
+                    onClick={() =>
+                      onOverrides((prev) => {
+                        const next = { ...prev }
+                        delete next[c.id]
+                        return next
+                      })
+                    }
+                  >
+                    Use the main post instead
+                  </TextButton>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
-
-      {overrideChannels.length > 0 && (
-        <div className="border-t border-hair px-4 pt-4 pb-5">
-          <div className="eyebrow mb-4">Per-channel versions</div>
-          <div className="flex flex-col gap-5">
-            {overrideChannels.map((c) => (
-              <div key={c.id}>
-                <TextareaField
-                  label={c.display_name}
-                  rows={3}
-                  value={overrides[c.id]}
-                  onChange={(e) => onOverrides((prev) => ({ ...prev, [c.id]: e.target.value }))}
-                />
-                {(variantFindings[c.id] ?? []).map((f, i) => (
-                  <p key={i} className={cn("mt-1 text-[12px]", f.blocking ? "text-rust" : "text-ink-55")}>
-                    {f.blocking ? "✕ " : "· "}
-                    {f.message}
-                  </p>
-                ))}
-                <TextButton
-                  type="button"
-                  tone="muted"
-                  className="mt-2"
-                  onClick={() =>
-                    onOverrides((prev) => {
-                      const next = { ...prev }
-                      delete next[c.id]
-                      return next
-                    })
-                  }
-                >
-                  Use the main post instead
-                </TextButton>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </Beam>
   )
 }

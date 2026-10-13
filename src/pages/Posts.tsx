@@ -7,6 +7,9 @@ import { kindLabel } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import Beam from "@/components/fx/Beam"
+import Loading from "@/components/fx/Loading"
+import Orb from "@/components/fx/Orb"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue } from "@/lib/posts"
@@ -61,7 +64,7 @@ export default function Posts() {
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
 
-      {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {query.isLoading && <Loading className="mt-10" label="Gathering your posts" />}
       {query.isError && (
         <p className="mt-10 text-[14px] text-rust">
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
@@ -93,39 +96,48 @@ export default function Posts() {
 function PostEntry({ post, channels }: { post: Post; channels: Map<number, Channel> }) {
   const [open, setOpen] = useState(false)
   const anyFailed = post.targets.some((t) => t.status === "failed")
+  const dispatching = post.targets.some((t) => IN_FLIGHT.has(t.status))
 
   return (
-    <article className="border-b border-hair py-8">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="eyebrow text-rust">{kindLabel(post.kind)}</span>
-          <span className="eyebrow">{postStamp(post)}</span>
-          {(post.status === "publishing" || post.status === "scheduled") && (
-            <span className="eyebrow text-ink">· Dispatching</span>
-          )}
+    // While any target is still on its way out, a rust glow runs along the entry's bottom rule.
+    <Beam overlay size="line" active={dispatching} duration={2.6}>
+      <article className="border-b border-hair py-8">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span className="eyebrow text-rust">{kindLabel(post.kind)}</span>
+            <span className="eyebrow">{postStamp(post)}</span>
+            {(post.status === "publishing" || post.status === "scheduled") && (
+              <span className="inline-flex items-center gap-2">
+                <Orb state="connecting" size={20} />
+                <span className="eyebrow text-ink">Dispatching</span>
+              </span>
+            )}
+          </div>
+          <Beam size="pulse-inner" active={anyFailed} className="inline-flex shrink-0">
+            <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+              Delivery
+              {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
+            </OutlineButton>
+          </Beam>
         </div>
-        <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          Delivery
-          {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
-        </OutlineButton>
-      </div>
 
-      {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
+        {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
 
-      {post.base_text && (
-        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">
-          {post.base_text}
-        </p>
-      )}
+        {post.base_text && (
+          <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">
+            {post.base_text}
+          </p>
+        )}
 
-      <div className="mt-5 flex flex-wrap gap-2">
-        {post.targets.map((t) => (
-          <ChannelChip key={t.id} channel={channels.get(t.channel)} status={t.status} />
-        ))}
-      </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {post.targets.map((t) => (
+            <ChannelChip key={t.id} channel={channels.get(t.channel)} status={t.status} />
+          ))}
+        </div>
 
-      {open && <DeliveryLog post={post} channels={channels} />}
-    </article>
+        {open && <DeliveryLog post={post} channels={channels} />}
+      </article>
+    </Beam>
   )
 }
 
@@ -157,7 +169,7 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
   return (
     <div className="mt-6 border-l border-hair pl-5">
       <div className="eyebrow mb-4">Delivery log</div>
-      {attempts.isLoading && <p className="text-[13px] text-ink-45">Loading…</p>}
+      {attempts.isLoading && <Loading label="Reading the log" />}
       {attempts.isSuccess && attempts.data.length === 0 && (
         <p className="text-[13px] text-ink-45">No attempts recorded yet.</p>
       )}

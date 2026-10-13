@@ -11,6 +11,7 @@ import useAuthContext from "@/contexts/authContext"
 import { apiFetch, ApiError, setToken } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import type { Token } from "@/types/api"
+import FxScope from "@/components/fx/FxScope"
 
 type Mode = "login" | "register"
 
@@ -154,7 +155,7 @@ export default function Auth({ mode }: { mode: Mode }) {
                 {formMessage}
               </p>
             )}
-            <PrimaryButton type="submit" disabled={submitting || !username || !password} className="mt-2 self-start">
+            <PrimaryButton type="submit" beam pending={submitting} disabled={!username || !password} className="mt-2 self-start">
               {submitting ? "One moment…" : copy.submit}
             </PrimaryButton>
           </form>
@@ -168,7 +169,11 @@ export default function Auth({ mode }: { mode: Mode }) {
 
       <div className="theme-night relative hidden md:block">
         <Constellation density={0.9} className="absolute inset-0" />
-        <Blip className="pointer-events-none absolute bottom-11 left-12">Live dispatch · every channel</Blip>
+        <FxScope theme="dark">
+          <Blip orb="connecting" className="pointer-events-none absolute bottom-11 left-12">
+            Live dispatch · every channel
+          </Blip>
+        </FxScope>
       </div>
     </div>
   )

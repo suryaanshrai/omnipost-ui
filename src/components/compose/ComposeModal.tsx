@@ -3,10 +3,13 @@ import type { DragEvent, ReactNode } from "react"
 import { Link, useNavigate } from "react-router"
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { ChannelToggle } from "@/components/app/ChannelChip"
+import { ChannelToggle, ChannelToggleGroup } from "@/components/app/ChannelChip"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field, { TextareaField } from "@/components/editorial/Field"
 import HoverRow from "@/components/editorial/HoverRow"
+import GeneratingImage from "@/components/fx/GeneratingImage"
+import Loading from "@/components/fx/Loading"
+import Orb from "@/components/fx/Orb"
 import Modal from "@/components/editorial/Modal"
 import { apiFetch, ApiError } from "@/lib/api"
 import { fromLocalInput, toLocalInput } from "@/lib/format"
@@ -172,6 +175,7 @@ export default function ComposeModal({
     <Modal
       open={open}
       onOpenChange={(o) => !save.isPending && onOpenChange(o)}
+      busy={save.isPending || uploading > 0}
       eyebrow={step === 1 ? "Step one · Format" : `Step two · ${kindLabel(kind)}`}
       title={step === 1 ? "What are you posting?" : editing ? "Edit the draft" : "Write it once"}
       footer={
@@ -188,7 +192,7 @@ export default function ComposeModal({
               Cancel
             </TextButton>
             {step === 2 && (
-              <PrimaryButton type="button" onClick={() => save.mutate()} disabled={!canSave}>
+              <PrimaryButton type="button" beam onClick={() => save.mutate()} disabled={!canSave} pending={save.isPending}>
                 {save.isPending ? "Saving…" : editing ? "Save changes" : "Save draft"}
               </PrimaryButton>
             )}
@@ -228,7 +232,8 @@ export default function ComposeModal({
                       {m.kind === "video" ? (
                         <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted />
                       ) : (
-                        <img src={mediaUrl(m.file)} alt={m.alt_text || ""} className="h-full w-full object-cover" />
+                        // The upload materialises out of the mosaic rather than popping in.
+                        <GeneratingImage src={mediaUrl(m.file)} preset="pixels-mechanic" className="h-20 w-20" />
                       )}
                       <button
                         type="button"
@@ -287,9 +292,9 @@ export default function ComposeModal({
           <div>
             <div className="eyebrow mb-3">Publish to</div>
             {channels.isLoading ? (
-              <p className="text-[13px] text-ink-45">Loading channels…</p>
+              <Loading label="Loading channels" state="connecting" />
             ) : eligible.length ? (
-              <div className="flex flex-wrap gap-2">
+              <ChannelToggleGroup>
                 {eligible.map((c) => (
                   <ChannelToggle
                     key={c.id}
@@ -300,7 +305,7 @@ export default function ComposeModal({
                     }
                   />
                 ))}
-              </div>
+              </ChannelToggleGroup>
             ) : (
               <p className="text-[13.5px] text-ink-55">
                 No connected channel takes {kindLabel(kind).toLowerCase()} posts.{" "}
@@ -352,8 +357,9 @@ function Findings({
     .filter((r) => r.result && r.result.findings.length > 0)
   if (!rows.length) {
     return channels.length ? (
-      <p className="eyebrow" aria-live="polite">
-        {validating ? "Checking each channel…" : "Every selected channel accepts this."}
+      <p className="inline-flex items-center gap-3" aria-live="polite">
+        {validating && <Orb state="searching" size={20} />}
+        <span className="eyebrow">{validating ? "Checking each channel…" : "Every selected channel accepts this."}</span>
       </p>
     ) : null
   }
@@ -412,12 +418,18 @@ function Dropzone({
         onDragLeave={() => setOver(false)}
         onDrop={onDrop}
         className={cn(
-          "flex h-28 w-full flex-col items-center justify-center gap-1.5 border border-dashed text-center transition-colors",
+          "relative flex h-28 w-full flex-col items-center justify-center gap-1.5 overflow-hidden border border-dashed text-center transition-colors",
           over ? "border-rust bg-rust/[.05]" : "border-hair hover:border-ink"
         )}
       >
-        <span className="text-[13px] text-ink">{uploading ? "Uploading…" : "Drop a file, or click to choose"}</span>
-        <span className="eyebrow">{accept.replace(/\/\*/g, "").replace(",", " or ")}</span>
+        {uploading && (
+          // img-fx's diagonal "generating" sweep fills the zone while the file goes up.
+          <span aria-hidden="true" className="absolute inset-0">
+            <GeneratingImage preset="sweep-gradient" className="h-28 w-full" />
+          </span>
+        )}
+        <span className="relative text-[13px] text-ink">{uploading ? "Uploading…" : "Drop a file, or click to choose"}</span>
+        <span className="eyebrow relative">{accept.replace(/\/\*/g, "").replace(",", " or ")}</span>
       </button>
       <input
         ref={inputRef}

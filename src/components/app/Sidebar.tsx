@@ -1,8 +1,11 @@
-import { useEffect, useState } from "react"
-import { NavLink, useNavigate } from "react-router"
+import { useEffect, useLayoutEffect, useState } from "react"
+import { NavLink, useLocation, useNavigate } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
 import { SelectField } from "@/components/editorial/Field"
 import Wordmark from "@/components/editorial/Wordmark"
+import Beam from "@/components/fx/Beam"
+import LiquidIndicator from "@/components/fx/LiquidIndicator"
+import Orb from "@/components/fx/Orb"
 import { useCompose } from "@/components/compose/compose-context"
 import { useTheme } from "@/components/theme-provider"
 import useAuthContext from "@/contexts/authContext"
@@ -39,6 +42,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const navigate = useNavigate()
   const now = useClock()
   const me = useMe()
+  const location = useLocation()
 
   const approvals = !!activeWorkspace.approval_workflow_enabled
   const drafts = usePostCount("draft")
@@ -51,6 +55,19 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const items = navItems(approvals).map((item) => ({ ...item, badge: badges[item.to] }))
 
   const username = me.data?.username ?? ""
+
+  // The liquid marker in the nav gutter follows whichever row NavLink marks
+  // active; the Day/Night thumb follows the current theme's segment.
+  const [nav, setNav] = useState<HTMLElement | null>(null)
+  const [activeRow, setActiveRow] = useState<HTMLElement | null>(null)
+  useLayoutEffect(() => {
+    setActiveRow(nav?.querySelector<HTMLElement>('[aria-current="page"]') ?? null)
+  }, [nav, location.pathname, items.length])
+  const [themeSwitch, setThemeSwitch] = useState<HTMLElement | null>(null)
+  const [themeSegment, setThemeSegment] = useState<HTMLElement | null>(null)
+  useLayoutEffect(() => {
+    setThemeSegment(themeSwitch?.querySelector<HTMLElement>('[aria-pressed="true"]') ?? null)
+  }, [themeSwitch, theme])
 
   const exit = () => {
     // Best-effort server-side token revoke; the local sign-out happens regardless.
@@ -67,25 +84,33 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full flex-col px-6 pt-7 pb-6">
       <Wordmark size={21} />
 
-      <button
-        type="button"
-        onClick={() => {
-          onNavigate?.()
-          openCompose()
-        }}
-        className="mt-8 flex w-full items-center justify-between bg-ink px-5 py-[15px] text-[11px] font-bold tracking-[0.18em] text-page uppercase transition-colors duration-300 hover:bg-rust"
-      >
-        Compose <span className="text-[15px] leading-none">+</span>
-      </button>
+      <Beam size="md" surface="ink" strength={0.75} duration={3.2} className="mt-8">
+        <button
+          type="button"
+          onClick={() => {
+            onNavigate?.()
+            openCompose()
+          }}
+          className="flex w-full items-center justify-between bg-ink px-5 py-[15px] text-[11px] font-bold tracking-[0.18em] text-page uppercase transition-colors duration-300 hover:bg-rust"
+        >
+          Compose <span className="text-[15px] leading-none">+</span>
+        </button>
+      </Beam>
 
-      <nav aria-label="Primary" className="mt-8 border-t border-hair">
+      <nav ref={setNav} aria-label="Primary" className="relative mt-8 border-t border-hair">
+        <LiquidIndicator
+          container={nav}
+          target={activeRow}
+          shape={(r) => ({ x: -17, y: r.y + 12, w: 7, h: r.h - 24 })}
+          blur={3}
+        />
         {items.map((item, i) => (
           <NavLink
             key={item.to}
             to={item.to}
             end={item.end}
             onClick={onNavigate}
-            className="group grid grid-cols-[26px_1fr_auto] items-center border-b border-hair px-0.5 py-[15px]"
+            className="group relative z-10 grid grid-cols-[26px_1fr_auto] items-center border-b border-hair px-0.5 py-[15px]"
           >
             {({ isActive }) => (
               <>
@@ -115,11 +140,9 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
       <div className="border-t border-hair pt-5">
         <div className="flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full bg-rust text-[12px] font-bold text-page uppercase"
-          >
-            {username.slice(0, 1) || "·"}
+          <span aria-hidden="true" className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+            <Orb state="breathing" size={32} className="absolute inset-0" />
+            <span className="relative text-[12px] font-bold text-rust uppercase">{username.slice(0, 1) || "·"}</span>
           </span>
           <div className="min-w-0">
             <div className="truncate text-[13px] font-semibold text-ink">{username || " "}</div>
@@ -147,19 +170,39 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
           </SelectField>
         )}
 
-        <div className="mt-5 grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            aria-label={theme === "dark" ? "Switch to Day" : "Switch to Night"}
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="border border-hair py-2.5 text-[10px] font-bold tracking-[0.16em] text-ink uppercase transition-colors hover:border-rust hover:text-rust"
-          >
-            {theme === "dark" ? "Day" : "Night"}
-          </button>
+        <div
+          ref={setThemeSwitch}
+          role="group"
+          aria-label="Theme"
+          className="relative mt-5 grid grid-cols-2 border border-hair"
+        >
+          <LiquidIndicator
+            container={themeSwitch}
+            target={themeSegment}
+            fill="var(--ink)"
+            shape={(r) => ({ x: r.x + 3, y: r.y + 3, w: r.w - 6, h: r.h - 6 })}
+          />
+          {(["light", "dark"] as const).map((t) => (
+            <button
+              key={t}
+              type="button"
+              aria-pressed={theme === t}
+              onClick={() => setTheme(t)}
+              className={cn(
+                "relative z-10 py-2.5 text-[10px] font-bold tracking-[0.16em] uppercase transition-colors duration-300",
+                theme === t ? "text-page" : "text-ink-55 hover:text-rust"
+              )}
+            >
+              {t === "light" ? "Day" : "Night"}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2">
           <button
             type="button"
             onClick={exit}
-            className="border border-hair py-2.5 text-[10px] font-bold tracking-[0.16em] text-ink uppercase transition-colors hover:border-rust hover:text-rust"
+            className="w-full border border-hair py-2.5 text-[10px] font-bold tracking-[0.16em] text-ink uppercase transition-colors hover:border-rust hover:text-rust"
           >
             Exit
           </button>

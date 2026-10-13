@@ -84,6 +84,11 @@
   --rust: #C4501E;
   --ember: #E0602A;
 
+  /* The accent the libraries.dev effects (components/fx) paint with —
+     rust on paper, ember on dark. Mirrored as resolved hex in lib/fx.ts for
+     the libraries that need a colour string rather than a CSS variable. */
+  --fx-accent: var(--rust);
+
   /* shadcn/ui slots, mapped onto the palette above. Most existing
      components (button, input, dialog, …) restyle for free from this alone
      — no cards or shadows in the design, so --card/--popover just track
@@ -133,6 +138,7 @@
   --ink-38: rgba(234, 227, 215, .38);
   --rust: #C4501E;
   --ember: #E0602A;
+  --fx-accent: var(--ember);
 
   --background: var(--page);
   --foreground: var(--ink);
@@ -232,6 +238,7 @@ html.cursor-none * {
   --ink-55: rgba(18, 16, 14, .6);
   --ink-45: rgba(18, 16, 14, .45);
   --ink-38: rgba(18, 16, 14, .38);
+  --fx-accent: var(--rust);
   --background: #EAE3D7;
   --foreground: #12100E;
   background: var(--page);
@@ -247,6 +254,7 @@ html.cursor-none * {
   --ink-55: rgba(234, 227, 215, .6);
   --ink-45: rgba(234, 227, 215, .45);
   --ink-38: rgba(234, 227, 215, .38);
+  --fx-accent: var(--ember);
   background: var(--page);
   color: var(--ink);
 }

@@ -1,5 +1,6 @@
-import { useId } from "react"
+import { useId, useState } from "react"
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import Beam from "@/components/fx/Beam"
 import { cn } from "@/lib/utils"
 
 const CONTROL =
@@ -21,13 +22,15 @@ export default function Field({
       <label htmlFor={id} className="eyebrow">
         {label}
       </label>
-      <input
-        id={id}
-        aria-invalid={invalid || undefined}
-        aria-describedby={invalid ? `${id}-error` : undefined}
-        className={cn(CONTROL, invalid && "border-rust")}
-        {...props}
-      />
+      <RuleBeam>
+        <input
+          id={id}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? `${id}-error` : undefined}
+          className={cn(CONTROL, invalid && "border-rust")}
+          {...props}
+        />
+      </RuleBeam>
       <FieldNote id={id} hint={hint} errors={errors} />
     </div>
   )
@@ -49,15 +52,27 @@ export function TextareaField({
       <label htmlFor={id} className="eyebrow">
         {label}
       </label>
-      <textarea
-        id={id}
-        aria-invalid={invalid || undefined}
-        aria-describedby={invalid ? `${id}-error` : undefined}
-        className={cn(CONTROL, "resize-y leading-[1.6]", invalid && "border-rust")}
-        {...props}
-      />
+      <RuleBeam>
+        <textarea
+          id={id}
+          aria-invalid={invalid || undefined}
+          aria-describedby={invalid ? `${id}-error` : undefined}
+          className={cn(CONTROL, "block resize-y leading-[1.6]", invalid && "border-rust")}
+          {...props}
+        />
+      </RuleBeam>
       <FieldNote id={id} hint={hint} errors={errors} />
     </div>
+  )
+}
+
+/** While the control has focus, a rust glow travels along its bottom rule (border-beam's `line` type). */
+function RuleBeam({ children }: { children: ReactNode }) {
+  const [focused, setFocused] = useState(false)
+  return (
+    <Beam size="line" active={focused} strength={0.9} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}>
+      {children}
+    </Beam>
   )
 }
 
@@ -87,9 +102,11 @@ export function SelectField({
       <label htmlFor={id} className="eyebrow">
         {label}
       </label>
-      <select id={id} className={cn(CONTROL, "cursor-pointer bg-page", errors?.length && "border-rust")} {...props}>
-        {children}
-      </select>
+      <RuleBeam>
+        <select id={id} className={cn(CONTROL, "cursor-pointer bg-page", errors?.length && "border-rust")} {...props}>
+          {children}
+        </select>
+      </RuleBeam>
       {!!errors?.length && <p className="mt-2 text-[12px] text-rust">{errors.join(" ")}</p>}
     </div>
   )

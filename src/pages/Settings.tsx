@@ -120,7 +120,7 @@ function WorkspaceBlock() {
           </span>
         </label>
         <div className="sm:col-span-2">
-          <PrimaryButton type="submit" disabled={!dirty || save.isPending || !name.trim()}>
+          <PrimaryButton type="submit" pending={save.isPending} disabled={!dirty || !name.trim()}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>
           {error && !error.fieldErrors.name && !error.fieldErrors.timezone && (
@@ -294,7 +294,7 @@ function VoiceProfileForm({ profile, onDone }: { profile?: VoiceProfile; onDone:
       </label>
       {error && !Object.keys(error.fieldErrors).length && <p className="text-[13px] text-rust">{error.detail}</p>}
       <div className="flex items-center gap-6">
-        <PrimaryButton type="submit" disabled={!name.trim() || save.isPending}>
+        <PrimaryButton type="submit" pending={save.isPending} disabled={!name.trim()}>
           {save.isPending ? "Saving…" : "Save"}
         </PrimaryButton>
         <TextButton type="button" tone="muted" onClick={onDone}>
@@ -401,7 +401,7 @@ function ProviderKeysBlock() {
         />
         {error && !error.fieldErrors.api_key && <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>}
         <div className="sm:col-span-2">
-          <OutlineButton type="submit" disabled={!apiKey.trim() || add.isPending}>
+          <OutlineButton type="submit" pending={add.isPending} disabled={!apiKey.trim()}>
             {add.isPending ? "Checking the key…" : "Add key"}
           </OutlineButton>
         </div>
@@ -534,7 +534,7 @@ function NewWorkspaceBlock() {
         className="flex flex-wrap items-end gap-6"
       >
         <Field label="Name" className="min-w-[240px] flex-1" value={name} onChange={(e) => setName(e.target.value)} />
-        <OutlineButton type="submit" disabled={!name.trim() || isCreating}>
+        <OutlineButton type="submit" pending={isCreating} disabled={!name.trim()}>
           {isCreating ? "Creating…" : "Create workspace"}
         </OutlineButton>
       </form>

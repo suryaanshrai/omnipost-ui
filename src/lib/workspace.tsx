@@ -7,6 +7,7 @@ import type { Workspace } from "@/types/api"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import Wordmark from "@/components/editorial/Wordmark"
+import Loading from "@/components/fx/Loading"
 
 const ACTIVE_WORKSPACE_KEY = "omniActiveWorkspaceId"
 
@@ -79,7 +80,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-page">
-        <span className="eyebrow">Loading your workspace…</span>
+        <Loading label="Opening your workspace" state="breathing" />
       </div>
     )
   }
@@ -148,7 +149,7 @@ function NoWorkspace({
           onChange={(e) => setName(e.target.value)}
           disabled={isCreating}
         />
-        <PrimaryButton type="submit" className="mt-9 self-start" disabled={isCreating || !name.trim()}>
+        <PrimaryButton type="submit" className="mt-9 self-start" pending={isCreating} disabled={!name.trim()}>
           {isCreating ? "Creating…" : "Create workspace"}
         </PrimaryButton>
       </form>
