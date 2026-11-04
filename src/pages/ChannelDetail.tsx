@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
@@ -7,13 +7,13 @@ import Block from "@/components/app/Block"
 import HealthDot from "@/components/app/HealthDot"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
-import Field, { SelectField } from "@/components/editorial/Field"
+import Field, { SelectField, TimezoneField } from "@/components/editorial/Field"
 import SectionHeader from "@/components/editorial/SectionHeader"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { healthLabel } from "@/lib/connectors"
-import { formatStamp, timezoneOptions, WEEKDAYS } from "@/lib/format"
+import { formatStamp, WEEKDAYS } from "@/lib/format"
 import { useSectionEyebrow } from "@/lib/nav"
-import { useConnectors } from "@/lib/queries"
+import { useConnectors, useRemoveChannel } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, QueueSlot } from "@/types/api"
@@ -104,7 +104,6 @@ function SettingsBlock({ channel }: { channel: Channel }) {
   const [tz, setTz] = useState(channel.timezone ?? "")
   const [gap, setGap] = useState(String(channel.min_gap_minutes ?? 0))
   const [error, setError] = useState<ApiError | null>(null)
-  const zones = useMemo(timezoneOptions, [])
 
   useEffect(() => {
     setTz(channel.timezone ?? "")
@@ -120,7 +119,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
     onSuccess: (updated) => {
       setError(null)
       queryClient.setQueryData(["channel", channel.id], updated)
-      queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
       toast("Channel settings saved")
     },
     onError: (err) => setError(err instanceof ApiError ? err : null),
@@ -137,20 +136,14 @@ function SettingsBlock({ channel }: { channel: Channel }) {
         }}
         className="grid gap-7 sm:grid-cols-2"
       >
-        <Field
+        <TimezoneField
           label="Timezone"
-          list="omni-timezones"
           placeholder={`Workspace default (${activeWorkspace.timezone || "UTC"})`}
           value={tz}
           onChange={(e) => setTz(e.target.value)}
           errors={error?.fieldErrors.timezone}
           hint="Queue slots are read in this timezone."
         />
-        <datalist id="omni-timezones">
-          {zones.map((z) => (
-            <option key={z} value={z} />
-          ))}
-        </datalist>
         <Field
           label="Minimum gap (minutes)"
           type="number"
@@ -186,8 +179,8 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
   const [error, setError] = useState<string | null>(null)
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: key })
-    queryClient.invalidateQueries({ queryKey: ["queue-slots-all"] })
+    void queryClient.invalidateQueries({ queryKey: key })
+    void queryClient.invalidateQueries({ queryKey: ["queue-slots-all"] })
   }
 
   const add = useMutation({
@@ -242,7 +235,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(slot)}>
                 {slot.is_active ? "Pause" : "Resume"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => remove.mutate(slot)}>
+              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(slot)}>
                 Remove
               </TextButton>
             </li>
@@ -306,17 +299,7 @@ function BestTimesBlock({ channel }: { channel: Channel }) {
 function DangerBlock({ channel }: { channel: Channel }) {
   const [confirm, setConfirm] = useState(false)
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
-  const { activeWorkspace } = useWorkspace()
-  const remove = useMutation({
-    mutationFn: () => apiFetch(`/channels/${channel.id}/`, { method: "DELETE" }),
-    onSuccess: () => {
-      toast(`${channel.display_name} removed`)
-      queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
-      navigate("/app/connections", { replace: true })
-    },
-    onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not remove the channel."),
-  })
+  const remove = useRemoveChannel(() => void navigate("/app/connections", { replace: true }))
   return (
     <Block title="Remove">
       <TextButton type="button" tone="rust" onClick={() => setConfirm(true)}>
@@ -330,7 +313,7 @@ function DangerBlock({ channel }: { channel: Channel }) {
         description="Its credentials, queue slots and recurrence rules are deleted, and so is its delivery history on every post. Anything already published stays up on the platform."
         confirmLabel="Remove"
         tone="rust"
-        onConfirm={() => remove.mutate()}
+        onConfirm={() => remove.mutate(channel)}
         pending={remove.isPending}
       />
     </Block>

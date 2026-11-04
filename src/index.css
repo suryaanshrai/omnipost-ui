@@ -79,9 +79,9 @@
   --ink: #12100E;
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
-  --ink-45: rgba(18, 16, 14, .45);
-  --ink-38: rgba(18, 16, 14, .38);
-  --rust: #C4501E;
+  --ink-45: rgba(18, 16, 14, .62);
+  --ink-38: rgba(18, 16, 14, .55);
+  --rust: #A8451A; /* 4.7:1 on paper, so small rust text (errors, alerts) is readable */
   --ember: #E0602A;
 
   /* shadcn/ui slots, mapped onto the palette above. Most existing
@@ -129,9 +129,10 @@
   --ink: #EAE3D7;
   --hair: rgba(234, 227, 215, .16);
   --ink-55: rgba(234, 227, 215, .6);
-  --ink-45: rgba(234, 227, 215, .45);
-  --ink-38: rgba(234, 227, 215, .38);
-  --rust: #C4501E;
+  --ink-45: rgba(234, 227, 215, .6);
+  --ink-38: rgba(234, 227, 215, .52);
+  /* Ember on dark: the paper rust is under 4.5:1 against #14110D. */
+  --rust: #E0602A;
   --ember: #E0602A;
 
   --background: var(--page);
@@ -173,6 +174,12 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* A visible keyboard focus ring everywhere, including the borderless
+     inputs whose only focus cue used to be a 1px color change. */
+  :focus-visible {
+    outline: 2px solid var(--rust);
+    outline-offset: 2px;
   }
 }
 
@@ -230,8 +237,8 @@ html.cursor-none * {
   --ink: #12100E;
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
-  --ink-45: rgba(18, 16, 14, .45);
-  --ink-38: rgba(18, 16, 14, .38);
+  --ink-45: rgba(18, 16, 14, .62);
+  --ink-38: rgba(18, 16, 14, .55);
   --background: #EAE3D7;
   --foreground: #12100E;
   background: var(--page);
@@ -245,8 +252,8 @@ html.cursor-none * {
   --ink: #EAE3D7;
   --hair: rgba(234, 227, 215, .16);
   --ink-55: rgba(234, 227, 215, .6);
-  --ink-45: rgba(234, 227, 215, .45);
-  --ink-38: rgba(234, 227, 215, .38);
+  --ink-45: rgba(234, 227, 215, .6);
+  --ink-38: rgba(234, 227, 215, .52);
   background: var(--page);
   color: var(--ink);
 }

@@ -57,7 +57,7 @@ function ReviewEntry({ post, channels }: { post: Post; channels: Map<number, Cha
       apiFetch<Post>(`/posts/${post.id}/${decision}/`, { method: "POST" }),
     onSuccess: (_d, decision) => {
       toast(decision === "approve" ? "Approved — ready to dispatch from Drafts" : "Sent back to drafts")
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "That didn't go through."),
   })

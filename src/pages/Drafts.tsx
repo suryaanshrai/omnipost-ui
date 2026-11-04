@@ -1,43 +1,58 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ChannelChip, ChannelToggle } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel, useCompose } from "@/components/compose/compose-context"
-import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
+import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
-import { isDue, targetSpecsFor } from "@/lib/posts"
+import { targetSpecsFor } from "@/lib/posts"
 import { useChannels, useConnectors } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
+import { useHiddenPosts, useUndoableDelete } from "@/lib/undoDelete"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
 
 const EDITABLE = new Set(["draft", "failed"])
+const PAGE = 20
 
 export default function Drafts() {
   const eyebrow = useSectionEyebrow("/app/drafts", "Waiting")
   const { activeWorkspace } = useWorkspace()
   const channels = useChannels()
   const connectors = useConnectors()
+  const [search, setSearch] = useState("")
 
-  const drafts = useQuery({
-    queryKey: ["posts", activeWorkspace.id, "drafts"],
-    queryFn: () =>
-      apiFetch<Page<Post>>(`/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&limit=100`),
-    // A scheduled post that's already due is on its way out — it belongs to Posts now.
-    select: (page) => page.results.filter((p) => !(p.status === "scheduled" && isDue(p))),
+  const drafts = useInfiniteQuery({
+    queryKey: ["posts", activeWorkspace.id, "drafts", search],
+    // A scheduled post that's already due is on its way out and belongs to
+    // Posts; the server leaves those out (scheduled=upcoming).
+    queryFn: ({ pageParam }) =>
+      apiFetch<Page<Post>>(
+        `/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&scheduled=upcoming&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
+      ),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
   })
 
-  const list = drafts.data ?? []
+  const hidden = useHiddenPosts()
+  const list = (drafts.data?.pages.flatMap((p) => p.results) ?? []).filter((p) => !hidden.has(p.id))
+  const total = Math.max(0, (drafts.data?.pages[0]?.count ?? 0) - hidden.size)
+  const [picked, setPicked] = useState<number[]>([])
+  const pickable = list.filter((p) => EDITABLE.has(p.status))
+  const pick = (id: number) => setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  const pickedHere = picked.filter((id) => pickable.some((p) => p.id === id))
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${list.length} waiting`} />
+      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
+      <SearchBox label="Search your drafts" onSearch={setSearch} />
 
       {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {drafts.isError && (
@@ -46,14 +61,115 @@ export default function Drafts() {
         </p>
       )}
       {drafts.isSuccess && list.length === 0 && (
-        <p className="mt-10 text-[15px] text-ink-55">Nothing waiting. Anything you save from Compose lands here.</p>
+        <p className="mt-10 text-[15px] text-ink-55">
+          {search ? `No drafts match “${search}”.` : "Nothing waiting. Anything you save from Compose lands here."}
+        </p>
+      )}
+
+      {pickable.length > 1 && (
+        <BulkBar
+          picked={pickedHere}
+          total={pickable.length}
+          onAll={() => setPicked(pickedHere.length === pickable.length ? [] : pickable.map((p) => p.id))}
+          onDone={() => setPicked([])}
+        />
       )}
 
       {list.map((post, i) => (
         <Reveal key={post.id} delayMs={Math.min(i, 6) * 70}>
-          <DraftEntry post={post} channels={channels.data ?? []} connectors={connectors.data ?? []} />
+          <DraftEntry
+            post={post}
+            channels={channels.data ?? []}
+            connectors={connectors.data ?? []}
+            picked={pickedHere.includes(post.id)}
+            onPick={EDITABLE.has(post.status) && pickable.length > 1 ? () => pick(post.id) : undefined}
+          />
         </Reveal>
       ))}
+
+      {drafts.hasNextPage && (
+        <div className="mt-10">
+          <TextButton type="button" onClick={() => drafts.fetchNextPage()} disabled={drafts.isFetchingNextPage}>
+            {drafts.isFetchingNextPage ? "Loading…" : "More drafts"}
+          </TextButton>
+        </div>
+      )}
+    </div>
+  )
+}
+
+/** Act on several drafts at once. */
+function BulkBar({
+  picked,
+  total,
+  onAll,
+  onDone,
+}: {
+  picked: number[]
+  total: number
+  onAll: () => void
+  onDone: () => void
+}) {
+  const { activeWorkspace } = useWorkspace()
+  const queryClient = useQueryClient()
+  const remove = useUndoableDelete()
+  const queue = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const failed: string[] = []
+      for (const id of ids) {
+        try {
+          await apiFetch(`/posts/${id}/queue/`, { method: "POST" })
+        } catch (err) {
+          failed.push(err instanceof ApiError ? err.detail : "network error")
+          // A plan limit stops the rest too.
+          if (err instanceof ApiError && err.status === 402) throw err
+        }
+      }
+      return { done: ids.length - failed.length, failed }
+    },
+    onSuccess: ({ done, failed }) => {
+      if (done) toast(`${done} added to the queue`)
+      if (failed.length) toast.error(`${failed.length} couldn't be queued: ${failed[0]}`)
+      onDone()
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["calendar"] })
+    },
+  })
+
+  return (
+    <div className="sticky top-0 z-10 mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-y border-hair bg-page py-3">
+      <label className="flex min-h-6 cursor-pointer items-center gap-2 text-[13px]">
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-[var(--rust)]"
+          checked={picked.length === total}
+          ref={(el) => {
+            if (el) el.indeterminate = picked.length > 0 && picked.length < total
+          }}
+          onChange={onAll}
+        />
+        {picked.length ? `${picked.length} selected` : "Select all"}
+      </label>
+      {picked.length > 0 && (
+        <>
+          <OutlineButton type="button" disabled={queue.isPending} onClick={() => queue.mutate(picked)}>
+            {queue.isPending ? "Queueing…" : "Add to queue"}
+          </OutlineButton>
+          <TextButton
+            type="button"
+            tone="muted"
+            disabled={queue.isPending}
+            onClick={() => {
+              remove(picked, `${picked.length} draft${picked.length === 1 ? "" : "s"} deleted`)
+              onDone()
+            }}
+          >
+            Delete
+          </TextButton>
+        </>
+      )}
     </div>
   )
 }
@@ -65,8 +181,21 @@ function scheduleLabel(post: Post): string {
   return post.scheduled_for ? `For ${formatStamp(post.scheduled_for)}` : "Unscheduled"
 }
 
-function DraftEntry({ post, channels, connectors }: { post: Post; channels: Channel[]; connectors: Connector[] }) {
+function DraftEntry({
+  post,
+  channels,
+  connectors,
+  picked,
+  onPick,
+}: {
+  post: Post
+  channels: Channel[]
+  connectors: Connector[]
+  picked: boolean
+  onPick?: () => void
+}) {
   const { activeWorkspace } = useWorkspace()
+  const removeLater = useUndoableDelete()
   const { openCompose } = useCompose()
   const queryClient = useQueryClient()
   const workflow = !!activeWorkspace.approval_workflow_enabled
@@ -77,23 +206,41 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   const [selected, setSelected] = useState<number[]>(() => post.targets.map((t) => t.channel))
   const serverKey = post.targets.map((t) => t.channel).join(",")
   const pendingRef = useRef<{ timer: number; ids: number[] } | null>(null)
+  // The newest server copy, for the unmount flush and error rollback (the
+  // closures there would otherwise hold the post as it was at mount).
+  const latestPost = useRef(post)
+  latestPost.current = post
+  const inFlight = useRef(0)
   useEffect(() => {
-    if (!pendingRef.current) setSelected(serverKey ? serverKey.split(",").map(Number) : [])
+    // Don't let a refetch overwrite a toggle that hasn't been saved yet.
+    if (!pendingRef.current && inFlight.current === 0) setSelected(serverKey ? serverKey.split(",").map(Number) : [])
   }, [serverKey])
 
-  const [confirm, setConfirm] = useState<null | "dispatch" | "delete" | "cancel">(null)
+  const [confirm, setConfirm] = useState<null | "dispatch" | "cancel">(null)
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+    void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
   }
 
   const patchTargets = useMutation({
+    // One scope per draft: TanStack runs these one after another, so two
+    // quick toggles can't race and land out of order.
+    scope: { id: `post-targets-${post.id}` },
     mutationFn: (ids: number[]) =>
-      apiFetch<Post>(`/posts/${post.id}/`, { method: "PATCH", body: { target_specs: targetSpecsFor(post, ids) } }),
-    onSuccess: invalidate,
+      apiFetch<Post>(`/posts/${post.id}/`, {
+        method: "PATCH",
+        body: { target_specs: targetSpecsFor(latestPost.current, ids) },
+      }),
+    onMutate: () => {
+      inFlight.current += 1
+    },
+    onSettled: () => {
+      inFlight.current -= 1
+      invalidate()
+    },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.detail : "Could not update the channels.")
-      setSelected(post.targets.map((t) => t.channel))
+      if (!pendingRef.current) setSelected(latestPost.current.targets.map((t) => t.channel))
     },
   })
 
@@ -112,7 +259,12 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
       const pending = pendingRef.current
       if (pending) {
         window.clearTimeout(pending.timer)
-        apiFetch(`/posts/${post.id}/`, { method: "PATCH", body: { target_specs: targetSpecsFor(post, pending.ids) } }).catch(() => {})
+        apiFetch(`/posts/${post.id}/`, {
+          method: "PATCH",
+          body: { target_specs: targetSpecsFor(latestPost.current, pending.ids) },
+        })
+          .catch(() => toast.error("Your last channel change on a draft wasn't saved."))
+          .finally(invalidate)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount-only flush
@@ -131,9 +283,8 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   }
 
   const action = useMutation({
-    mutationFn: async (kind: "dispatch" | "queue" | "submit" | "delete" | "cancel") => {
+    mutationFn: async (kind: "dispatch" | "queue" | "submit" | "cancel") => {
       await flush()
-      if (kind === "delete") return apiFetch(`/posts/${post.id}/`, { method: "DELETE" })
       if (kind === "cancel") return apiFetch(`/posts/${post.id}/cancel/`, { method: "POST" })
       if (kind === "submit") return apiFetch(`/posts/${post.id}/submit-for-review/`, { method: "POST" })
       if (kind === "queue") return apiFetch(`/posts/${post.id}/queue/`, { method: "POST" })
@@ -146,14 +297,13 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
     onSuccess: (_data, kind) => {
       setConfirm(null)
       invalidate()
-      queryClient.invalidateQueries({ queryKey: ["calendar"] })
+      void queryClient.invalidateQueries({ queryKey: ["calendar"] })
       const future = post.scheduled_for && new Date(post.scheduled_for).getTime() > Date.now()
       toast(
         {
           dispatch: future ? `Scheduled for ${formatStamp(post.scheduled_for)}` : "Dispatched",
           queue: "Added to the queue",
           submit: "Submitted for review",
-          delete: "Draft deleted",
           cancel: "Schedule canceled",
         }[kind]
       )
@@ -173,6 +323,15 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   return (
     <article className="border-b border-hair py-8">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {onPick && (
+          <input
+            type="checkbox"
+            aria-label="Select this draft"
+            className="mr-1 h-4 w-4 accent-[var(--rust)]"
+            checked={picked}
+            onChange={onPick}
+          />
+        )}
         <span className="eyebrow text-rust">{kindLabel(post.kind)}</span>
         <span className="eyebrow">{scheduleLabel(post)}</span>
       </div>
@@ -236,8 +395,12 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
               <TextButton
                 type="button"
                 onClick={async () => {
-                  const updated = await flush()
-                  openCompose({ post: updated ?? post })
+                  try {
+                    const updated = await flush()
+                    openCompose({ post: updated ?? post })
+                  } catch {
+                    // patchTargets' onError already told the user.
+                  }
                 }}
                 disabled={busy}
               >
@@ -245,7 +408,19 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
               </TextButton>
             )}
             {post.status !== "in_review" && (
-              <TextButton type="button" tone="muted" onClick={() => setConfirm("delete")} disabled={busy}>
+              <TextButton
+                type="button"
+                tone="muted"
+                onClick={async () => {
+                  try {
+                    await flush()
+                  } catch {
+                    // patchTargets' onError already told the user.
+                  }
+                  removeLater([post.id], "Draft deleted")
+                }}
+                disabled={busy}
+              >
                 Delete
               </TextButton>
             )}
@@ -273,18 +448,6 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
           ))}
         </div>
       </ConfirmDialog>
-
-      <ConfirmDialog
-        open={confirm === "delete"}
-        onOpenChange={(o) => !o && setConfirm(null)}
-        eyebrow="Delete"
-        title="Delete this draft?"
-        description="It can't be brought back."
-        confirmLabel="Delete"
-        tone="rust"
-        onConfirm={() => action.mutate("delete")}
-        pending={busy}
-      />
 
       <ConfirmDialog
         open={confirm === "cancel"}

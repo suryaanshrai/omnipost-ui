@@ -7,6 +7,7 @@ import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { mediaUrl } from "@/lib/media"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
+import { TabPanel, Tabs } from "@/components/editorial/Tabs"
 import type {
   AIUsage,
   AltTextResult,
@@ -100,7 +101,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
       setError(null)
       onOverrides((prev) => ({ ...prev, ...Object.fromEntries(r.variants.map((v) => [v.channel, v.text])) }))
       setVariantFindings(Object.fromEntries(r.variants.map((v) => [v.channel, v.findings])))
-      refreshUsage()
+      void refreshUsage()
     },
     onError: (err) => setError(aiError(err)),
   })
@@ -123,7 +124,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
     onSuccess: (r) => {
       setError(null)
       setRepurposed(r.results)
-      refreshUsage()
+      void refreshUsage()
     },
     onError: (err) => setError(aiError(err)),
   })
@@ -137,7 +138,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
     onSuccess: (asset) => {
       setError(null)
       onMedia((prev) => [...prev, asset])
-      refreshUsage()
+      void refreshUsage()
     },
     onError: (err) => setError(aiError(err)),
   })
@@ -148,7 +149,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
     onSuccess: ({ asset, r }) => {
       setError(null)
       onMedia((prev) => prev.map((m) => (m.id === asset.id ? { ...m, alt_text: r.alt_text } : m)))
-      refreshUsage()
+      void refreshUsage()
     },
     onError: (err) => setError(aiError(err)),
   })
@@ -179,29 +180,17 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
 
       {open && (
         <div className="border-t border-hair px-4 pt-4 pb-5">
-          <div role="tablist" className="flex gap-6 border-b border-hair">
-            {tabs
-              .filter((t) => t.show)
-              .map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === t.id}
-                  onClick={() => {
-                    setTab(t.id)
-                    setError(null)
-                  }}
-                  className={cn(
-                    "-mb-px border-b pb-2.5 text-[10px] font-bold tracking-[0.16em] uppercase",
-                    tab === t.id ? "border-rust text-ink" : "border-transparent text-ink-45 hover:text-ink"
-                  )}
-                >
-                  {t.label}
-                </button>
-              ))}
-          </div>
-
+          <Tabs
+            size="sm"
+            label="AI tools"
+            value={tab}
+            onValueChange={(v) => {
+              setTab(v as Tab)
+              setError(null)
+            }}
+            tabs={tabs.filter((t) => t.show).map((t) => ({ value: t.id, label: t.label }))}
+          >
+          <TabPanel value={tab}>
           <div className="mt-5 flex flex-col gap-5">
             {(tab === "variants" || tab === "repurpose") && (voices.data?.length ?? 0) > 0 && (
               <SelectField label="Voice" value={voice || String(voiceId ?? "")} onChange={(e) => setVoice(e.target.value)}>
@@ -330,6 +319,8 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
               </p>
             )}
           </div>
+          </TabPanel>
+          </Tabs>
         </div>
       )}
 
