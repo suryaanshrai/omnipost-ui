@@ -8,6 +8,7 @@ import { kindLabel, useCompose } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue } from "@/lib/posts"
@@ -33,12 +34,13 @@ export default function Posts() {
   const eyebrow = useSectionEyebrow("/app", "Published")
   const { activeWorkspace } = useWorkspace()
   const { map: channels } = useChannelMap()
+  const [search, setSearch] = useState("")
 
   const query = useInfiniteQuery({
-    queryKey: ["posts", activeWorkspace.id, "published"],
+    queryKey: ["posts", activeWorkspace.id, "published", search],
     queryFn: ({ pageParam }) =>
       apiFetch<Page<Post>>(
-        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&scheduled=due&limit=${PAGE}&offset=${pageParam}`
+        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&scheduled=due&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
       ),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
@@ -62,6 +64,7 @@ export default function Posts() {
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
+      <SearchBox label="Search your posts" onSearch={setSearch} />
 
       {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {query.isError && (
@@ -69,7 +72,10 @@ export default function Posts() {
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
         </p>
       )}
-      {query.isSuccess && posts.length === 0 && !query.hasNextPage && <FirstPostChecklist />}
+      {query.isSuccess && posts.length === 0 && !query.hasNextPage && !search && <FirstPostChecklist />}
+      {query.isSuccess && posts.length === 0 && search && (
+        <p className="mt-10 text-[15px] text-ink-55">No posts match “{search}”.</p>
+      )}
 
       <div>
         {posts.map((post, i) => (
@@ -106,6 +112,7 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
           )}
         </div>
         <div className="flex items-center gap-4">
+          <DuplicateButton post={post} />
           {post.status === "failed" && (
             // Every channel failed: fix the post itself and send it again.
             <TextButton type="button" onClick={() => openCompose({ post })}>
@@ -213,5 +220,23 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
         </ul>
       )}
     </div>
+  )
+}
+
+/** Copies a post into a new draft (same text, media, link and channels). */
+function DuplicateButton({ post }: { post: Post }) {
+  const { activeWorkspace } = useWorkspace()
+  const queryClient = useQueryClient()
+  const duplicate = useMutation({
+    mutationFn: () => apiFetch<Post>(`/posts/${post.id}/duplicate/`, { method: "POST" }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      toast("Copied to Drafts")
+    },
+  })
+  return (
+    <TextButton type="button" tone="muted" onClick={() => duplicate.mutate()} disabled={duplicate.isPending}>
+      Duplicate
+    </TextButton>
   )
 }

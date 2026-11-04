@@ -15,6 +15,7 @@ export function WorkspaceBlock() {
   const [name, setName] = useState(activeWorkspace.name)
   const [tz, setTz] = useState(activeWorkspace.timezone ?? "")
   const [approvals, setApprovals] = useState(!!activeWorkspace.approval_workflow_enabled)
+  const [utm, setUtm] = useState(!!activeWorkspace.utm_tagging)
   const [error, setError] = useState<ApiError | null>(null)
   const zones = useMemo(timezoneOptions, [])
 
@@ -22,13 +23,14 @@ export function WorkspaceBlock() {
     setName(activeWorkspace.name)
     setTz(activeWorkspace.timezone ?? "")
     setApprovals(!!activeWorkspace.approval_workflow_enabled)
+    setUtm(!!activeWorkspace.utm_tagging)
   }, [activeWorkspace])
 
   const save = useMutation({
     mutationFn: () =>
       apiFetch<Workspace>(`/workspaces/${activeWorkspace.id}/`, {
         method: "PATCH",
-        body: { name: name.trim(), timezone: tz.trim(), approval_workflow_enabled: approvals },
+        body: { name: name.trim(), timezone: tz.trim(), approval_workflow_enabled: approvals, utm_tagging: utm },
       }),
     onSuccess: (updated) => {
       setError(null)
@@ -44,7 +46,8 @@ export function WorkspaceBlock() {
   const dirty =
     name !== activeWorkspace.name ||
     tz !== (activeWorkspace.timezone ?? "") ||
-    approvals !== !!activeWorkspace.approval_workflow_enabled
+    approvals !== !!activeWorkspace.approval_workflow_enabled ||
+    utm !== !!activeWorkspace.utm_tagging
 
   return (
     <Block title="Workspace" aside={activeWorkspace.slug}>
@@ -82,6 +85,21 @@ export function WorkspaceBlock() {
             <span className="block text-[13px] leading-[1.55] text-ink-55">
               Drafts are submitted for review and only approved posts can be scheduled or queued. Adds an Approvals
               screen to the sidebar.
+            </span>
+          </span>
+        </label>
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={utm}
+            onChange={(e) => setUtm(e.target.checked)}
+            className="mt-1 h-4 w-4 accent-[var(--rust)]"
+          />
+          <span>
+            <span className="block text-[14px] font-semibold text-ink">Tag links for analytics</span>
+            <span className="block text-[13px] leading-[1.55] text-ink-55">
+              Adds utm_source (the network), utm_medium=social and utm_campaign=omnipost to each post's link, so
+              your analytics shows which network sent the visit. Tags you already added are kept.
             </span>
           </span>
         </label>

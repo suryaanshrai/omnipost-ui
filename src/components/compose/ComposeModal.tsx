@@ -9,7 +9,7 @@ import Field, { TextareaField } from "@/components/editorial/Field"
 import HoverRow from "@/components/editorial/HoverRow"
 import Modal from "@/components/editorial/Modal"
 import { apiFetch, ApiError } from "@/lib/api"
-import { fromLocalInput, toLocalInput } from "@/lib/format"
+import { fromLocalInput, timeZoneLabel, toLocalInput } from "@/lib/format"
 import { mediaUrl } from "@/lib/media"
 import { targetSpecsFor } from "@/lib/posts"
 import { useChannels, useConnectors } from "@/lib/queries"
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils"
 import type { Channel, MediaAsset, Post, PostKind, ValidateResult } from "@/types/api"
 import { kindLabel, POST_KINDS } from "./compose-context"
 import AiPanel from "./AiPanel"
+import { AltTextField, MediaLibrary } from "./MediaTools"
 
 const ACCEPT: Record<PostKind, string> = {
   text: "",
@@ -288,6 +289,24 @@ export default function ComposeModal({
               onFiles={upload}
               uploading={uploading > 0}
             >
+              <MediaLibrary
+                kinds={kind === "image" ? ["image", "gif"] : kind === "story" ? ["image", "video"] : ["video"]}
+                chosen={media.map((m) => m.id)}
+                onPick={(asset) => setMedia((prev) => (kind === "image" ? [...prev, asset] : [asset]))}
+              />
+              {media.some((m) => m.kind !== "video") && (
+                <div className="flex flex-col gap-3">
+                  {media
+                    .filter((m) => m.kind !== "video")
+                    .map((m) => (
+                      <AltTextField
+                        key={m.id}
+                        asset={m}
+                        onSaved={(updated) => setMedia((prev) => prev.map((x) => (x.id === updated.id ? updated : x)))}
+                      />
+                    ))}
+                </div>
+              )}
               {media.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                   {media.map((m) => (
@@ -388,7 +407,7 @@ export default function ComposeModal({
               reviewFirst
                 ? "Approval is on: the post goes to review first."
                 : inFuture
-                  ? "It goes out at this time, in your browser's time zone."
+                  ? `It goes out at this time, ${timeZoneLabel()} time (the workspace's zone).`
                   : "Leave empty to publish now, or pick a time."
             }
             errors={saveError?.fieldErrors.scheduled_for}

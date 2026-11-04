@@ -4,8 +4,8 @@ import { useQuery } from "@tanstack/react-query"
 import { kindLabel } from "@/components/compose/compose-context"
 import { OutlineButton } from "@/components/editorial/Buttons"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import { BROWSER_TIME_ZONE, getDisplayTimeZone, timeZoneLabel, WEEKDAYS } from "@/lib/format"
 import { apiFetch, type Page } from "@/lib/api"
-import { WEEKDAYS } from "@/lib/format"
 import { platformHue } from "@/lib/platforms"
 import { useChannelMap } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
@@ -68,6 +68,12 @@ export default function Calendar() {
   return (
     <div className="max-w-[1100px]">
       <SectionHeader eyebrow={eyebrow} title="Calendar" aside={`${total} this week`} />
+      {getDisplayTimeZone() !== BROWSER_TIME_ZONE && (
+        <p className="mt-4 text-[13px] text-ink-55">
+          The grid uses your computer's time ({timeZoneLabel(BROWSER_TIME_ZONE)}). Post times elsewhere show in the
+          workspace's zone ({timeZoneLabel()}).
+        </p>
+      )}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
         <div className="display text-[22px]">

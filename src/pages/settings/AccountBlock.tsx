@@ -15,12 +15,12 @@ export default function AccountBlock() {
   const me = useMe()
   const queryClient = useQueryClient()
 
-  const alerts = useMutation({
-    mutationFn: (on: boolean) =>
-      apiFetch<UserDetails>("/auth/user/", { method: "PATCH", body: { email_notifications: on } }),
+  const prefs = useMutation({
+    mutationFn: (body: Partial<Pick<UserDetails, "email_notifications" | "weekly_digest">>) =>
+      apiFetch<UserDetails>("/auth/user/", { method: "PATCH", body }),
     onSuccess: (user) => {
       queryClient.setQueryData(["me"], user)
-      toast(user.email_notifications ? "Email alerts on" : "Email alerts off")
+      toast("Saved")
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not save."),
   })
@@ -52,12 +52,25 @@ export default function AccountBlock() {
           type="checkbox"
           className="mt-1 h-4 w-4 accent-[var(--color-rust)]"
           checked={!!user?.email_notifications}
-          disabled={!user || alerts.isPending}
-          onChange={(e) => alerts.mutate(e.target.checked)}
+          disabled={!user || prefs.isPending}
+          onChange={(e) => prefs.mutate({ email_notifications: e.target.checked })}
         />
         <span>
           Email me when a post fails or an account needs reconnecting
           <span className="mt-0.5 block text-[13px] text-ink-55">Alerts always show in the app.</span>
+        </span>
+      </label>
+
+      <label className="mt-4 flex cursor-pointer items-start gap-3 text-[14px]">
+        <input
+          type="checkbox"
+          className="mt-1 h-4 w-4 accent-[var(--color-rust)]"
+          checked={!!user?.weekly_digest}
+          disabled={!user || prefs.isPending}
+          onChange={(e) => prefs.mutate({ weekly_digest: e.target.checked })}
+        />
+        <span>
+          Send me a Monday summary of last week's posts
         </span>
       </label>
 

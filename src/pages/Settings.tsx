@@ -7,6 +7,7 @@ import { VoiceProfilesBlock } from "./settings/VoiceProfilesBlock"
 import { ProviderKeysBlock } from "./settings/ProviderKeysBlock"
 import { AppCredentialsBlock } from "./settings/AppCredentialsBlock"
 import { NewWorkspaceBlock } from "./settings/NewWorkspaceBlock"
+import IntegrationsBlock from "./settings/IntegrationsBlock"
 
 export default function Settings() {
   const eyebrow = useSectionEyebrow("/app/settings", "Workspace")
@@ -19,6 +20,7 @@ export default function Settings() {
       <VoiceProfilesBlock />
       <ProviderKeysBlock />
       <AppCredentialsBlock />
+      <IntegrationsBlock />
       <NewWorkspaceBlock />
     </div>
   )

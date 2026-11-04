@@ -615,6 +615,44 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/feeds/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        get: operations["feeds_list"];
+        put?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        post: operations["feeds_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        get: operations["feeds_retrieve"];
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        put: operations["feeds_update"];
+        post?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        delete: operations["feeds_destroy"];
+        options?: never;
+        head?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        patch: operations["feeds_partial_update"];
+        trace?: never;
+    };
     "/media/": {
         parameters: {
             query?: never;
@@ -1062,6 +1100,23 @@ export interface paths {
          *     epoch makes any queued attempt a no-op when a worker reaches it.
          */
         post: operations["posts_cancel_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/posts/{id}/duplicate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description A new draft with the same text, media, link and channels. */
+        post: operations["posts_duplicate_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1576,6 +1631,79 @@ export interface paths {
         patch: operations["voice_profiles_partial_update"];
         trace?: never;
     };
+    "/webhooks/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        get: operations["webhooks_list"];
+        put?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        post: operations["webhooks_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        get: operations["webhooks_retrieve"];
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        put: operations["webhooks_update"];
+        post?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        delete: operations["webhooks_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        patch: operations["webhooks_partial_update"];
+        trace?: never;
+    };
+    "/webhooks/{id}/test/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Sends a `ping` event now. */
+        post: operations["webhooks_test_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/workspaces/": {
         parameters: {
             query?: never;
@@ -1794,6 +1922,36 @@ export interface components {
             supports_scheduling_native: boolean;
             post_kinds: string[];
             media: components["schemas"]["MediaRule"][];
+        };
+        /**
+         * @description * `post.published` - post.published
+         *     * `post.failed` - post.failed
+         *     * `channel.broken` - channel.broken
+         * @enum {string}
+         */
+        EventsEnum: "post.published" | "post.failed" | "channel.broken";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        Feed: {
+            readonly id: number;
+            workspace: number;
+            /** Format: uri */
+            url: string;
+            channels?: number[];
+            template?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly last_checked_at: string | null;
+            readonly last_error: string;
+            /** Format: date-time */
+            readonly created_at: string;
         };
         GenerateImageRequest: {
             workspace: number;
@@ -2018,6 +2176,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Channel"][];
         };
+        PaginatedFeedList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Feed"][];
+        };
         PaginatedMediaAssetList: {
             /** @example 123 */
             count: number;
@@ -2198,6 +2371,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["VoiceProfile"][];
         };
+        PaginatedWebhookList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Webhook"][];
+        };
         PaginatedWorkspaceList: {
             /** @example 123 */
             count: number;
@@ -2295,6 +2483,29 @@ export interface components {
             credentials?: {
                 [key: string]: string;
             };
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        PatchedFeed: {
+            readonly id?: number;
+            workspace?: number;
+            /** Format: uri */
+            url?: string;
+            channels?: number[];
+            template?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly last_checked_at?: string | null;
+            readonly last_error?: string;
+            /** Format: date-time */
+            readonly created_at?: string;
         };
         /**
          * @description Base for every serializer whose rows belong to a workspace:
@@ -2451,6 +2662,7 @@ export interface components {
             first_name?: string;
             last_name?: string;
             email_notifications?: boolean;
+            weekly_digest?: boolean;
         };
         /**
          * @description Base for every serializer whose rows belong to a workspace:
@@ -2471,6 +2683,29 @@ export interface components {
             /** Format: date-time */
             readonly updated_at?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        PatchedWebhook: {
+            readonly id?: number;
+            workspace?: number;
+            /** Format: uri */
+            url?: string;
+            events?: components["schemas"]["EventsEnum"][];
+            is_active?: boolean;
+            readonly last_status?: string;
+            /** Format: date-time */
+            readonly last_delivered_at?: string | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+            readonly secret?: string;
+        };
         PatchedWorkspace: {
             readonly id?: number;
             readonly organization?: number;
@@ -2478,6 +2713,7 @@ export interface components {
             slug?: string;
             timezone?: string;
             approval_workflow_enabled?: boolean;
+            utm_tagging?: boolean;
             /** Format: date-time */
             readonly created_at?: string;
         };
@@ -2830,6 +3066,7 @@ export interface components {
             first_name?: string;
             last_name?: string;
             email_notifications?: boolean;
+            weekly_digest?: boolean;
         };
         /**
          * @description One connectors.errors.Finding — shared by POST /validate/ and the AI
@@ -2877,6 +3114,29 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        Webhook: {
+            readonly id: number;
+            workspace: number;
+            /** Format: uri */
+            url: string;
+            events?: components["schemas"]["EventsEnum"][];
+            is_active?: boolean;
+            readonly last_status: string;
+            /** Format: date-time */
+            readonly last_delivered_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            readonly secret: string;
+        };
         Workspace: {
             readonly id: number;
             readonly organization: number;
@@ -2884,6 +3144,7 @@ export interface components {
             slug?: string;
             timezone?: string;
             approval_workflow_enabled?: boolean;
+            utm_tagging?: boolean;
             /** Format: date-time */
             readonly created_at: string;
         };
@@ -3819,6 +4080,156 @@ export interface operations {
             };
         };
     };
+    feeds_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedFeedList"];
+                };
+            };
+        };
+    };
+    feeds_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Feed"];
+                "application/x-www-form-urlencoded": components["schemas"]["Feed"];
+                "multipart/form-data": components["schemas"]["Feed"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Feed"];
+                "application/x-www-form-urlencoded": components["schemas"]["Feed"];
+                "multipart/form-data": components["schemas"]["Feed"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    feeds_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedFeed"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedFeed"];
+                "multipart/form-data": components["schemas"]["PatchedFeed"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
     media_list: {
         parameters: {
             query?: {
@@ -4542,6 +4953,28 @@ export interface operations {
         };
     };
     posts_cancel_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this post. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Post"];
+                };
+            };
+        };
+    };
+    posts_duplicate_create: {
         parameters: {
             query?: never;
             header?: never;
@@ -5435,6 +5868,177 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["VoiceProfile"];
                 };
+            };
+        };
+    };
+    webhooks_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedWebhookList"];
+                };
+            };
+        };
+    };
+    webhooks_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Webhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["Webhook"];
+                "multipart/form-data": components["schemas"]["Webhook"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Webhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["Webhook"];
+                "multipart/form-data": components["schemas"]["Webhook"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    webhooks_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWebhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWebhook"];
+                "multipart/form-data": components["schemas"]["PatchedWebhook"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_test_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

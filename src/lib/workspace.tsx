@@ -3,6 +3,7 @@ import type { ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { apiFetch, ApiError, setToken, type Page } from "@/lib/api"
+import { setDisplayTimeZone } from "@/lib/format"
 import type { Workspace } from "@/types/api"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
@@ -100,6 +101,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
 
   const activeWorkspace = workspaces.find((w) => w.id === activeId) ?? workspaces[0]
+  // Every time on screen is shown in this workspace's zone (see lib/format.ts).
+  setDisplayTimeZone(activeWorkspace.timezone)
 
   return (
     <WorkspaceContext.Provider

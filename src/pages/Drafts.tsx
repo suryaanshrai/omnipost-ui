@@ -9,6 +9,7 @@ import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { targetSpecsFor } from "@/lib/posts"
@@ -25,14 +26,15 @@ export default function Drafts() {
   const { activeWorkspace } = useWorkspace()
   const channels = useChannels()
   const connectors = useConnectors()
+  const [search, setSearch] = useState("")
 
   const drafts = useInfiniteQuery({
-    queryKey: ["posts", activeWorkspace.id, "drafts"],
+    queryKey: ["posts", activeWorkspace.id, "drafts", search],
     // A scheduled post that's already due is on its way out and belongs to
     // Posts; the server leaves those out (scheduled=upcoming).
     queryFn: ({ pageParam }) =>
       apiFetch<Page<Post>>(
-        `/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&scheduled=upcoming&limit=${PAGE}&offset=${pageParam}`
+        `/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&scheduled=upcoming&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
       ),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
@@ -44,6 +46,7 @@ export default function Drafts() {
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
+      <SearchBox label="Search your drafts" onSearch={setSearch} />
 
       {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {drafts.isError && (
@@ -52,7 +55,9 @@ export default function Drafts() {
         </p>
       )}
       {drafts.isSuccess && list.length === 0 && (
-        <p className="mt-10 text-[15px] text-ink-55">Nothing waiting. Anything you save from Compose lands here.</p>
+        <p className="mt-10 text-[15px] text-ink-55">
+          {search ? `No drafts match “${search}”.` : "Nothing waiting. Anything you save from Compose lands here."}
+        </p>
       )}
 
       {list.map((post, i) => (
