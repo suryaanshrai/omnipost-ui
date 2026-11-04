@@ -32,7 +32,9 @@ export function TextButton({ className, tone = "ink", ...props }: ComponentProps
   return (
     <button
       className={cn(
-        "inline-flex items-center gap-1.5 border-b pb-0.5 text-[10.5px] font-bold tracking-[0.16em] uppercase transition-colors duration-300 disabled:pointer-events-none disabled:opacity-40",
+        // The invisible ::before grows the hit area to 24px+ tall (WCAG 2.5.8)
+        // without moving the underline.
+        "relative inline-flex items-center gap-1.5 border-b pb-0.5 text-[10.5px] font-bold tracking-[0.16em] uppercase transition-colors duration-300 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] disabled:pointer-events-none disabled:opacity-40",
         tone === "ink" && "border-ink text-ink hover:border-rust hover:text-rust",
         tone === "rust" && "border-rust text-rust hover:border-ink hover:text-ink",
         tone === "muted" && "border-hair text-ink-55 hover:border-ink hover:text-ink",

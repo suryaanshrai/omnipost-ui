@@ -45,6 +45,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/account/tokens/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        get: operations["account_tokens_list"];
+        put?: never;
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        post: operations["account_tokens_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/tokens/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        delete: operations["account_tokens_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/alt-text/": {
         parameters: {
             query?: never;
@@ -209,6 +253,27 @@ export interface paths {
         patch: operations["app_credentials_partial_update"];
         trace?: never;
     };
+    "/auth/cookie/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST, signed in with a session token in the Authorization header ->
+         *     the same session as an httpOnly cookie. Lets the web app move an older
+         *     sign-in out of localStorage without asking for the password again.
+         */
+        post: operations["auth_cookie_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/login/": {
         parameters: {
             query?: never;
@@ -241,13 +306,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * @description Signs out: deletes the session token and clears the cookie. With an
+         *     API token it refuses, so a script can't sign you out of the web app;
+         *     revoke the token instead.
+         */
+        get: operations["auth_logout_retrieve"];
         put?: never;
         /**
-         * @description Calls Django logout method and delete the Token object
-         *     assigned to the current User object.
-         *
-         *     Accepts/Returns nothing.
+         * @description Signs out: deletes the session token and clears the cookie. With an
+         *     API token it refuses, so a script can't sign you out of the web app;
+         *     revoke the token instead.
          */
         post: operations["auth_logout_create"];
         delete?: never;
@@ -431,6 +500,57 @@ export interface paths {
          *     Returns UserModel fields.
          */
         patch: operations["auth_user_partial_update"];
+        trace?: never;
+    };
+    "/billing/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET -> your plan, what you're using, and the plans on offer. */
+        get: operations["billing_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/checkout/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST {plan} -> a Stripe Checkout URL to send the browser to. */
+        post: operations["billing_checkout_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/portal/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST -> a Stripe Customer Portal URL (change plan, card, invoices, cancel). */
+        post: operations["billing_portal_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/blackout-windows/": {
@@ -1166,6 +1286,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/{id}/repost/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Evergreen: copy a post and send it again, into each channel's next
+         *     queue slot (default) or now. With approvals on, the copy goes to
+         *     review instead.
+         */
+        post: operations["posts_repost_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/posts/{id}/request-changes/": {
         parameters: {
             query?: never;
@@ -1292,6 +1433,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/performance/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Latest metrics for many posts at once: {post_id: [entry, ...]},
+         *     one entry per published target that has a snapshot. Replaces one
+         *     request per post on the Analytics screen.
+         */
+        get: operations["posts_performance_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider-keys/": {
         parameters: {
             query?: never;
@@ -1358,6 +1520,64 @@ export interface paths {
          *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["provider_keys_partial_update"];
+        trace?: never;
+    };
+    "/public/bio/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description GET /public/bio/<slug>/: a workspace's link-in-bio page, if it has
+         *     switched one on. Recent published posts, newest first, each pointing at
+         *     its link (or its first published copy).
+         */
+        get: operations["public_bio_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/interest/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST {email, plan, note?} -> "tell me when this plan is available".
+         *     Measures demand for the hosted plans before they're for sale.
+         */
+        post: operations["public_interest_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/pricing/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET -> whether to show hosted pricing, and the plans. */
+        get: operations["public_pricing_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/publish-attempts/": {
@@ -1777,6 +1997,19 @@ export interface components {
         AltTextResult: {
             alt_text: string;
         };
+        ApiToken: {
+            readonly id: number;
+            name: string;
+            readonly prefix: string;
+            read_only?: boolean;
+            /** Format: date-time */
+            readonly expires_at: string | null;
+            /** Format: date-time */
+            readonly last_used_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            expires_in_days?: number | null;
+        };
         /**
          * @description client_secret is write-only and never echoed back — unlike
          *     ProviderKeySerializer there's no live ping to validate it against here,
@@ -1813,6 +2046,33 @@ export interface components {
             /** Format: double */
             avg_engagement: number;
         };
+        Billing: {
+            /** @description False on a self-hosted install: no plans, no limits. */
+            enabled: boolean;
+            plan: string;
+            status: string;
+            /** Format: date-time */
+            renews_at: string | null;
+            has_billing_account: boolean;
+            usage: {
+                [key: string]: number;
+            };
+            plans: components["schemas"]["Plan"][];
+        };
+        BillingRedirect: {
+            /** Format: uri */
+            url: string;
+        };
+        BioPage: {
+            name: string;
+            description: string;
+            links: {
+                [key: string]: unknown;
+            }[];
+            posts: {
+                [key: string]: unknown;
+            }[];
+        };
         /**
          * @description Base for every serializer whose rows belong to a workspace:
          *     * related-object ids are limited to the request user's workspaces;
@@ -1846,6 +2106,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly parts: components["schemas"]["PostTargetPart"][];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
@@ -1901,6 +2163,15 @@ export interface components {
          * @enum {string}
          */
         ChannelHealthEnum: "healthy" | "needs_attention" | "broken";
+        CheckoutRequest: {
+            plan: components["schemas"]["CheckoutRequestPlanEnum"];
+        };
+        /**
+         * @description * `creator` - creator
+         *     * `pro` - pro
+         * @enum {string}
+         */
+        CheckoutRequestPlanEnum: "creator" | "pro";
         /**
          * @description Read-only view of one connectors.registry entry: its slug plus the
          *     capability/gating facts the frontend needs and can't otherwise discover
@@ -1913,6 +2184,7 @@ export interface components {
             supports_oauth: boolean;
             available: boolean;
             supports_metrics: boolean;
+            supports_first_comment: boolean;
             credential_fields: string[];
             oauth_extra_fields: string[];
             max_text_length: number | null;
@@ -1922,6 +2194,21 @@ export interface components {
             supports_scheduling_native: boolean;
             post_kinds: string[];
             media: components["schemas"]["MediaRule"][];
+        };
+        CreatedApiToken: {
+            readonly id: number;
+            name: string;
+            readonly prefix: string;
+            read_only?: boolean;
+            /** Format: date-time */
+            readonly expires_at: string | null;
+            /** Format: date-time */
+            readonly last_used_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            expires_in_days?: number | null;
+            /** @description Shown only in this response. */
+            readonly key: string;
         };
         /**
          * @description * `post.published` - post.published
@@ -1988,6 +2275,19 @@ export interface components {
             row: number;
             detail: unknown;
         };
+        Interest: {
+            /** Format: email */
+            email: string;
+            plan: components["schemas"]["InterestPlanEnum"];
+            note?: string;
+        };
+        /**
+         * @description * `free` - free
+         *     * `creator` - creator
+         *     * `pro` - pro
+         * @enum {string}
+         */
+        InterestPlanEnum: "free" | "creator" | "pro";
         Login: {
             username?: string;
             /** Format: email */
@@ -2663,6 +2963,7 @@ export interface components {
             last_name?: string;
             email_notifications?: boolean;
             weekly_digest?: boolean;
+            readonly plan?: components["schemas"]["UserDetailsPlanEnum"];
         };
         /**
          * @description Base for every serializer whose rows belong to a workspace:
@@ -2714,8 +3015,27 @@ export interface components {
             timezone?: string;
             approval_workflow_enabled?: boolean;
             utm_tagging?: boolean;
+            bio_enabled?: boolean;
+            bio_description?: string;
+            bio_links?: unknown;
             /** Format: date-time */
             readonly created_at?: string;
+        };
+        PerformanceBatch: {
+            results: {
+                [key: string]: {
+                    [key: string]: unknown;
+                }[];
+            };
+        };
+        Plan: {
+            id: string;
+            name: string;
+            price_display: string;
+            channels: number | null;
+            scheduled_posts: number | null;
+            features: string[];
+            purchasable: boolean;
         };
         /**
          * @description Base for every serializer whose rows belong to a workspace:
@@ -2792,6 +3112,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly parts: components["schemas"]["PostTargetPart"][];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
@@ -2853,8 +3175,14 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
             media?: number[];
             parts?: components["schemas"]["PostTargetPartWrite"][];
+        };
+        Pricing: {
+            show_pricing: boolean;
+            billing_enabled: boolean;
+            plans: components["schemas"]["Plan"][];
         };
         /**
          * @description * `anthropic` - anthropic
@@ -2971,6 +3299,10 @@ export interface components {
             password1: string;
             password2: string;
         };
+        RepostRequest: {
+            /** @default queue */
+            when: components["schemas"]["WhenEnum"];
+        };
         RepurposeRequest: {
             workspace: number;
             /** @default  */
@@ -3003,6 +3335,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
             /** Format: date-time */
@@ -3067,7 +3401,15 @@ export interface components {
             last_name?: string;
             email_notifications?: boolean;
             weekly_digest?: boolean;
+            readonly plan: components["schemas"]["UserDetailsPlanEnum"];
         };
+        /**
+         * @description * `free` - Free
+         *     * `creator` - Creator
+         *     * `pro` - Pro
+         * @enum {string}
+         */
+        UserDetailsPlanEnum: "free" | "creator" | "pro";
         /**
          * @description One connectors.errors.Finding — shared by POST /validate/ and the AI
          *     variant generator, which both report per-channel rule findings.
@@ -3137,6 +3479,12 @@ export interface components {
             readonly created_at: string;
             readonly secret: string;
         };
+        /**
+         * @description * `queue` - queue
+         *     * `now` - now
+         * @enum {string}
+         */
+        WhenEnum: "queue" | "now";
         Workspace: {
             readonly id: number;
             readonly organization: number;
@@ -3145,6 +3493,9 @@ export interface components {
             timezone?: string;
             approval_workflow_enabled?: boolean;
             utm_tagging?: boolean;
+            bio_enabled?: boolean;
+            bio_description?: string;
+            bio_links?: unknown;
             /** Format: date-time */
             readonly created_at: string;
         };
@@ -3197,6 +3548,71 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["AccountExport"];
                 };
+            };
+        };
+    };
+    account_tokens_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiToken"][];
+                };
+            };
+        };
+    };
+    account_tokens_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiToken"];
+                "application/x-www-form-urlencoded": components["schemas"]["ApiToken"];
+                "multipart/form-data": components["schemas"]["ApiToken"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedApiToken"];
+                };
+            };
+        };
+    };
+    account_tokens_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this api token. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -3471,6 +3887,25 @@ export interface operations {
             };
         };
     };
+    auth_cookie_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestAuthDetail"];
+                };
+            };
+        };
+    };
     auth_login_create: {
         parameters: {
             query?: never;
@@ -3492,6 +3927,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Token"];
+                };
+            };
+        };
+    };
+    auth_logout_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestAuthDetail"];
                 };
             };
         };
@@ -3730,6 +4184,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserDetails"];
+                };
+            };
+        };
+    };
+    billing_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Billing"];
+                };
+            };
+        };
+    };
+    billing_checkout_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CheckoutRequest"];
+                "multipart/form-data": components["schemas"]["CheckoutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRedirect"];
+                };
+            };
+        };
+    };
+    billing_portal_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRedirect"];
                 };
             };
         };
@@ -5045,6 +5562,34 @@ export interface operations {
             };
         };
     };
+    posts_repost_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this post. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RepostRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RepostRequest"];
+                "multipart/form-data": components["schemas"]["RepostRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Post"];
+                };
+            };
+        };
+    };
     posts_request_changes_create: {
         parameters: {
             query?: never;
@@ -5190,6 +5735,29 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ImportCsvResult"];
+                };
+            };
+        };
+    };
+    posts_performance_retrieve: {
+        parameters: {
+            query: {
+                /** @description Comma-separated post ids (up to 100). */
+                ids: string;
+                workspace: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceBatch"];
                 };
             };
         };
@@ -5340,6 +5908,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderKey"];
+                };
+            };
+        };
+    };
+    public_bio_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BioPage"];
+                };
+            };
+        };
+    };
+    public_interest_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Interest"];
+                "application/x-www-form-urlencoded": components["schemas"]["Interest"];
+                "multipart/form-data": components["schemas"]["Interest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Interest"];
+                };
+            };
+        };
+    };
+    public_pricing_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pricing"];
                 };
             };
         };

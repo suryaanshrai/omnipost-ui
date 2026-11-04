@@ -50,7 +50,7 @@ function WebhooksBlock() {
       setUrl("")
       setError(null)
       setSecret(hook.secret)
-      invalidate()
+      void invalidate()
     },
     onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not add the webhook.")),
   })
@@ -58,7 +58,7 @@ function WebhooksBlock() {
     mutationFn: (h: Webhook) => apiFetch(`/webhooks/${h.id}/test/`, { method: "POST" }),
     onSuccess: () => {
       toast("Ping sent")
-      window.setTimeout(invalidate, 2000)
+      window.setTimeout(() => void invalidate(), 2000)
     },
   })
   const remove = useMutation({
@@ -172,7 +172,7 @@ function FeedsBlock() {
       setSelected([])
       setError(null)
       toast("Feed added. New items will show up in Drafts.")
-      invalidate()
+      void invalidate()
     },
     onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not add the feed.")),
   })

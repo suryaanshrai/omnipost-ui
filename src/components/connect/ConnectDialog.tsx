@@ -1,11 +1,11 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import Modal from "@/components/editorial/Modal"
-import { apiFetch, ApiError, type Page } from "@/lib/api"
+import { apiFetch, ApiError } from "@/lib/api"
 import {
   fieldHint,
   fieldLabel,
@@ -15,8 +15,10 @@ import {
   oauthRedirectUri,
   type OAuthStash,
 } from "@/lib/connectors"
+import { EMPTY_APP, useAppCredentials, useRegisterApp, type AppCredentialInput } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
-import type { AppCredential, Channel, Connector, OAuthStartResult } from "@/types/api"
+import type { Channel, Connector, OAuthStartResult } from "@/types/api"
+import AppCredentialFields from "./AppCredentialFields"
 
 type Step = "app" | "method" | "oauth" | "credentials"
 
@@ -43,12 +45,7 @@ export default function ConnectDialog({
   const { activeWorkspace } = useWorkspace()
   const queryClient = useQueryClient()
 
-  const appCredentials = useQuery({
-    queryKey: ["app-credentials", activeWorkspace.id],
-    queryFn: () => apiFetch<Page<AppCredential>>(`/app-credentials/?workspace=${activeWorkspace.id}&limit=200`),
-    select: (page) => page.results,
-    enabled: connector.requires_own_app,
-  })
+  const appCredentials = useAppCredentials(connector.requires_own_app)
   const hasAppCredential = (appCredentials.data ?? []).some((a) => a.connector_slug === connector.slug)
 
   const firstStep = (): Step => {
@@ -62,24 +59,26 @@ export default function ConnectDialog({
 
   const [displayName, setDisplayName] = useState(reconnect?.display_name ?? "")
   const [values, setValues] = useState<Record<string, string>>({})
-  const [app, setApp] = useState({ client_id: "", client_secret: "", label: "" })
+  const [app, setApp] = useState<AppCredentialInput>(EMPTY_APP)
   const [error, setError] = useState<ApiError | null>(null)
 
   const setValue = (name: string, value: string) => setValues((prev) => ({ ...prev, [name]: value }))
 
-  const registerApp = useMutation({
-    mutationFn: () =>
-      apiFetch<AppCredential>("/app-credentials/", {
-        method: "POST",
-        body: { workspace: activeWorkspace.id, connector_slug: connector.slug, ...app },
-      }),
-    onSuccess: () => {
-      setError(null)
-      toast(`${connector.display_name} app registered`)
-      return queryClient.invalidateQueries({ queryKey: ["app-credentials", activeWorkspace.id] })
-    },
-    onError: (err) => setError(err instanceof ApiError ? err : null),
-  })
+  const register = useRegisterApp()
+  const registerApp = {
+    ...register,
+    mutate: () =>
+      register.mutate(
+        { slug: connector.slug, app },
+        {
+          onSuccess: () => {
+            setError(null)
+            toast(`${connector.display_name} app registered`)
+          },
+          onError: (err) => setError(err instanceof ApiError ? err : null),
+        }
+      ),
+  }
 
   const startOAuth = useMutation({
     mutationFn: () => {
@@ -104,7 +103,7 @@ export default function ConnectDialog({
     onError: (err) => {
       if (err instanceof ApiError && isMissingAppCredential(err.detail)) {
         // Expected state, not a failure: send them to register the app.
-        queryClient.invalidateQueries({ queryKey: ["app-credentials", activeWorkspace.id] })
+        void queryClient.invalidateQueries({ queryKey: ["app-credentials", activeWorkspace.id] })
         setChosen(null)
         setError(null)
         return
@@ -125,8 +124,8 @@ export default function ConnectDialog({
           })
     },
     onSuccess: (channel) => {
-      queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
-      queryClient.invalidateQueries({ queryKey: ["channel", channel.id] })
+      void queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["channel", channel.id] })
       toast(reconnect ? `${channel.display_name} reconnected` : `${channel.display_name} connected`)
       onOpenChange(false)
     },
@@ -240,27 +239,12 @@ export default function ConnectDialog({
         <form id="connect-form" onSubmit={submit} className="flex flex-col gap-6" noValidate>
           {step === "app" ? (
             <>
-              <Field
-                label="Client id"
+              <AppCredentialFields
                 autoFocus
-                value={app.client_id}
-                onChange={(e) => setApp({ ...app, client_id: e.target.value })}
-                errors={fieldErrors.client_id}
-              />
-              <Field
-                label="Client secret"
-                type="password"
-                autoComplete="off"
-                value={app.client_secret}
-                onChange={(e) => setApp({ ...app, client_secret: e.target.value })}
-                errors={fieldErrors.client_secret}
-              />
-              <Field
-                label="Label (optional)"
-                value={app.label}
-                onChange={(e) => setApp({ ...app, label: e.target.value })}
-                errors={fieldErrors.label}
-                hint={`Register the redirect URL ${oauthRedirectUri()} with the app.`}
+                value={app}
+                onChange={setApp}
+                errors={fieldErrors}
+                labelHint={`Register the redirect URL ${oauthRedirectUri()} with the app.`}
               />
             </>
           ) : (

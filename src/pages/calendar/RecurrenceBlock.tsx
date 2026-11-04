@@ -56,7 +56,7 @@ export function RecurrenceBlock() {
       setVariants("")
       setNext("")
       setEndAt("")
-      invalidate()
+      void invalidate()
       toast("Recurring post added")
     },
     onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not add the rule.")),

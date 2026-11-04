@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import Block from "@/components/app/Block"
 import { PrimaryButton } from "@/components/editorial/Buttons"
-import Field, { } from "@/components/editorial/Field"
+import Field, { TimezoneField } from "@/components/editorial/Field"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
-import { timezoneOptions } from "@/lib/format"
 import { useWorkspace } from "@/lib/workspace"
 import type { Workspace } from "@/types/api"
 
@@ -17,7 +16,6 @@ export function WorkspaceBlock() {
   const [approvals, setApprovals] = useState(!!activeWorkspace.approval_workflow_enabled)
   const [utm, setUtm] = useState(!!activeWorkspace.utm_tagging)
   const [error, setError] = useState<ApiError | null>(null)
-  const zones = useMemo(timezoneOptions, [])
 
   useEffect(() => {
     setName(activeWorkspace.name)
@@ -37,7 +35,7 @@ export function WorkspaceBlock() {
       queryClient.setQueryData<Page<Workspace>>(["workspaces"], (prev) =>
         prev ? { ...prev, results: prev.results.map((w) => (w.id === updated.id ? updated : w)) } : prev
       )
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
       toast("Workspace saved")
     },
     onError: (err) => setError(err instanceof ApiError ? err : null),
@@ -59,20 +57,14 @@ export function WorkspaceBlock() {
         className="grid gap-7 sm:grid-cols-2"
       >
         <Field label="Name" value={name} onChange={(e) => setName(e.target.value)} errors={error?.fieldErrors.name} />
-        <Field
+        <TimezoneField
           label="Timezone"
-          list="omni-ws-timezones"
           placeholder="UTC"
           value={tz}
           onChange={(e) => setTz(e.target.value)}
           errors={error?.fieldErrors.timezone}
           hint="The default for channels that don't set their own."
         />
-        <datalist id="omni-ws-timezones">
-          {zones.map((z) => (
-            <option key={z} value={z} />
-          ))}
-        </datalist>
         <label className="flex cursor-pointer items-start gap-3 sm:col-span-2">
           <input
             type="checkbox"

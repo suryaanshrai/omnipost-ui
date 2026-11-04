@@ -6,7 +6,7 @@ import Block from "@/components/app/Block"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import Modal from "@/components/editorial/Modal"
-import { apiFetch, ApiError, setToken } from "@/lib/api"
+import { apiFetch, ApiError, setSignedIn } from "@/lib/api"
 import { useMe } from "@/lib/queries"
 import type { UserDetails } from "@/types/api"
 
@@ -174,7 +174,7 @@ function DeleteAccount() {
   const remove = useMutation({
     mutationFn: () => apiFetch("/account/delete/", { method: "POST", body: { password } }),
     onSuccess: () => {
-      setToken(null)
+      setSignedIn(false)
       queryClient.clear()
       window.location.assign("/")
     },

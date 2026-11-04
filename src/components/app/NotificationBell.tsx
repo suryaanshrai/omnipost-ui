@@ -79,7 +79,7 @@ export default function NotificationBell({ className }: { className?: string }) 
                   onClick={() => {
                     if (!n.read_at) markRead.mutate(n.id)
                     setOpen(false)
-                    if (n.link) navigate(n.link)
+                    if (n.link) void navigate(n.link)
                   }}
                   className="block w-full py-4 text-left hover:bg-ink/[.03]"
                 >

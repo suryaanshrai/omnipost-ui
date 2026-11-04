@@ -23,7 +23,7 @@ export function VoiceProfilesBlock() {
     mutationFn: (p: VoiceProfile) => apiFetch(`/voice-profiles/${p.id}/`, { method: "DELETE" }),
     onSuccess: () => {
       setRemoving(null)
-      invalidate()
+      void invalidate()
     },
     onError: (err) => toast.error(errorText(err, "Could not delete the profile.")),
   })
@@ -87,7 +87,7 @@ export function VoiceProfileForm({ profile, onDone }: { profile?: VoiceProfile; 
   const [name, setName] = useState(profile?.name ?? "")
   const [summary, setSummary] = useState(profile?.style_summary ?? "")
   const [examples, setExamples] = useState(
-    Array.isArray(profile?.example_posts) ? (profile!.example_posts as string[]).join("\n\n") : ""
+    Array.isArray(profile?.example_posts) ? (profile.example_posts as string[]).join("\n\n") : ""
   )
   const [isDefault, setIsDefault] = useState(!!profile?.is_default)
   const [error, setError] = useState<ApiError | null>(null)
@@ -109,7 +109,7 @@ export function VoiceProfileForm({ profile, onDone }: { profile?: VoiceProfile; 
         : apiFetch<VoiceProfile>("/voice-profiles/", { method: "POST", body })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["voice-profiles", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["voice-profiles", activeWorkspace.id] })
       toast(profile ? "Voice profile saved" : "Voice profile added")
       onDone()
     },

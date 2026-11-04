@@ -62,9 +62,31 @@ test("sign up, connect an account, publish, manage the account", async ({ page }
   await expect(page.getByLabel(/Email me when a post fails/)).toBeChecked()
   await expect(page.getByRole("button", { name: "Download my data" })).toBeVisible()
 
+  // Signed in with an httpOnly cookie: no session token where page scripts can read it.
+  const session = (await page.context().cookies()).find((c) => c.name === "omnipost_auth")
+  expect(session?.httpOnly).toBe(true)
+  expect(await page.evaluate(() => Object.keys(localStorage).some((k) => /token/i.test(k)))).toBe(false)
+
+  // A personal API token is shown once.
+  const tokens = page.locator("section", { has: page.getByRole("heading", { name: "API tokens" }) })
+  await tokens.getByLabel("Name").fill("e2e script")
+  await tokens.getByRole("button", { name: "Make token" }).click()
+  await expect(page.getByRole("dialog").getByText(/^op_/)).toBeVisible()
+  await page.getByRole("dialog").getByRole("button", { name: "Done" }).click()
+  await expect(tokens.getByText("e2e script")).toBeVisible()
+
+  // The other settings live under tabs.
+  await page.getByRole("tab", { name: "Workspace" }).click()
+  await expect(page.getByRole("heading", { name: "Link in bio" })).toBeVisible()
+  await page.getByRole("tab", { name: "Account" }).click()
+
   // Sign out, then forgot password
   await page.getByRole("button", { name: "Exit" }).click()
   await expect(page).toHaveURL(/\/login/)
+  // Signing out cleared the cookie: the app sends you back to sign in.
+  await page.goto("/app")
+  await expect(page).toHaveURL(/\/login/)
+  await page.goto("/login")
   await page.getByRole("link", { name: "Forgot password?" }).click()
   await page.getByLabel("Email").fill(`${user}@example.com`)
   await page.getByRole("button", { name: "Send reset link" }).click()

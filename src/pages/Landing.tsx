@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router"
 import Blip from "@/components/editorial/Blip"
 import Constellation from "@/components/editorial/Constellation"
@@ -12,8 +13,11 @@ import LandingNav from "@/components/landing/LandingNav"
 import LandingRail from "@/components/landing/LandingRail"
 import Manifesto from "@/components/landing/Manifesto"
 import Marquee from "@/components/landing/Marquee"
+import PlanInterest from "@/components/landing/PlanInterest"
+import { apiFetch } from "@/lib/api"
 import { LANDING_PLATFORMS, platformTint } from "@/lib/platforms"
 import { cn } from "@/lib/utils"
+import type { Pricing } from "@/types/api"
 
 const CAPABILITIES = [
   {
@@ -32,10 +36,9 @@ const FLOW = [
   { num: "03", title: "Dispatch", desc: "OmniPost publishes to every selected channel and reports what landed." },
 ]
 
-type TierCta = { label: string; to: string } | { label: string; href: string }
+type TierCta = { label: string; to: string } | { label: string; href: string } | { interest: string }
 
-// Only what exists today. The hosted plan has no price until billing ships.
-const TIERS: {
+type Tier = {
   name: string
   price: string
   unit: string
@@ -43,7 +46,12 @@ const TIERS: {
   features: string[]
   cta: TierCta
   featured: boolean
-}[] = [
+}
+
+// Only what exists today. Hosted prices come from the server
+// (/public/pricing/) and only show when it turns them on; until billing is
+// live their buttons collect interest instead of taking payment.
+const TIERS: Tier[] = [
   {
     name: "Self-host",
     price: "$0",
@@ -74,6 +82,29 @@ const TIERS: {
   },
 ]
 
+function useTiers(): Tier[] {
+  const pricing = useQuery({
+    queryKey: ["public-pricing"],
+    queryFn: () => apiFetch<Pricing>("/public/pricing/", { anonymous: true }),
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
+  if (!pricing.data?.show_pricing) return TIERS
+  const hosted: Tier[] = pricing.data.plans.map((plan) => ({
+    name: `Hosted ${plan.name}`,
+    price: plan.price_display.split("/")[0],
+    unit: plan.price_display.includes("/") ? `per ${plan.price_display.split("/")[1]}` : "",
+    blurb: plan.id === "free" ? "Try it without a server." : "Run for you, with one-click connect.",
+    features: plan.features,
+    cta:
+      plan.id === "free" || plan.purchasable
+        ? { label: plan.id === "free" ? "Create an account" : `Start ${plan.name}`, to: "/register" }
+        : { interest: plan.id },
+    featured: plan.id === "creator",
+  }))
+  return [TIERS[0], ...hosted]
+}
+
 const HERO_CHANNELS = ["Instagram", "LinkedIn", "Bluesky", "Mastodon", "+ 7 more"]
 
 // Shared horizontal rhythm: 16px gutters on phones, 40px from sm, and on
@@ -81,6 +112,7 @@ const HERO_CHANNELS = ["Instagram", "LinkedIn", "Bluesky", "Mastodon", "+ 7 more
 const GUTTER = "px-4 sm:px-10 lg:pl-[108px]"
 
 export default function Landing() {
+  const tiers = useTiers()
   return (
     <div className="landing-root theme-day min-h-screen overflow-x-clip bg-page text-ink">
       <FilmGrain opacity={0.3} />
@@ -254,8 +286,8 @@ export default function Landing() {
             aside="Open source"
           />
         </Reveal>
-        <div className="grid md:grid-cols-2">
-          {TIERS.map((tier, i) => (
+        <div className={cn("grid", tiers.length > 2 ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2")}>
+          {tiers.map((tier, i) => (
             <Reveal
               key={tier.name}
               delayMs={i * 70}
@@ -282,7 +314,9 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              {"to" in tier.cta ? (
+              {"interest" in tier.cta ? (
+                <PlanInterest plan={tier.cta.interest} />
+              ) : "to" in tier.cta ? (
                 <Link
                   to={tier.cta.to}
                   className={cn(

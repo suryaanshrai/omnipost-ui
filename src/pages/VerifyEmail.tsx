@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import { Link, useSearchParams } from "react-router"
 import AuthShell from "@/components/auth/AuthShell"
-import { apiFetch, getToken } from "@/lib/api"
+import { apiFetch, isSignedIn } from "@/lib/api"
 
 /** The page the verification email links to: /verify-email?key=… */
 export default function VerifyEmail() {
@@ -20,7 +20,7 @@ export default function VerifyEmail() {
     }
   }, [key])
 
-  const next = getToken() ? "/app" : "/login"
+  const next = isSignedIn() ? "/app" : "/login"
   return (
     <AuthShell
       eyebrow="Email"

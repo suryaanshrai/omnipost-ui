@@ -10,6 +10,7 @@ const App = lazy(() => import("./App"))
 const Analytics = lazy(() => import("./pages/Analytics"))
 const Approvals = lazy(() => import("./pages/Approvals"))
 const Auth = lazy(() => import("./pages/Auth"))
+const BioPage = lazy(() => import("./pages/BioPage"))
 const Calendar = lazy(() => import("./pages/Calendar"))
 const ChannelDetail = lazy(() => import("./pages/ChannelDetail"))
 const Connections = lazy(() => import("./pages/Connections"))
@@ -57,6 +58,7 @@ export default function OmniRouter() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/verify-email" element={<VerifyEmail />} />
             <Route path="/oauth/callback" element={<OAuthCallback />} />
+            <Route path="/bio/:slug" element={<BioPage />} />
 
             <Route
               path="/app"

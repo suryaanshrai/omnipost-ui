@@ -20,7 +20,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
   const [ends, setEnds] = useState("")
   const [error, setError] = useState<ApiError | null>(null)
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["blackout-windows", activeWorkspace.id] })
+    void queryClient.invalidateQueries({ queryKey: ["blackout-windows", activeWorkspace.id] })
   }
   const add = useMutation({
     mutationFn: () =>

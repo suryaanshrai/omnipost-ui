@@ -6,7 +6,7 @@ import { SelectField } from "@/components/editorial/Field"
 import Wordmark from "@/components/editorial/Wordmark"
 import { useCompose } from "@/components/compose/compose-context"
 import { useTheme } from "@/components/theme-provider"
-import { apiFetch, setToken } from "@/lib/api"
+import { apiFetch, setSignedIn } from "@/lib/api"
 import { navItems } from "@/lib/nav"
 import { useMe, usePostCount } from "@/lib/queries"
 import { formatClock } from "@/lib/format"
@@ -52,11 +52,11 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const username = me.data?.username ?? ""
 
   const exit = () => {
-    // Best-effort server-side token revoke; the local sign-out happens regardless.
-    apiFetch("/auth/logout/", { method: "POST" }).catch(() => {})
-    setToken(null)
+    // Clears the cookie and revokes the session; the local sign-out happens regardless.
+    apiFetch("/auth/logout/", { method: "POST", anonymous: true }).catch(() => {})
+    setSignedIn(false)
     queryClient.clear()
-    navigate("/login", { replace: true })
+    void navigate("/login", { replace: true })
   }
 
   return (

@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import AuthShell, { formLevelMessage } from "@/components/auth/AuthShell"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
-import { apiFetch, ApiError, getToken, safeNextPath, setToken } from "@/lib/api"
+import { apiFetch, ApiError, isSignedIn, safeNextPath, setSignedIn } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import type { Token } from "@/types/api"
 
@@ -40,7 +40,7 @@ export default function Auth({ mode }: { mode: Mode }) {
   const destination = safeNextPath(params.get("next"))
 
   // Already signed in: straight to the app.
-  if (getToken()) return <Navigate to={destination} replace />
+  if (isSignedIn()) return <Navigate to={destination} replace />
 
   const mismatch = mode === "register" && confirm.length > 0 && confirm !== password
 
@@ -57,11 +57,13 @@ export default function Auth({ mode }: { mode: Mode }) {
         body,
         anonymous: true,
       })
-      setToken(key)
+      // "" means the API set the sign-in cookie. No key at all: the email
+      // must be confirmed before signing in.
+      setSignedIn(key !== undefined)
       // A previous session's cached workspaces/posts must never flash
       // into a different account's shell.
       queryClient.clear()
-      navigate(destination, { replace: true })
+      void navigate(destination, { replace: true })
     } catch (err) {
       setFailure({
         mode,
@@ -88,12 +90,11 @@ export default function Auth({ mode }: { mode: Mode }) {
         </>
       }
     >
-      <div role="tablist" aria-label="Account" className="mt-10 flex gap-8 border-b border-hair">
+      <nav aria-label="Account" className="mt-10 flex gap-8 border-b border-hair">
         {(["login", "register"] as const).map((m) => (
           <Link
             key={m}
-            role="tab"
-            aria-selected={mode === m}
+            aria-current={mode === m ? "page" : undefined}
             to={{ pathname: m === "login" ? "/login" : "/register", search: location.search }}
             replace
             className={cn(
@@ -104,7 +105,7 @@ export default function Auth({ mode }: { mode: Mode }) {
             {m === "login" ? "Sign in" : "Create account"}
           </Link>
         ))}
-      </div>
+      </nav>
 
       <form key={mode} onSubmit={handleSubmit} className="mt-9 flex flex-col gap-7" noValidate>
         <Field

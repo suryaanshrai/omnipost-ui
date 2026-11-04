@@ -3,44 +3,40 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import Block from "@/components/app/Block"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
-import Field, { SelectField } from "@/components/editorial/Field"
+import { SelectField } from "@/components/editorial/Field"
 import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
-import { useConnectors } from "@/lib/queries"
+import { EMPTY_APP, useAppCredentials, useConnectors, useRegisterApp, type AppCredentialInput } from "@/lib/queries"
+import AppCredentialFields from "@/components/connect/AppCredentialFields"
 import { useWorkspace } from "@/lib/workspace"
 import type { AppCredential } from "@/types/api"
-import { useWorkspaceList, errorText } from "./shared"
+import { errorText } from "./shared"
 
 export function AppCredentialsBlock() {
   const { activeWorkspace } = useWorkspace()
   const queryClient = useQueryClient()
   const connectors = useConnectors()
-  const creds = useWorkspaceList<AppCredential>("app-credentials")
+  const creds = useAppCredentials()
   const ownApp = (connectors.data ?? []).filter((c) => c.requires_own_app)
   const [slug, setSlug] = useState("")
-  const [clientId, setClientId] = useState("")
-  const [secret, setSecret] = useState("")
-  const [label, setLabel] = useState("")
+  const [app, setApp] = useState<AppCredentialInput>(EMPTY_APP)
   const [error, setError] = useState<ApiError | null>(null)
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["app-credentials", activeWorkspace.id] })
   const chosen = slug || ownApp[0]?.slug || ""
 
-  const add = useMutation({
-    mutationFn: () =>
-      apiFetch<AppCredential>("/app-credentials/", {
-        method: "POST",
-        body: { workspace: activeWorkspace.id, connector_slug: chosen, client_id: clientId.trim(), client_secret: secret.trim(), label: label.trim() },
-      }),
-    onSuccess: () => {
-      setError(null)
-      setClientId("")
-      setSecret("")
-      setLabel("")
-      invalidate()
-      toast("App registered")
-    },
-    onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not register the app.")),
-  })
+  const add = useRegisterApp()
+  const register = () =>
+    add.mutate(
+      { slug: chosen, app },
+      {
+        onSuccess: () => {
+          setError(null)
+          setApp(EMPTY_APP)
+          toast("App registered")
+        },
+        onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not register the app.")),
+      }
+    )
   const remove = useMutation({
     mutationFn: (c: AppCredential) => apiFetch(`/app-credentials/${c.id}/`, { method: "DELETE" }),
     onSuccess: invalidate,
@@ -77,7 +73,7 @@ export function AppCredentialsBlock() {
         <form
           onSubmit={(e) => {
             e.preventDefault()
-            add.mutate()
+            register()
           }}
           className="mt-6 grid gap-6 sm:grid-cols-2"
         >
@@ -88,21 +84,12 @@ export function AppCredentialsBlock() {
               </option>
             ))}
           </SelectField>
-          <Field label="Label (optional)" value={label} onChange={(e) => setLabel(e.target.value)} />
-          <Field label="Client id" value={clientId} onChange={(e) => setClientId(e.target.value)} errors={error?.fieldErrors.client_id} />
-          <Field
-            label="Client secret"
-            type="password"
-            autoComplete="off"
-            value={secret}
-            onChange={(e) => setSecret(e.target.value)}
-            errors={error?.fieldErrors.client_secret}
-          />
+          <AppCredentialFields value={app} onChange={setApp} errors={error?.fieldErrors} />
           {error && !error.fieldErrors.client_id && !error.fieldErrors.client_secret && (
             <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
           )}
           <div className="sm:col-span-2">
-            <OutlineButton type="submit" disabled={!clientId.trim() || !secret.trim() || add.isPending}>
+            <OutlineButton type="submit" disabled={!app.client_id.trim() || !app.client_secret.trim() || add.isPending}>
               Register app
             </OutlineButton>
           </div>

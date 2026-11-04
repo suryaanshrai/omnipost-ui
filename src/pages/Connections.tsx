@@ -1,7 +1,5 @@
 import { useState } from "react"
 import { useNavigate } from "react-router"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
 import HealthDot from "@/components/app/HealthDot"
 import ConnectDialog from "@/components/connect/ConnectDialog"
 import { TextButton } from "@/components/editorial/Buttons"
@@ -9,10 +7,9 @@ import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import HoverRow from "@/components/editorial/HoverRow"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
-import { apiFetch, ApiError } from "@/lib/api"
 import { connectorSummary } from "@/lib/connectors"
 import { platformHue, platformTint } from "@/lib/platforms"
-import { useChannels, useConnectors } from "@/lib/queries"
+import { useChannels, useConnectors, useRemoveChannel } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import type { Channel, Connector } from "@/types/api"
 
@@ -22,7 +19,6 @@ export default function Connections() {
   const channels = useChannels()
   const [connecting, setConnecting] = useState<{ connector: Connector; reconnect?: Channel } | null>(null)
   const [removing, setRemoving] = useState<Channel | null>(null)
-  const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const connectorBySlug = new Map((connectors.data ?? []).map((c) => [c.slug, c]))
@@ -31,18 +27,7 @@ export default function Connections() {
   // deployment hasn't set up go last, marked as such.
   const sortedConnectors = [...(connectors.data ?? [])].sort((a, b) => Number(b.available) - Number(a.available))
 
-  const remove = useMutation({
-    mutationFn: (channel: Channel) => apiFetch(`/channels/${channel.id}/`, { method: "DELETE" }),
-    onSuccess: (_d, channel) => {
-      toast(`${channel.display_name} removed`)
-      setRemoving(null)
-      // Its targets, queue slots and rules went with it.
-      for (const key of ["channels", "posts", "calendar", "queue-slots", "recurrence-rules"]) {
-        queryClient.invalidateQueries({ queryKey: [key] })
-      }
-    },
-    onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not remove the channel."),
-  })
+  const remove = useRemoveChannel(() => setRemoving(null))
 
   return (
     <div className="max-w-[900px]">

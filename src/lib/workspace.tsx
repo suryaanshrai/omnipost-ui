@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { apiFetch, ApiError, setToken, type Page } from "@/lib/api"
+import { apiFetch, ApiError, setSignedIn, type Page } from "@/lib/api"
 import { setDisplayTimeZone } from "@/lib/format"
 import type { Workspace } from "@/types/api"
 import { PrimaryButton } from "@/components/editorial/Buttons"
@@ -120,8 +120,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
 }
 
 function signOut() {
-  apiFetch("/auth/logout/", { method: "POST" }).catch(() => {})
-  setToken(null)
+  apiFetch("/auth/logout/", { method: "POST", anonymous: true }).catch(() => {})
+  setSignedIn(false)
   window.location.assign("/login")
 }
 

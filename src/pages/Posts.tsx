@@ -8,6 +8,7 @@ import { kindLabel, useCompose } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import RepostButton from "@/components/app/RepostButton"
 import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
@@ -20,6 +21,12 @@ import type { Channel, Post, PostTarget, PublishAttempt } from "@/types/api"
 
 const PAGE = 20
 const IN_FLIGHT = new Set(["pending", "scheduled", "publishing"])
+const FILTERS = [
+  { value: "published,publishing,failed,scheduled", label: "All" },
+  { value: "published", label: "Published" },
+  { value: "failed", label: "Failed" },
+  { value: "publishing,scheduled", label: "Sending" },
+]
 
 /** The moment a post "happened": its first publish, else when it was meant to go, else its last change. */
 function postStamp(post: Post): string {
@@ -35,12 +42,13 @@ export default function Posts() {
   const { activeWorkspace } = useWorkspace()
   const { map: channels } = useChannelMap()
   const [search, setSearch] = useState("")
+  const [status, setStatus] = useState(FILTERS[0].value)
 
   const query = useInfiniteQuery({
-    queryKey: ["posts", activeWorkspace.id, "published", search],
+    queryKey: ["posts", activeWorkspace.id, "published", search, status],
     queryFn: ({ pageParam }) =>
       apiFetch<Page<Post>>(
-        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&scheduled=due&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
+        `/posts/?workspace=${activeWorkspace.id}&status=${status}&scheduled=due&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
       ),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
@@ -65,6 +73,22 @@ export default function Posts() {
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
       <SearchBox label="Search your posts" onSearch={setSearch} />
+      <div role="group" aria-label="Show" className="mt-6 flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            aria-pressed={status === f.value}
+            onClick={() => setStatus(f.value)}
+            className={cn(
+              "min-h-8 border px-3 text-[10.5px] font-bold tracking-[0.16em] uppercase transition-colors",
+              status === f.value ? "border-ink bg-ink text-page" : "border-hair text-ink-55 hover:border-ink hover:text-ink"
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {query.isError && (
@@ -72,9 +96,13 @@ export default function Posts() {
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
         </p>
       )}
-      {query.isSuccess && posts.length === 0 && !query.hasNextPage && !search && <FirstPostChecklist />}
-      {query.isSuccess && posts.length === 0 && search && (
-        <p className="mt-10 text-[15px] text-ink-55">No posts match “{search}”.</p>
+      {query.isSuccess && posts.length === 0 && !query.hasNextPage && !search && status === FILTERS[0].value && (
+        <FirstPostChecklist />
+      )}
+      {query.isSuccess && posts.length === 0 && (search || status !== FILTERS[0].value) && (
+        <p className="mt-10 text-[15px] text-ink-55">
+          {search ? `No posts match “${search}”.` : "Nothing here."}
+        </p>
       )}
 
       <div>
@@ -111,7 +139,8 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
             <span className="eyebrow text-ink">· Dispatching</span>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {post.status === "published" && <RepostButton post={post} />}
           <DuplicateButton post={post} />
           {post.status === "failed" && (
             // Every channel failed: fix the post itself and send it again.
@@ -162,8 +191,8 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
       apiFetch(`/posts/${post.id}/retry-target/${target.id}/`, { method: "POST" }),
     onSuccess: () => {
       toast("Retry queued")
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
-      queryClient.invalidateQueries({ queryKey: ["publish-attempts", post.id] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["publish-attempts", post.id] })
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not retry."),
   })
@@ -230,7 +259,7 @@ function DuplicateButton({ post }: { post: Post }) {
   const duplicate = useMutation({
     mutationFn: () => apiFetch<Post>(`/posts/${post.id}/duplicate/`, { method: "POST" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
       toast("Copied to Drafts")
     },
   })
@@ -240,3 +269,4 @@ function DuplicateButton({ post }: { post: Post }) {
     </TextButton>
   )
 }
+

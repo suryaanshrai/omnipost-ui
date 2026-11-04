@@ -46,7 +46,7 @@ export default function MembersBlock() {
     mutationFn: (m: Membership) => apiFetch(`/memberships/${m.id}/`, { method: "DELETE" }),
     onSuccess: () => {
       setRemoving(null)
-      invalidate()
+      void invalidate()
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not remove the member."),
   })

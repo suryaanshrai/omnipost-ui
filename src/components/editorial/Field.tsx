@@ -1,5 +1,6 @@
-import { useId } from "react"
+import { useId, useMemo } from "react"
 import type { ComponentPropsWithoutRef, ReactNode } from "react"
+import { timezoneOptions } from "@/lib/format"
 import { cn } from "@/lib/utils"
 
 const CONTROL =
@@ -106,5 +107,21 @@ export function SelectField({
         </p>
       )}
     </div>
+  )
+}
+
+/** A timezone input that suggests IANA names as you type. */
+export function TimezoneField(props: Omit<Parameters<typeof Field>[0], "list">) {
+  const listId = useId()
+  const zones = useMemo(timezoneOptions, [])
+  return (
+    <>
+      <Field list={listId} {...props} />
+      <datalist id={listId}>
+        {zones.map((z) => (
+          <option key={z} value={z} />
+        ))}
+      </datalist>
+    </>
   )
 }

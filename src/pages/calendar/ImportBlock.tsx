@@ -23,8 +23,8 @@ export function ImportBlock() {
     },
     onSuccess: (r) => {
       setResult(r)
-      queryClient.invalidateQueries({ queryKey: ["calendar"] })
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["calendar"] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not import the file."),
   })

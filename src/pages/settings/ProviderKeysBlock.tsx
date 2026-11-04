@@ -37,7 +37,7 @@ export function ProviderKeysBlock() {
       setError(null)
       setApiKey("")
       setLabel("")
-      invalidate()
+      void invalidate()
       toast("Key validated and saved")
     },
     onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not save the key.")),

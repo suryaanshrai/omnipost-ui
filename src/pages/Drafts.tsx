@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { ChannelChip, ChannelToggle } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel, useCompose } from "@/components/compose/compose-context"
-import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
+import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
@@ -15,6 +15,7 @@ import { formatStamp } from "@/lib/format"
 import { targetSpecsFor } from "@/lib/posts"
 import { useChannels, useConnectors } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
+import { useHiddenPosts, useUndoableDelete } from "@/lib/undoDelete"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
 
@@ -40,8 +41,13 @@ export default function Drafts() {
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
   })
 
-  const list = drafts.data?.pages.flatMap((p) => p.results) ?? []
-  const total = drafts.data?.pages[0]?.count ?? 0
+  const hidden = useHiddenPosts()
+  const list = (drafts.data?.pages.flatMap((p) => p.results) ?? []).filter((p) => !hidden.has(p.id))
+  const total = Math.max(0, (drafts.data?.pages[0]?.count ?? 0) - hidden.size)
+  const [picked, setPicked] = useState<number[]>([])
+  const pickable = list.filter((p) => EDITABLE.has(p.status))
+  const pick = (id: number) => setPicked((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]))
+  const pickedHere = picked.filter((id) => pickable.some((p) => p.id === id))
 
   return (
     <div className="max-w-[760px]">
@@ -60,9 +66,24 @@ export default function Drafts() {
         </p>
       )}
 
+      {pickable.length > 1 && (
+        <BulkBar
+          picked={pickedHere}
+          total={pickable.length}
+          onAll={() => setPicked(pickedHere.length === pickable.length ? [] : pickable.map((p) => p.id))}
+          onDone={() => setPicked([])}
+        />
+      )}
+
       {list.map((post, i) => (
         <Reveal key={post.id} delayMs={Math.min(i, 6) * 70}>
-          <DraftEntry post={post} channels={channels.data ?? []} connectors={connectors.data ?? []} />
+          <DraftEntry
+            post={post}
+            channels={channels.data ?? []}
+            connectors={connectors.data ?? []}
+            picked={pickedHere.includes(post.id)}
+            onPick={EDITABLE.has(post.status) && pickable.length > 1 ? () => pick(post.id) : undefined}
+          />
         </Reveal>
       ))}
 
@@ -77,6 +98,82 @@ export default function Drafts() {
   )
 }
 
+/** Act on several drafts at once. */
+function BulkBar({
+  picked,
+  total,
+  onAll,
+  onDone,
+}: {
+  picked: number[]
+  total: number
+  onAll: () => void
+  onDone: () => void
+}) {
+  const { activeWorkspace } = useWorkspace()
+  const queryClient = useQueryClient()
+  const remove = useUndoableDelete()
+  const queue = useMutation({
+    mutationFn: async (ids: number[]) => {
+      const failed: string[] = []
+      for (const id of ids) {
+        try {
+          await apiFetch(`/posts/${id}/queue/`, { method: "POST" })
+        } catch (err) {
+          failed.push(err instanceof ApiError ? err.detail : "network error")
+          // A plan limit stops the rest too.
+          if (err instanceof ApiError && err.status === 402) throw err
+        }
+      }
+      return { done: ids.length - failed.length, failed }
+    },
+    onSuccess: ({ done, failed }) => {
+      if (done) toast(`${done} added to the queue`)
+      if (failed.length) toast.error(`${failed.length} couldn't be queued: ${failed[0]}`)
+      onDone()
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["calendar"] })
+    },
+  })
+
+  return (
+    <div className="sticky top-0 z-10 mt-8 flex flex-wrap items-center gap-x-6 gap-y-3 border-y border-hair bg-page py-3">
+      <label className="flex min-h-6 cursor-pointer items-center gap-2 text-[13px]">
+        <input
+          type="checkbox"
+          className="h-4 w-4 accent-[var(--rust)]"
+          checked={picked.length === total}
+          ref={(el) => {
+            if (el) el.indeterminate = picked.length > 0 && picked.length < total
+          }}
+          onChange={onAll}
+        />
+        {picked.length ? `${picked.length} selected` : "Select all"}
+      </label>
+      {picked.length > 0 && (
+        <>
+          <OutlineButton type="button" disabled={queue.isPending} onClick={() => queue.mutate(picked)}>
+            {queue.isPending ? "Queueing…" : "Add to queue"}
+          </OutlineButton>
+          <TextButton
+            type="button"
+            tone="muted"
+            disabled={queue.isPending}
+            onClick={() => {
+              remove(picked, `${picked.length} draft${picked.length === 1 ? "" : "s"} deleted`)
+              onDone()
+            }}
+          >
+            Delete
+          </TextButton>
+        </>
+      )}
+    </div>
+  )
+}
+
 function scheduleLabel(post: Post): string {
   if (post.status === "scheduled") return `Scheduled · ${formatStamp(post.scheduled_for)}`
   if (post.status === "in_review") return "In review"
@@ -84,8 +181,21 @@ function scheduleLabel(post: Post): string {
   return post.scheduled_for ? `For ${formatStamp(post.scheduled_for)}` : "Unscheduled"
 }
 
-function DraftEntry({ post, channels, connectors }: { post: Post; channels: Channel[]; connectors: Connector[] }) {
+function DraftEntry({
+  post,
+  channels,
+  connectors,
+  picked,
+  onPick,
+}: {
+  post: Post
+  channels: Channel[]
+  connectors: Connector[]
+  picked: boolean
+  onPick?: () => void
+}) {
   const { activeWorkspace } = useWorkspace()
+  const removeLater = useUndoableDelete()
   const { openCompose } = useCompose()
   const queryClient = useQueryClient()
   const workflow = !!activeWorkspace.approval_workflow_enabled
@@ -106,10 +216,10 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
     if (!pendingRef.current && inFlight.current === 0) setSelected(serverKey ? serverKey.split(",").map(Number) : [])
   }, [serverKey])
 
-  const [confirm, setConfirm] = useState<null | "dispatch" | "delete" | "cancel">(null)
+  const [confirm, setConfirm] = useState<null | "dispatch" | "cancel">(null)
 
   const invalidate = () => {
-    queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+    void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
   }
 
   const patchTargets = useMutation({
@@ -173,9 +283,8 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   }
 
   const action = useMutation({
-    mutationFn: async (kind: "dispatch" | "queue" | "submit" | "delete" | "cancel") => {
+    mutationFn: async (kind: "dispatch" | "queue" | "submit" | "cancel") => {
       await flush()
-      if (kind === "delete") return apiFetch(`/posts/${post.id}/`, { method: "DELETE" })
       if (kind === "cancel") return apiFetch(`/posts/${post.id}/cancel/`, { method: "POST" })
       if (kind === "submit") return apiFetch(`/posts/${post.id}/submit-for-review/`, { method: "POST" })
       if (kind === "queue") return apiFetch(`/posts/${post.id}/queue/`, { method: "POST" })
@@ -188,14 +297,13 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
     onSuccess: (_data, kind) => {
       setConfirm(null)
       invalidate()
-      queryClient.invalidateQueries({ queryKey: ["calendar"] })
+      void queryClient.invalidateQueries({ queryKey: ["calendar"] })
       const future = post.scheduled_for && new Date(post.scheduled_for).getTime() > Date.now()
       toast(
         {
           dispatch: future ? `Scheduled for ${formatStamp(post.scheduled_for)}` : "Dispatched",
           queue: "Added to the queue",
           submit: "Submitted for review",
-          delete: "Draft deleted",
           cancel: "Schedule canceled",
         }[kind]
       )
@@ -215,6 +323,15 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   return (
     <article className="border-b border-hair py-8">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {onPick && (
+          <input
+            type="checkbox"
+            aria-label="Select this draft"
+            className="mr-1 h-4 w-4 accent-[var(--rust)]"
+            checked={picked}
+            onChange={onPick}
+          />
+        )}
         <span className="eyebrow text-rust">{kindLabel(post.kind)}</span>
         <span className="eyebrow">{scheduleLabel(post)}</span>
       </div>
@@ -291,7 +408,19 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
               </TextButton>
             )}
             {post.status !== "in_review" && (
-              <TextButton type="button" tone="muted" onClick={() => setConfirm("delete")} disabled={busy}>
+              <TextButton
+                type="button"
+                tone="muted"
+                onClick={async () => {
+                  try {
+                    await flush()
+                  } catch {
+                    // patchTargets' onError already told the user.
+                  }
+                  removeLater([post.id], "Draft deleted")
+                }}
+                disabled={busy}
+              >
                 Delete
               </TextButton>
             )}
@@ -319,18 +448,6 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
           ))}
         </div>
       </ConfirmDialog>
-
-      <ConfirmDialog
-        open={confirm === "delete"}
-        onOpenChange={(o) => !o && setConfirm(null)}
-        eyebrow="Delete"
-        title="Delete this draft?"
-        description="It can't be brought back."
-        confirmLabel="Delete"
-        tone="rust"
-        onConfirm={() => action.mutate("delete")}
-        pending={busy}
-      />
 
       <ConfirmDialog
         open={confirm === "cancel"}
