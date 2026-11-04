@@ -4,6 +4,47 @@
  */
 
 export interface paths {
+    "/account/delete/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST {password} -> deletes your account. Workspaces where you're the
+         *     only member go with it (channels, posts, media). If you own a workspace
+         *     that has other members, make one of them an owner first.
+         */
+        post: operations["account_delete_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description GET -> everything OmniPost stores about you and your workspaces, as
+         *     JSON (no credentials or keys, which stay encrypted).
+         */
+        get: operations["account_export_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/alt-text/": {
         parameters: {
             query?: never;
@@ -108,18 +149,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["app_credentials_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["app_credentials_create"];
         delete?: never;
@@ -136,34 +177,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["app_credentials_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["app_credentials_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["app_credentials_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["app_credentials_partial_update"];
         trace?: never;
@@ -400,18 +441,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["blackout_windows_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["blackout_windows_create"];
         delete?: never;
@@ -428,34 +469,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["blackout_windows_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["blackout_windows_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["blackout_windows_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["blackout_windows_partial_update"];
         trace?: never;
@@ -468,18 +509,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["channels_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["channels_create"];
         delete?: never;
@@ -496,34 +537,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["channels_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["channels_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["channels_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["channels_partial_update"];
         trace?: never;
@@ -695,18 +736,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         get: operations["memberships_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         post: operations["memberships_create"];
         delete?: never;
@@ -723,36 +762,96 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         get: operations["memberships_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         put: operations["memberships_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         delete: operations["memberships_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         patch: operations["memberships_partial_update"];
+        trace?: never;
+    };
+    "/notifications/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notifications_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications_read_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications_read_all_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread-count/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notifications_unread_count_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/oauth/complete/": {
@@ -801,10 +900,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["post_targets_list"];
         put?: never;
@@ -823,10 +922,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["post_targets_retrieve"];
         put?: never;
@@ -867,18 +966,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["posts_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_create"];
         delete?: never;
@@ -895,34 +994,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["posts_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["posts_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["posts_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["posts_partial_update"];
         trace?: never;
@@ -937,10 +1036,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_approve_create"];
         delete?: never;
@@ -959,10 +1058,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Cancels every target that hasn't started publishing. Bumping the
+         *     epoch makes any queued attempt a no-op when a worker reaches it.
          */
         post: operations["posts_cancel_create"];
         delete?: never;
@@ -1083,10 +1180,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_submit_for_review_create"];
         delete?: never;
@@ -1148,18 +1245,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["provider_keys_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["provider_keys_create"];
         delete?: never;
@@ -1176,34 +1273,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["provider_keys_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["provider_keys_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["provider_keys_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["provider_keys_partial_update"];
         trace?: never;
@@ -1260,18 +1357,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["queue_slots_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["queue_slots_create"];
         delete?: never;
@@ -1288,34 +1385,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["queue_slots_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["queue_slots_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["queue_slots_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["queue_slots_partial_update"];
         trace?: never;
@@ -1328,18 +1425,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["recurrence_rules_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["recurrence_rules_create"];
         delete?: never;
@@ -1356,34 +1453,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["recurrence_rules_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["recurrence_rules_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["recurrence_rules_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["recurrence_rules_partial_update"];
         trace?: never;
@@ -1419,18 +1516,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["voice_profiles_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["voice_profiles_create"];
         delete?: never;
@@ -1447,34 +1544,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["voice_profiles_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["voice_profiles_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["voice_profiles_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["voice_profiles_partial_update"];
         trace?: never;
@@ -1537,6 +1634,14 @@ export interface components {
             reserved: number;
             limit: number | null;
         };
+        AccountDelete: {
+            password: string;
+        };
+        AccountExport: {
+            user: {
+                [key: string]: unknown;
+            };
+        };
         AltTextRequest: {
             media: number;
             provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
@@ -1580,6 +1685,15 @@ export interface components {
             /** Format: double */
             avg_engagement: number;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         BlackoutWindow: {
             readonly id: number;
             workspace: number;
@@ -1623,6 +1737,15 @@ export interface components {
             readonly post_text: string;
             readonly post_status: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Channel: {
             readonly id: number;
             workspace: number;
@@ -1660,6 +1783,8 @@ export interface components {
             display_name: string;
             requires_own_app: boolean;
             supports_oauth: boolean;
+            available: boolean;
+            supports_metrics: boolean;
             credential_fields: string[];
             oauth_extra_fields: string[];
             max_text_length: number | null;
@@ -1711,6 +1836,15 @@ export interface components {
             email?: string;
             password: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         MediaAsset: {
             readonly id: number;
             workspace: number;
@@ -1753,6 +1887,15 @@ export interface components {
             allowed_aspect_ratios: string[];
             allowed_mime_types: string[];
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Membership: {
             readonly id: number;
             workspace: number;
@@ -1760,7 +1903,27 @@ export interface components {
             role?: components["schemas"]["RoleEnum"];
             /** Format: date-time */
             readonly created_at: string;
+            username?: string;
         };
+        Notification: {
+            readonly id: number;
+            readonly workspace: number;
+            readonly kind: components["schemas"]["NotificationKindEnum"];
+            readonly title: string;
+            readonly body: string;
+            readonly link: string;
+            /** Format: date-time */
+            readonly read_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        /**
+         * @description * `post_failed` - Post failed
+         *     * `channel_broken` - Channel needs reconnecting
+         *     * `preflight_failed` - Scheduled post at risk
+         * @enum {string}
+         */
+        NotificationKindEnum: "post_failed" | "channel_broken" | "preflight_failed";
         /** @enum {unknown} */
         NullEnum: null;
         OAuthCompleteRequest: {
@@ -1884,6 +2047,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Membership"][];
+        };
+        PaginatedNotificationList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Notification"][];
         };
         PaginatedPostList: {
             /** @example 123 */
@@ -2036,6 +2214,7 @@ export interface components {
             results: components["schemas"]["Workspace"][];
         };
         PasswordChange: {
+            old_password: string;
             new_password1: string;
             new_password2: string;
         };
@@ -2068,6 +2247,15 @@ export interface components {
             readonly created_at?: string;
             client_secret?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedBlackoutWindow: {
             readonly id?: number;
             workspace?: number;
@@ -2079,6 +2267,15 @@ export interface components {
             ends_at?: string;
             is_active?: boolean;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedChannel: {
             readonly id?: number;
             workspace?: number;
@@ -2099,6 +2296,15 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedMediaAsset: {
             readonly id?: number;
             workspace?: number;
@@ -2115,6 +2321,15 @@ export interface components {
             /** Format: date-time */
             readonly created_at?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedMembership: {
             readonly id?: number;
             workspace?: number;
@@ -2122,7 +2337,17 @@ export interface components {
             role?: components["schemas"]["RoleEnum"];
             /** Format: date-time */
             readonly created_at?: string;
+            username?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedPost: {
             readonly id?: number;
             workspace?: number;
@@ -2144,6 +2369,15 @@ export interface components {
             readonly targets?: components["schemas"]["PostTarget"][];
             target_specs?: components["schemas"]["PostTargetWrite"][];
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedProviderKey: {
             readonly id?: number;
             workspace?: number;
@@ -2156,6 +2390,15 @@ export interface components {
             readonly created_at?: string;
             api_key?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedQueueSlot: {
             readonly id?: number;
             channel?: number;
@@ -2164,6 +2407,15 @@ export interface components {
             time_of_day?: string;
             is_active?: boolean;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedRecurrenceRule: {
             readonly id?: number;
             workspace?: number;
@@ -2185,7 +2437,7 @@ export interface components {
             /** Format: date-time */
             readonly updated_at?: string;
         };
-        /** @description User model w/o password */
+        /** @description /auth/user/: dj-rest-auth's fields plus the email-alerts preference. */
         PatchedUserDetails: {
             /** ID */
             readonly pk?: number;
@@ -2198,7 +2450,17 @@ export interface components {
             readonly email?: string;
             first_name?: string;
             last_name?: string;
+            email_notifications?: boolean;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedVoiceProfile: {
             readonly id?: number;
             workspace?: number;
@@ -2211,7 +2473,7 @@ export interface components {
         };
         PatchedWorkspace: {
             readonly id?: number;
-            organization?: number;
+            readonly organization?: number;
             name?: string;
             slug?: string;
             timezone?: string;
@@ -2219,6 +2481,15 @@ export interface components {
             /** Format: date-time */
             readonly created_at?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Post: {
             readonly id: number;
             workspace: number;
@@ -2308,6 +2579,15 @@ export interface components {
             media?: number[];
             delay_after_s?: number;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PostTargetPartWrite: {
             sequence: number;
             text?: string;
@@ -2324,6 +2604,15 @@ export interface components {
          * @enum {string}
          */
         PostTargetStatusEnum: "pending" | "scheduled" | "publishing" | "published" | "failed" | "canceled";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PostTargetWrite: {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
@@ -2339,6 +2628,15 @@ export interface components {
          * @enum {string}
          */
         Provider4baEnum: "anthropic" | "openai" | "gemini" | "openrouter";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         ProviderKey: {
             readonly id: number;
             workspace: number;
@@ -2380,6 +2678,15 @@ export interface components {
          * @enum {string}
          */
         PublishAttemptStatusEnum: "queued" | "running" | "waiting" | "succeeded" | "failed";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         QueueSlot: {
             readonly id: number;
             channel: number;
@@ -2388,6 +2695,18 @@ export interface components {
             time_of_day: string;
             is_active?: boolean;
         };
+        ReadAll: {
+            updated: number;
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         RecurrenceRule: {
             readonly id: number;
             workspace: number;
@@ -2412,7 +2731,7 @@ export interface components {
         Register: {
             username: string;
             /** Format: email */
-            email?: string;
+            email: string;
             password1: string;
             password2: string;
         };
@@ -2436,7 +2755,7 @@ export interface components {
         };
         ResendEmailVerification: {
             /** Format: email */
-            email?: string;
+            email: string;
         };
         RestAuthDetail: {
             readonly detail: string;
@@ -2482,6 +2801,9 @@ export interface components {
         Token: {
             key: string;
         };
+        UnreadCount: {
+            unread: number;
+        };
         User: {
             readonly id: number;
             /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
@@ -2494,7 +2816,7 @@ export interface components {
             readonly first_name: string;
             readonly last_name: string;
         };
-        /** @description User model w/o password */
+        /** @description /auth/user/: dj-rest-auth's fields plus the email-alerts preference. */
         UserDetails: {
             /** ID */
             readonly pk: number;
@@ -2507,6 +2829,7 @@ export interface components {
             readonly email: string;
             first_name?: string;
             last_name?: string;
+            email_notifications?: boolean;
         };
         /**
          * @description One connectors.errors.Finding — shared by POST /validate/ and the AI
@@ -2535,6 +2858,15 @@ export interface components {
         VerifyEmail: {
             key: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         VoiceProfile: {
             readonly id: number;
             workspace: number;
@@ -2547,7 +2879,7 @@ export interface components {
         };
         Workspace: {
             readonly id: number;
-            organization?: number;
+            readonly organization: number;
             name: string;
             slug?: string;
             timezone?: string;
@@ -2564,6 +2896,49 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    account_delete_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDelete"];
+                "application/x-www-form-urlencoded": components["schemas"]["AccountDelete"];
+                "multipart/form-data": components["schemas"]["AccountDelete"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_export_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountExport"];
+                };
+            };
+        };
+    };
     ai_alt_text_create: {
         parameters: {
             query?: never;
@@ -2986,7 +3361,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["ResendEmailVerification"];
                 "application/x-www-form-urlencoded": components["schemas"]["ResendEmailVerification"];
@@ -3765,6 +4140,100 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Membership"];
+                };
+            };
+        };
+    };
+    notifications_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedNotificationList"];
+                };
+            };
+        };
+    };
+    notifications_read_create: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+        };
+    };
+    notifications_read_all_create: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadAll"];
+                };
+            };
+        };
+    };
+    notifications_unread_count_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
                 };
             };
         };

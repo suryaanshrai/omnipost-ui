@@ -17,6 +17,11 @@ export function setToken(token: string | null): void {
   else localStorage.removeItem(TOKEN_KEY)
 }
 
+/** Where to send someone after they sign in: an in-app path only, never another origin. */
+export function safeNextPath(raw: string | null | undefined): string {
+  return raw && raw.startsWith("/app") && !raw.startsWith("//") ? raw : "/app"
+}
+
 /**
  * A normalized DRF error response. `fieldErrors` covers both per-field
  * validation (`{"name": ["This field is required."]}`) and
@@ -130,7 +135,9 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   if (!response.ok) {
     if (response.status === 401 && !anonymous) {
       setToken(null)
-      window.location.assign("/login")
+      // Come back to the same screen after signing in again.
+      const here = `${window.location.pathname}${window.location.search}`
+      window.location.assign(`/login?next=${encodeURIComponent(here)}`)
     }
     throw parseDrfError(response.status, data)
   }

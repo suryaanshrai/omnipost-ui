@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import { NavLink, useNavigate } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
+import NotificationBell from "@/components/app/NotificationBell"
 import { SelectField } from "@/components/editorial/Field"
 import Wordmark from "@/components/editorial/Wordmark"
 import { useCompose } from "@/components/compose/compose-context"
 import { useTheme } from "@/components/theme-provider"
-import useAuthContext from "@/contexts/authContext"
 import { apiFetch, setToken } from "@/lib/api"
 import { navItems } from "@/lib/nav"
 import { useMe, usePostCount } from "@/lib/queries"
@@ -34,7 +34,6 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const { workspaces, activeWorkspace, setActiveWorkspaceId } = useWorkspace()
   const { openCompose } = useCompose()
   const { theme, setTheme } = useTheme()
-  const { updateToken, toggleSignedIn, updateUser } = useAuthContext()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const now = useClock()
@@ -57,15 +56,15 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     apiFetch("/auth/logout/", { method: "POST" }).catch(() => {})
     setToken(null)
     queryClient.clear()
-    updateToken("")
-    updateUser("")
-    toggleSignedIn(false)
     navigate("/login", { replace: true })
   }
 
   return (
     <div className="flex h-full flex-col px-6 pt-7 pb-6">
-      <Wordmark size={21} />
+      <div className="flex items-center justify-between">
+        <Wordmark size={21} />
+        <NotificationBell className="hidden md:flex" />
+      </div>
 
       <button
         type="button"

@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ChannelChip } from "@/components/app/ChannelChip"
+import FirstPostChecklist from "@/components/app/FirstPostChecklist"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
@@ -67,9 +68,7 @@ export default function Posts() {
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
         </p>
       )}
-      {query.isSuccess && posts.length === 0 && (
-        <p className="mt-10 text-[15px] text-ink-55">Nothing dispatched yet. Dispatch a draft and it lands here.</p>
-      )}
+      {query.isSuccess && posts.length === 0 && !query.hasNextPage && <FirstPostChecklist />}
 
       <div>
         {posts.map((post, i) => (

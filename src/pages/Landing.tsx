@@ -32,30 +32,45 @@ const FLOW = [
   { num: "03", title: "Dispatch", desc: "OmniPost publishes to every selected channel and reports what landed." },
 ]
 
-const TIERS = [
+type TierCta = { label: string; to: string } | { label: string; href: string }
+
+// Only what exists today. The hosted plan has no price until billing ships.
+const TIERS: {
+  name: string
+  price: string
+  unit: string
+  blurb: string
+  features: string[]
+  cta: TierCta
+  featured: boolean
+}[] = [
   {
-    name: "Free",
+    name: "Self-host",
     price: "$0",
-    blurb: "One account per platform, unlimited drafts.",
-    features: ["1 instance per platform", "Unlimited drafts", "Manual publishing", "Delivery notifications"],
-    cta: "Start free",
+    unit: "forever",
+    blurb: "Every feature, on your own server. Open source, GPL licensed.",
+    features: [
+      "All eleven networks",
+      "Scheduling, queue slots, recurring posts",
+      "Delivery reports and failure alerts",
+      "AI drafting with your own key",
+      "Teams with roles and approvals",
+    ],
+    cta: { label: "Read the setup guide", href: "https://github.com/suryaanshrai/omnipost#quick-start" },
     featured: false,
   },
   {
-    name: "Pro",
-    price: "$19",
-    blurb: "For anyone posting across every platform, every week.",
-    features: ["Unlimited instances", "Scheduled publishing", "Priority queue", "Full delivery history", "Email support"],
-    cta: "Start trial",
+    name: "Hosted",
+    price: "Soon",
+    unit: "",
+    blurb: "Everything in self-host, run for you.",
+    features: [
+      "One-click connect for Instagram, TikTok and YouTube (no developer apps)",
+      "Managed backups and media storage",
+      "AI included",
+    ],
+    cta: { label: "Create an account", to: "/register" },
     featured: true,
-  },
-  {
-    name: "Team",
-    price: "$49",
-    blurb: "Shared drafts and publishing for small teams.",
-    features: ["Everything in Pro", "5 seats", "Shared draft library", "Role permissions"],
-    cta: "Talk to us",
-    featured: false,
   },
 ]
 
@@ -236,10 +251,10 @@ export default function Landing() {
                 Pricing, without the <em className="text-rust italic">theatre</em>
               </>
             }
-            aside="Placeholder tiers"
+            aside="Open source"
           />
         </Reveal>
-        <div className="grid md:grid-cols-3">
+        <div className="grid md:grid-cols-2">
           {TIERS.map((tier, i) => (
             <Reveal
               key={tier.name}
@@ -256,7 +271,7 @@ export default function Landing() {
               </div>
               <div className="mt-6 flex items-baseline gap-2">
                 <span className="display text-[60px] leading-none">{tier.price}</span>
-                <span className="eyebrow">/ mo</span>
+                {tier.unit && <span className="eyebrow">{tier.unit}</span>}
               </div>
               <p className="mt-5 max-w-[280px] text-[15px] leading-[1.6] text-pretty text-ink-55">{tier.blurb}</p>
               <ul className="mt-7 flex-1 space-y-3 border-t border-hair pt-6">
@@ -267,17 +282,28 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/register"
-                className={cn(
-                  "mt-9 self-start text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300",
-                  tier.featured
-                    ? "bg-ink px-[26px] py-[15px] text-page hover:bg-rust"
-                    : "border-b border-ink pb-1 hover:border-rust hover:text-rust"
-                )}
-              >
-                {tier.cta}
-              </Link>
+              {"to" in tier.cta ? (
+                <Link
+                  to={tier.cta.to}
+                  className={cn(
+                    "mt-9 self-start text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300",
+                    tier.featured
+                      ? "bg-ink px-[26px] py-[15px] text-page hover:bg-rust"
+                      : "border-b border-ink pb-1 hover:border-rust hover:text-rust"
+                  )}
+                >
+                  {tier.cta.label}
+                </Link>
+              ) : (
+                <a
+                  href={tier.cta.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-9 self-start border-b border-ink pb-1 text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300 hover:border-rust hover:text-rust"
+                >
+                  {tier.cta.label}
+                </a>
+              )}
             </Reveal>
           ))}
         </div>

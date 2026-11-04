@@ -30,6 +30,12 @@ export function useConnectors() {
   })
 }
 
+/** Slugs of the platforms that report engagement metrics (from /connectors/). */
+export function useMetricsSlugs(): Set<string> {
+  const connectors = useConnectors()
+  return new Set((connectors.data ?? []).filter((c) => c.supports_metrics).map((c) => c.slug))
+}
+
 /** The active workspace's linked channels. */
 export function useChannels() {
   const { activeWorkspace } = useWorkspace()

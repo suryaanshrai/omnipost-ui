@@ -32,10 +32,13 @@ export default function ConnectDialog({
   connector,
   open,
   onOpenChange,
+  reconnect,
 }: {
   connector: Connector
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Re-authorize this existing channel instead of adding a new one; its scheduled posts keep working. */
+  reconnect?: Channel
 }) {
   const { activeWorkspace } = useWorkspace()
   const queryClient = useQueryClient()
@@ -57,7 +60,7 @@ export default function ConnectDialog({
   const needsApp = connector.requires_own_app && appCredentials.isSuccess && !hasAppCredential
   const step: Step = needsApp ? "app" : (chosen ?? firstStep())
 
-  const [displayName, setDisplayName] = useState("")
+  const [displayName, setDisplayName] = useState(reconnect?.display_name ?? "")
   const [values, setValues] = useState<Record<string, string>>({})
   const [app, setApp] = useState({ client_id: "", client_secret: "", label: "" })
   const [error, setError] = useState<ApiError | null>(null)
@@ -111,19 +114,20 @@ export default function ConnectDialog({
   })
 
   const createChannel = useMutation({
-    mutationFn: () =>
-      apiFetch<Channel>("/channels/", {
-        method: "POST",
-        body: {
-          workspace: activeWorkspace.id,
-          connector_slug: connector.slug,
-          display_name: displayName.trim() || connector.display_name,
-          credentials: Object.fromEntries(connector.credential_fields.map((f) => [f, (values[f] ?? "").trim()])),
-        },
-      }),
+    mutationFn: () => {
+      const credentials = Object.fromEntries(connector.credential_fields.map((f) => [f, (values[f] ?? "").trim()]))
+      const display_name = displayName.trim() || connector.display_name
+      return reconnect
+        ? apiFetch<Channel>(`/channels/${reconnect.id}/`, { method: "PATCH", body: { display_name, credentials } })
+        : apiFetch<Channel>("/channels/", {
+            method: "POST",
+            body: { workspace: activeWorkspace.id, connector_slug: connector.slug, display_name, credentials },
+          })
+    },
     onSuccess: (channel) => {
       queryClient.invalidateQueries({ queryKey: ["channels", activeWorkspace.id] })
-      toast(`${channel.display_name} connected`)
+      queryClient.invalidateQueries({ queryKey: ["channel", channel.id] })
+      toast(reconnect ? `${channel.display_name} reconnected` : `${channel.display_name} connected`)
       onOpenChange(false)
     },
     onError: (err) => setError(err instanceof ApiError ? err : new ApiError(0, "Could not connect the account.")),
@@ -159,16 +163,19 @@ export default function ConnectDialog({
           ? connector.credential_fields.some((f) => !(values[f] ?? "").trim())
           : true
 
+  const verb = reconnect ? "Reconnect" : "Connect"
   const titles: Record<Step, string> = {
     app: "Register your own app",
-    method: `Connect ${connector.display_name}`,
-    oauth: `Connect ${connector.display_name}`,
-    credentials: `Connect ${connector.display_name}`,
+    method: `${verb} ${reconnect?.display_name ?? connector.display_name}`,
+    oauth: `${verb} ${reconnect?.display_name ?? connector.display_name}`,
+    credentials: `${verb} ${reconnect?.display_name ?? connector.display_name}`,
   }
   const descriptions: Record<Step, string> = {
     app: `${connector.display_name} only lets each workspace publish through an app it registered itself. Paste that app's client id and secret — the secret is encrypted and never shown again.`,
     method: "Sign in through the platform, or paste an access token you created yourself.",
-    oauth: "You'll be sent to the platform to approve access, then brought back here.",
+    oauth: reconnect
+      ? "Sign in again as the same account. Its scheduled posts keep working."
+      : "You'll be sent to the platform to approve access, then brought back here.",
     credentials: "Stored encrypted. OmniPost only uses them to publish what you dispatch.",
   }
 

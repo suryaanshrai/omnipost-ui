@@ -63,14 +63,22 @@ export default function ComposeModal({
   )
   const [uploading, setUploading] = useState(0)
   const [saveError, setSaveError] = useState<ApiError | null>(null)
+  // Editing: the draft's media loads asynchronously. Until it has, saving
+  // would send an empty list and silently detach it.
+  const [mediaReady, setMediaReady] = useState(!post?.base_media?.length)
+  const [mediaLoadFailed, setMediaLoadFailed] = useState(false)
 
   // Editing: hydrate the attached assets (Post.base_media is ids only).
   useEffect(() => {
     if (!post?.base_media?.length) return
     let cancelled = false
     Promise.all(post.base_media.map((id) => apiFetch<MediaAsset>(`/media/${id}/`)))
-      .then((assets) => !cancelled && setMedia(assets))
-      .catch(() => {})
+      .then((assets) => {
+        if (cancelled) return
+        setMedia(assets)
+        setMediaReady(true)
+      })
+      .catch(() => !cancelled && setMediaLoadFailed(true))
     return () => {
       cancelled = true
     }
@@ -82,10 +90,6 @@ export default function ComposeModal({
   )
   const selectedChannels = eligible.filter((c) => selected.includes(c.id))
   const supportsLink = selectedChannels.some((c) => connectorBySlug.get(c.connector_slug)?.supports_link)
-  const maxLength = selectedChannels.reduce<number | null>((min, c) => {
-    const max = connectorBySlug.get(c.connector_slug)?.max_text_length ?? null
-    return max == null ? min : min == null ? max : Math.min(min, max)
-  }, null)
 
   // Live per-channel findings, debounced so typing doesn't fire a request per keystroke.
   const validateInput = useDebounced(
@@ -114,7 +118,11 @@ export default function ComposeModal({
     }),
   })
   const blocking = findings.some((f) => f.data?.findings.some((x) => x.blocking))
-  const validating = findings.some((f) => f.isFetching)
+  // Still typing, or a check is in flight: the findings may be stale.
+  const checksSettled =
+    JSON.stringify(validateInput) ===
+    JSON.stringify({ text, link: supportsLink ? link : "", media: media.map((m) => m.id), kind, overrides })
+  const validating = !checksSettled || findings.some((f) => f.isFetching)
 
   const upload = async (files: FileList | File[]) => {
     for (const file of Array.from(files)) {
@@ -134,44 +142,93 @@ export default function ComposeModal({
     }
   }
 
+  const reviewFirst = !!activeWorkspace.approval_workflow_enabled
+  const scheduledFor = fromLocalInput(scheduled)
+  const inFuture = !!scheduledFor && new Date(scheduledFor).getTime() > Date.now()
+
   const save = useMutation({
-    mutationFn: () => {
-      const scheduledFor = fromLocalInput(scheduled)
+    mutationFn: async (then: "draft" | "dispatch") => {
       const body: Record<string, unknown> = {
         kind,
         base_text: text,
-        base_media: media.map((m) => m.id),
         scheduled_for: scheduledFor,
       }
+      // Never send a media list we haven't loaded: that would detach it.
+      if (mediaReady) body.base_media = media.map((m) => m.id)
       if (link || editing) body.link = supportsLink ? link : ""
+      let saved: Post
       if (editing) {
         body.target_specs = targetSpecsFor(post!, selected.filter((id) => eligible.some((c) => c.id === id)), overrides)
-        return apiFetch<Post>(`/posts/${post!.id}/`, { method: "PATCH", body })
+        saved = await apiFetch<Post>(`/posts/${post!.id}/`, { method: "PATCH", body })
+      } else {
+        body.workspace = activeWorkspace.id
+        body.target_specs = selectedChannels.map((c) =>
+          overrides[c.id] ? { channel: c.id, text_override: overrides[c.id] } : { channel: c.id }
+        )
+        saved = await apiFetch<Post>("/posts/", { method: "POST", body })
       }
-      body.workspace = activeWorkspace.id
-      body.target_specs = selectedChannels.map((c) => (overrides[c.id] ? { channel: c.id, text_override: overrides[c.id] } : { channel: c.id }))
-      return apiFetch<Post>("/posts/", { method: "POST", body })
+      if (then === "draft") return { saved, outcome: "draft" as const }
+      if (reviewFirst) {
+        await apiFetch(`/posts/${saved.id}/submit-for-review/`, { method: "POST" })
+        return { saved, outcome: "review" as const }
+      }
+      try {
+        await apiFetch(`/posts/${saved.id}/schedule/`, {
+          method: "POST",
+          body: inFuture ? { run_at: scheduledFor } : {},
+        })
+      } catch (err) {
+        // The draft is saved; only the dispatch failed. Say so instead of
+        // leaving the user unsure whether anything was kept.
+        throw new ApiError(
+          err instanceof ApiError ? err.status : 0,
+          `Saved to Drafts, but it couldn't be sent: ${err instanceof ApiError ? err.detail : "network error"}`
+        )
+      }
+      return { saved, outcome: inFuture ? ("scheduled" as const) : ("sent" as const) }
     },
-    onSuccess: () => {
+    onSuccess: ({ outcome }) => {
       queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
       queryClient.invalidateQueries({ queryKey: ["calendar"] })
-      toast(editing ? "Draft updated" : "Saved to Drafts")
       onOpenChange(false)
-      if (!editing) navigate("/app/drafts")
+      if (outcome === "draft") {
+        toast(editing ? "Draft updated" : "Saved to Drafts")
+        if (!editing) navigate("/app/drafts")
+      } else if (outcome === "review") {
+        toast("Sent for review")
+        navigate("/app/approvals")
+      } else if (outcome === "scheduled") {
+        toast("Scheduled")
+        navigate("/app/calendar")
+      } else {
+        toast("Publishing now. Delivery reports appear in Posts.")
+        navigate("/app")
+      }
     },
-    onError: (err) => setSaveError(err instanceof ApiError ? err : new ApiError(0, "Could not save the draft.")),
+    onError: (err) => {
+      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      setSaveError(err instanceof ApiError ? err : new ApiError(0, "Could not save the post."))
+    },
   })
 
   const isMediaKind = kind && kind !== "text"
   const hasContent = text.trim().length > 0 || media.length > 0
-  const canSave = !!kind && hasContent && !blocking && uploading === 0 && !save.isPending
+  const canSave = !!kind && hasContent && !blocking && uploading === 0 && !save.isPending && mediaReady
+  const canDispatch = canSave && !validating && selectedChannels.length > 0
+  const dispatchLabel = reviewFirst ? "Submit for review" : inFuture ? "Schedule" : "Publish now"
+  const dirty = !save.isSuccess && (text !== (post?.base_text ?? "") || media.length > (post?.base_media?.length ?? 0))
 
   const step = kind ? 2 : 1
 
   return (
     <Modal
       open={open}
-      onOpenChange={(o) => !save.isPending && onOpenChange(o)}
+      onOpenChange={(o) => {
+        if (save.isPending) return
+        // Escape or a click outside used to throw away a half-written post.
+        if (!o && dirty && !window.confirm("Discard this post? What you've written won't be saved.")) return
+        onOpenChange(o)
+      }}
       eyebrow={step === 1 ? "Step one · Format" : `Step two · ${kindLabel(kind)}`}
       title={step === 1 ? "What are you posting?" : editing ? "Edit the draft" : "Write it once"}
       footer={
@@ -188,9 +245,19 @@ export default function ComposeModal({
               Cancel
             </TextButton>
             {step === 2 && (
-              <PrimaryButton type="button" onClick={() => save.mutate()} disabled={!canSave}>
-                {save.isPending ? "Saving…" : editing ? "Save changes" : "Save draft"}
-              </PrimaryButton>
+              <>
+                <TextButton type="button" onClick={() => save.mutate("draft")} disabled={!canSave}>
+                  {editing ? "Save changes" : "Save draft"}
+                </TextButton>
+                <PrimaryButton
+                  type="button"
+                  onClick={() => save.mutate("dispatch")}
+                  disabled={!canDispatch}
+                  title={selectedChannels.length ? undefined : "Choose at least one channel"}
+                >
+                  {save.isPending ? "Working…" : dispatchLabel}
+                </PrimaryButton>
+              </>
             )}
           </div>
         </>
@@ -255,11 +322,7 @@ export default function ComposeModal({
               onChange={(e) => setText(e.target.value)}
               errors={saveError?.fieldErrors.base_text}
             />
-            {maxLength != null && (
-              <div className={cn("eyebrow mt-2 text-right", text.length > maxLength && "text-rust")}>
-                {text.length} / {maxLength}
-              </div>
-            )}
+            <CharCounts channels={selectedChannels} text={text} overrides={overrides} connectors={connectorBySlug} />
           </div>
 
           <AiPanel
@@ -317,13 +380,25 @@ export default function ComposeModal({
           </div>
 
           <Field
-            label="Schedule (optional)"
+            label="Send at (optional)"
             type="datetime-local"
             value={scheduled}
             onChange={(e) => setScheduled(e.target.value)}
-            hint="Leave empty to dispatch whenever you choose from Drafts."
+            hint={
+              reviewFirst
+                ? "Approval is on: the post goes to review first."
+                : inFuture
+                  ? "It goes out at this time, in your browser's time zone."
+                  : "Leave empty to publish now, or pick a time."
+            }
             errors={saveError?.fieldErrors.scheduled_for}
           />
+
+          {mediaLoadFailed && (
+            <p role="alert" className="text-[13px] text-rust">
+              This draft's media didn't load, so saving is off to keep it attached. Close and try again.
+            </p>
+          )}
 
           <Findings channels={selectedChannels} results={findings.map((f) => f.data)} validating={validating} />
 
@@ -335,6 +410,46 @@ export default function ComposeModal({
         </div>
       )}
     </Modal>
+  )
+}
+
+/** Characters used against each selected network's limit (its own text when it has an override). */
+function CharCounts({
+  channels,
+  text,
+  overrides,
+  connectors,
+}: {
+  channels: Channel[]
+  text: string
+  overrides: Record<number, string>
+  connectors: Map<string, { max_text_length: number | null; display_name: string }>
+}) {
+  const rows = channels
+    .map((c) => ({ channel: c, max: connectors.get(c.connector_slug)?.max_text_length ?? null }))
+    .filter((r): r is { channel: Channel; max: number } => r.max != null)
+  if (!rows.length) return null
+  // Several channels with the same limit and no overrides read as one count.
+  const distinct = new Set(rows.map((r) => `${r.max}:${overrides[r.channel.id] ?? ""}`))
+  if (distinct.size === 1 && !overrides[rows[0].channel.id]) {
+    const max = rows[0].max
+    return (
+      <div className={cn("eyebrow mt-2 text-right", text.length > max && "text-rust")}>
+        {text.length} / {max}
+      </div>
+    )
+  }
+  return (
+    <ul className="mt-2 flex flex-wrap justify-end gap-x-4 gap-y-1" aria-label="Characters per channel">
+      {rows.map(({ channel, max }) => {
+        const used = (overrides[channel.id] ?? text).length
+        return (
+          <li key={channel.id} className={cn("eyebrow", used > max && "text-rust")}>
+            {channel.display_name} {used} / {max}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 

@@ -6,9 +6,8 @@ import { kindLabel } from "@/components/compose/compose-context"
 import { TextButton } from "@/components/editorial/Buttons"
 import SectionHeader from "@/components/editorial/SectionHeader"
 import { apiFetch, type Page } from "@/lib/api"
-import { METRICS_CONNECTORS } from "@/lib/connectors"
 import { formatStamp, WEEKDAYS } from "@/lib/format"
-import { useChannelMap } from "@/lib/queries"
+import { useChannelMap, useMetricsSlugs } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
@@ -24,7 +23,8 @@ export default function Analytics() {
   const eyebrow = useSectionEyebrow("/app/analytics", "Performance")
   const { activeWorkspace } = useWorkspace()
   const { map: channels } = useChannelMap()
-  const measurable = [...channels.values()].filter((c) => METRICS_CONNECTORS.has(c.connector_slug))
+  const metricsSlugs = useMetricsSlugs()
+  const measurable = [...channels.values()].filter((c) => metricsSlugs.has(c.connector_slug))
 
   const posts = useInfiniteQuery({
     queryKey: ["posts", activeWorkspace.id, "analytics"],
@@ -38,7 +38,7 @@ export default function Analytics() {
   // Only ask for numbers where they can exist: a post with at least one
   // published target on a connector that reports metrics.
   const hasMeasurable = (p: Post) =>
-    p.targets.some((t) => t.status === "published" && METRICS_CONNECTORS.has(channels.get(t.channel)?.connector_slug ?? ""))
+    p.targets.some((t) => t.status === "published" && metricsSlugs.has(channels.get(t.channel)?.connector_slug ?? ""))
   const performance = useQueries({
     queries: list.map((p) => ({
       queryKey: ["performance", p.id],
@@ -134,6 +134,7 @@ function PostRow({
   entries: PostPerformanceEntry[] | undefined
   measurable: boolean
 }) {
+  const metricsSlugs = useMetricsSlugs()
   const [open, setOpen] = useState<number | null>(null)
   const byTarget = new Map((entries ?? []).map((e) => [e.post_target, e]))
   const published = post.targets.filter((t) => t.status === "published")
@@ -149,7 +150,7 @@ function PostRow({
         {published.map((t) => {
           const ch = channels.get(t.channel)
           const entry = byTarget.get(t.id)
-          const supported = METRICS_CONNECTORS.has(ch?.connector_slug ?? "")
+          const supported = metricsSlugs.has(ch?.connector_slug ?? "")
           return (
             <div key={t.id}>
               <div className="flex flex-wrap items-center gap-x-5 gap-y-2">

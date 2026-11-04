@@ -24,7 +24,7 @@ export default function Field({
       <input
         id={id}
         aria-invalid={invalid || undefined}
-        aria-describedby={invalid ? `${id}-error` : undefined}
+        aria-describedby={invalid ? `${id}-error` : hint ? `${id}-hint` : undefined}
         className={cn(CONTROL, invalid && "border-rust")}
         {...props}
       />
@@ -52,7 +52,7 @@ export function TextareaField({
       <textarea
         id={id}
         aria-invalid={invalid || undefined}
-        aria-describedby={invalid ? `${id}-error` : undefined}
+        aria-describedby={invalid ? `${id}-error` : hint ? `${id}-hint` : undefined}
         className={cn(CONTROL, "resize-y leading-[1.6]", invalid && "border-rust")}
         {...props}
       />
@@ -69,7 +69,11 @@ function FieldNote({ id, hint, errors }: { id: string; hint?: ReactNode; errors?
       </p>
     )
   }
-  return hint ? <p className="mt-2 text-[12px] text-ink-45">{hint}</p> : null
+  return hint ? (
+    <p id={`${id}-hint`} className="mt-2 text-[12px] text-ink-55">
+      {hint}
+    </p>
+  ) : null
 }
 
 /** Same rule-and-eyebrow treatment for a native <select>. */
@@ -87,10 +91,20 @@ export function SelectField({
       <label htmlFor={id} className="eyebrow">
         {label}
       </label>
-      <select id={id} className={cn(CONTROL, "cursor-pointer bg-page", errors?.length && "border-rust")} {...props}>
+      <select
+        id={id}
+        aria-invalid={errors?.length ? true : undefined}
+        aria-describedby={errors?.length ? `${id}-error` : undefined}
+        className={cn(CONTROL, "cursor-pointer bg-page", errors?.length && "border-rust")}
+        {...props}
+      >
         {children}
       </select>
-      {!!errors?.length && <p className="mt-2 text-[12px] text-rust">{errors.join(" ")}</p>}
+      {!!errors?.length && (
+        <p id={`${id}-error`} className="mt-2 text-[12px] text-rust">
+          {errors.join(" ")}
+        </p>
+      )}
     </div>
   )
 }

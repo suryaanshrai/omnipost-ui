@@ -12,13 +12,16 @@ import { formatStamp, timezoneOptions } from "@/lib/format"
 import { useConnectors } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
-import type { AIProvider, AppCredential, Membership, ProviderKey, VoiceProfile, Workspace } from "@/types/api"
+import AccountBlock from "./settings/AccountBlock"
+import MembersBlock from "./settings/MembersBlock"
+import type { AIProvider, AppCredential, ProviderKey, VoiceProfile, Workspace } from "@/types/api"
 
 export default function Settings() {
   const eyebrow = useSectionEyebrow("/app/settings", "Workspace")
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Settings" />
+      <AccountBlock />
       <WorkspaceBlock />
       <MembersBlock />
       <VoiceProfilesBlock />
@@ -128,32 +131,6 @@ function WorkspaceBlock() {
           )}
         </div>
       </form>
-    </Block>
-  )
-}
-
-function MembersBlock() {
-  const members = useWorkspaceList<Membership>("memberships")
-  return (
-    <Block title="Members" aside={`${members.data?.length ?? 0}`}>
-      <ul className="-mt-6">
-        {(members.data ?? []).map((m) => (
-          <li key={m.id} className="flex items-center gap-4 border-b border-hair py-3">
-            <span
-              aria-hidden="true"
-              className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-rust text-[11px] font-bold text-page uppercase"
-            >
-              {m.user.username.slice(0, 1)}
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block truncate text-[14px] font-semibold">{m.user.username}</span>
-              {m.user.email && <span className="block truncate text-[12.5px] text-ink-55">{m.user.email}</span>}
-            </span>
-            <span className="eyebrow">{(m.role ?? "member").replace("_", " ")}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-[13px] text-ink-45">Roles are recorded but not yet enforced; every member can do everything.</p>
     </Block>
   )
 }
