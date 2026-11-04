@@ -4,7 +4,7 @@ import { toast } from "sonner"
 import { ChannelChip } from "@/components/app/ChannelChip"
 import FirstPostChecklist from "@/components/app/FirstPostChecklist"
 import MediaBand from "@/components/app/MediaBand"
-import { kindLabel } from "@/components/compose/compose-context"
+import { kindLabel, useCompose } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
@@ -38,7 +38,7 @@ export default function Posts() {
     queryKey: ["posts", activeWorkspace.id, "published"],
     queryFn: ({ pageParam }) =>
       apiFetch<Page<Post>>(
-        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&limit=${PAGE}&offset=${pageParam}`
+        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&scheduled=due&limit=${PAGE}&offset=${pageParam}`
       ),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
@@ -54,8 +54,9 @@ export default function Posts() {
   })
 
   // A scheduled post shows here once its hour has come (it's being
-  // dispatched); until then it waits in Drafts/Calendar.
-  const posts = query.data?.pages.flatMap((p) => p.results).filter((p) => p.status !== "scheduled" || isDue(p)) ?? []
+  // dispatched); until then it waits in Drafts/Calendar. The server does
+  // the filtering (scheduled=due), so a page is never empty while more exist.
+  const posts = query.data?.pages.flatMap((p) => p.results) ?? []
   const published = usePostCount("published")
 
   return (
@@ -91,6 +92,7 @@ export default function Posts() {
 
 function PostEntry({ post, channels }: { post: Post; channels: Map<number, Channel> }) {
   const [open, setOpen] = useState(false)
+  const { openCompose } = useCompose()
   const anyFailed = post.targets.some((t) => t.status === "failed")
 
   return (
@@ -103,10 +105,18 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
             <span className="eyebrow text-ink">· Dispatching</span>
           )}
         </div>
-        <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          Delivery
-          {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
-        </OutlineButton>
+        <div className="flex items-center gap-4">
+          {post.status === "failed" && (
+            // Every channel failed: fix the post itself and send it again.
+            <TextButton type="button" onClick={() => openCompose({ post })}>
+              Edit
+            </TextButton>
+          )}
+          <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+            Delivery
+            {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
+          </OutlineButton>
+        </div>
       </div>
 
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}

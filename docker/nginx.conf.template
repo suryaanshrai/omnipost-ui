@@ -1,0 +1,49 @@
+server {
+    listen 5173;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    gzip on;
+    gzip_types text/css application/javascript application/json image/svg+xml;
+    gzip_min_length 1024;
+
+    # __CSP__ is filled in at container start (docker/entrypoint.sh): the
+    # API origin for connect-src/img-src, and the hash of index.html's
+    # inline theme script, computed at build time.
+    add_header Content-Security-Policy "__CSP__" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    location = /healthz {
+        access_log off;
+        default_type text/plain;
+        return 200 "ok";
+    }
+
+    # SPA fallback: client-side routes (react-router) all resolve to index.html.
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-cache";
+        add_header Content-Security-Policy "__CSP__" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+        add_header Permissions-Policy "camera=(), microphone=(), geolocation=()" always;
+        add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    }
+
+    # Never cache the runtime config; it's regenerated per container start.
+    location = /config.js {
+        add_header Cache-Control "no-store";
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+
+    # Vite's hashed build output can be cached forever; nothing else can.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        add_header X-Content-Type-Options "nosniff" always;
+    }
+}

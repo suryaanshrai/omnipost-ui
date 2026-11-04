@@ -1,4 +1,5 @@
 import { QueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { ApiError } from "@/lib/api"
 
 /**
@@ -9,6 +10,9 @@ import { ApiError } from "@/lib/api"
  *
  * Doesn't retry 4xx ApiErrors: a validation failure or a 404 won't turn
  * into a 401 by trying again, so retrying it is just a slower failure.
+ *
+ * A mutation with no onError of its own still tells the user it failed,
+ * instead of a toggle or delete silently doing nothing.
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -17,6 +21,11 @@ export const queryClient = new QueryClient({
       retry: (failureCount, error) => {
         if (error instanceof ApiError && error.status >= 400 && error.status < 500) return false
         return failureCount < 2
+      },
+    },
+    mutations: {
+      onError: (error) => {
+        toast.error(error instanceof ApiError ? error.detail : "That didn't work. Try again in a moment.")
       },
     },
   },

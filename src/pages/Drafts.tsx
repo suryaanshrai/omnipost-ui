@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ChannelChip, ChannelToggle } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
@@ -11,13 +11,14 @@ import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
-import { isDue, targetSpecsFor } from "@/lib/posts"
+import { targetSpecsFor } from "@/lib/posts"
 import { useChannels, useConnectors } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
 
 const EDITABLE = new Set(["draft", "failed"])
+const PAGE = 20
 
 export default function Drafts() {
   const eyebrow = useSectionEyebrow("/app/drafts", "Waiting")
@@ -25,19 +26,24 @@ export default function Drafts() {
   const channels = useChannels()
   const connectors = useConnectors()
 
-  const drafts = useQuery({
+  const drafts = useInfiniteQuery({
     queryKey: ["posts", activeWorkspace.id, "drafts"],
-    queryFn: () =>
-      apiFetch<Page<Post>>(`/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&limit=100`),
-    // A scheduled post that's already due is on its way out — it belongs to Posts now.
-    select: (page) => page.results.filter((p) => !(p.status === "scheduled" && isDue(p))),
+    // A scheduled post that's already due is on its way out and belongs to
+    // Posts; the server leaves those out (scheduled=upcoming).
+    queryFn: ({ pageParam }) =>
+      apiFetch<Page<Post>>(
+        `/posts/?workspace=${activeWorkspace.id}&status=draft,in_review,approved,scheduled&scheduled=upcoming&limit=${PAGE}&offset=${pageParam}`
+      ),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
   })
 
-  const list = drafts.data ?? []
+  const list = drafts.data?.pages.flatMap((p) => p.results) ?? []
+  const total = drafts.data?.pages[0]?.count ?? 0
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${list.length} waiting`} />
+      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
 
       {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {drafts.isError && (
@@ -54,6 +60,14 @@ export default function Drafts() {
           <DraftEntry post={post} channels={channels.data ?? []} connectors={connectors.data ?? []} />
         </Reveal>
       ))}
+
+      {drafts.hasNextPage && (
+        <div className="mt-10">
+          <TextButton type="button" onClick={() => drafts.fetchNextPage()} disabled={drafts.isFetchingNextPage}>
+            {drafts.isFetchingNextPage ? "Loading…" : "More drafts"}
+          </TextButton>
+        </div>
+      )}
     </div>
   )
 }
@@ -77,8 +91,14 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   const [selected, setSelected] = useState<number[]>(() => post.targets.map((t) => t.channel))
   const serverKey = post.targets.map((t) => t.channel).join(",")
   const pendingRef = useRef<{ timer: number; ids: number[] } | null>(null)
+  // The newest server copy, for the unmount flush and error rollback (the
+  // closures there would otherwise hold the post as it was at mount).
+  const latestPost = useRef(post)
+  latestPost.current = post
+  const inFlight = useRef(0)
   useEffect(() => {
-    if (!pendingRef.current) setSelected(serverKey ? serverKey.split(",").map(Number) : [])
+    // Don't let a refetch overwrite a toggle that hasn't been saved yet.
+    if (!pendingRef.current && inFlight.current === 0) setSelected(serverKey ? serverKey.split(",").map(Number) : [])
   }, [serverKey])
 
   const [confirm, setConfirm] = useState<null | "dispatch" | "delete" | "cancel">(null)
@@ -88,12 +108,24 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
   }
 
   const patchTargets = useMutation({
+    // One scope per draft: TanStack runs these one after another, so two
+    // quick toggles can't race and land out of order.
+    scope: { id: `post-targets-${post.id}` },
     mutationFn: (ids: number[]) =>
-      apiFetch<Post>(`/posts/${post.id}/`, { method: "PATCH", body: { target_specs: targetSpecsFor(post, ids) } }),
-    onSuccess: invalidate,
+      apiFetch<Post>(`/posts/${post.id}/`, {
+        method: "PATCH",
+        body: { target_specs: targetSpecsFor(latestPost.current, ids) },
+      }),
+    onMutate: () => {
+      inFlight.current += 1
+    },
+    onSettled: () => {
+      inFlight.current -= 1
+      invalidate()
+    },
     onError: (err) => {
       toast.error(err instanceof ApiError ? err.detail : "Could not update the channels.")
-      setSelected(post.targets.map((t) => t.channel))
+      if (!pendingRef.current) setSelected(latestPost.current.targets.map((t) => t.channel))
     },
   })
 
@@ -112,7 +144,12 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
       const pending = pendingRef.current
       if (pending) {
         window.clearTimeout(pending.timer)
-        apiFetch(`/posts/${post.id}/`, { method: "PATCH", body: { target_specs: targetSpecsFor(post, pending.ids) } }).catch(() => {})
+        apiFetch(`/posts/${post.id}/`, {
+          method: "PATCH",
+          body: { target_specs: targetSpecsFor(latestPost.current, pending.ids) },
+        })
+          .catch(() => toast.error("Your last channel change on a draft wasn't saved."))
+          .finally(invalidate)
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- unmount-only flush
@@ -236,8 +273,12 @@ function DraftEntry({ post, channels, connectors }: { post: Post; channels: Chan
               <TextButton
                 type="button"
                 onClick={async () => {
-                  const updated = await flush()
-                  openCompose({ post: updated ?? post })
+                  try {
+                    const updated = await flush()
+                    openCompose({ post: updated ?? post })
+                  } catch {
+                    // patchTargets' onError already told the user.
+                  }
                 }}
                 disabled={busy}
               >

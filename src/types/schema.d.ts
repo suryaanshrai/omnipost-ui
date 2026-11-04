@@ -4372,6 +4372,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Keep only scheduled posts whose time has come (`due`) or not yet (`upcoming`); posts in other statuses are unaffected. */
+                scheduled?: "due" | "upcoming";
                 /** @description Comma-separated statuses, e.g. `draft,failed`. */
                 status?: string;
                 /** @description Only rows belonging to this workspace (must be one of yours). */

@@ -238,7 +238,7 @@ function BlackoutBlock({ channels, windows }: { channels: Channel[]; windows: Bl
             <TextButton type="button" tone="muted" onClick={() => toggle.mutate(w)}>
               {w.is_active === false ? "Resume" : "Pause"}
             </TextButton>
-            <TextButton type="button" tone="muted" onClick={() => remove.mutate(w)}>
+            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(w)}>
               Remove
             </TextButton>
           </li>
@@ -354,7 +354,7 @@ function RecurrenceBlock() {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(r)}>
                 {r.is_active === false ? "Resume" : "Pause"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => remove.mutate(r)}>
+              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(r)}>
                 Remove
               </TextButton>
             </li>

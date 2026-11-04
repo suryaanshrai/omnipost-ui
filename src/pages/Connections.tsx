@@ -129,6 +129,7 @@ export default function Connections() {
                   type="button"
                   onClick={() => setConnecting({ connector: c })}
                   disabled={!c.available}
+                  aria-label={`${count > 0 ? "Connect another" : "Connect"} ${c.display_name}`}
                   className="justify-self-start border border-ink px-5 py-3 text-[10.5px] font-bold tracking-[0.16em] text-ink uppercase transition-colors duration-300 hover:bg-ink hover:text-page disabled:border-hair disabled:text-ink-55 disabled:hover:bg-transparent sm:justify-self-end"
                 >
                   {count > 0 ? "Connect another" : "Connect"}

@@ -242,7 +242,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(slot)}>
                 {slot.is_active ? "Pause" : "Resume"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => remove.mutate(slot)}>
+              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(slot)}>
                 Remove
               </TextButton>
             </li>

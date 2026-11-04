@@ -23,7 +23,7 @@ export default function MagneticLink<T extends ElementType = "a">({
 
   const onMouseMove = (e: React.MouseEvent) => {
     const el = ref.current
-    if (!el) return
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
     const r = el.getBoundingClientRect()
     const dx = (e.clientX - r.left - r.width / 2) * 0.16
     const dy = (e.clientY - r.top - r.height / 2) * 0.3

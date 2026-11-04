@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
 const CONTROL =
-  "w-full border-0 border-b border-hair bg-transparent px-0 py-2.5 text-[15px] text-ink outline-none transition-colors duration-300 placeholder:text-ink-38 focus:border-rust disabled:opacity-50"
+  "w-full border-0 border-b border-hair bg-transparent px-0 py-2.5 text-[15px] text-ink transition-colors duration-300 placeholder:text-ink-38 focus:border-rust disabled:opacity-50"
 
 /** Borderless input on a 1px bottom rule that turns rust on focus, with an eyebrow label above and field errors below. */
 export default function Field({

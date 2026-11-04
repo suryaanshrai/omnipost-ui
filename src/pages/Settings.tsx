@@ -346,7 +346,7 @@ function ProviderKeysBlock() {
             <TextButton type="button" tone="muted" onClick={() => toggle.mutate(k)}>
               {k.is_active ? "Pause" : "Resume"}
             </TextButton>
-            <TextButton type="button" tone="muted" onClick={() => remove.mutate(k)}>
+            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(k)}>
               Remove
             </TextButton>
           </li>
