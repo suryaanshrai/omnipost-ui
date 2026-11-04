@@ -40,7 +40,7 @@ test("sign up, connect an account, publish, manage the account", async ({ page }
   await page.goto("/app")
   await page.getByRole("button", { name: "Compose", exact: true }).click()
   await page.getByRole("dialog").getByRole("button", { name: /Text/ }).click()
-  await page.getByLabel("Post").fill("Hello from the smoke test")
+  await page.getByRole("dialog").getByLabel("Post", { exact: true }).fill("Hello from the smoke test")
   await page.getByRole("dialog").getByRole("checkbox", { name: "Mastodon" }).click()
   const publish = page.getByRole("button", { name: "Publish now" })
   await expect(publish).toBeEnabled({ timeout: 10_000 })
