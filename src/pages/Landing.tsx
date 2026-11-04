@@ -14,6 +14,7 @@ import LandingRail from "@/components/landing/LandingRail"
 import Manifesto from "@/components/landing/Manifesto"
 import Marquee from "@/components/landing/Marquee"
 import PlanInterest from "@/components/landing/PlanInterest"
+import conf from "@/conf"
 import { apiFetch } from "@/lib/api"
 import { LANDING_PLATFORMS, platformTint } from "@/lib/platforms"
 import { cn } from "@/lib/utils"
@@ -56,7 +57,7 @@ const TIERS: Tier[] = [
     name: "Self-host",
     price: "$0",
     unit: "forever",
-    blurb: "Every feature, on your own server. Open source, GPL licensed.",
+    blurb: "Every feature, on your own server. Open source, AGPL licensed.",
     features: [
       "All eleven networks",
       "Scheduling, queue slots, recurring posts",
@@ -397,6 +398,11 @@ export default function Landing() {
             <Link to="/login" className="hover:text-rust">
               Sign in
             </Link>
+          </li>
+          <li>
+            <a href={conf.source_url} target="_blank" rel="noreferrer" className="hover:text-rust">
+              Source code (AGPL)
+            </a>
           </li>
         </ul>
       </footer>
