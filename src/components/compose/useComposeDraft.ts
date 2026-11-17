@@ -147,7 +147,7 @@ export function useComposeDraft({
   /** One spec per selected channel, with what that network supports. */
   const targetSpecs = (): PostTargetWrite[] => {
     const ids = selectedChannels.map((c) => c.id)
-    const base = editing ? targetSpecsFor(post, ids, overrides) : ids.map((channel) => ({ channel }) as PostTargetWrite)
+    const base = editing ? targetSpecsFor(post, ids, overrides) : ids.map((channel): PostTargetWrite => ({ channel }))
     const replies = threadParts.map((p) => p.trim()).filter(Boolean)
     return base.map((spec) => {
       const channel = selectedChannels.find((c) => c.id === spec.channel)!
