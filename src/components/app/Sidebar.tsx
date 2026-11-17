@@ -6,6 +6,7 @@ import { SelectField } from "@/components/editorial/Field"
 import Wordmark from "@/components/editorial/Wordmark"
 import { useCompose } from "@/components/compose/compose-context"
 import { useTheme } from "@/components/theme-provider"
+import conf from "@/conf"
 import { apiFetch, setSignedIn } from "@/lib/api"
 import { navItems } from "@/lib/nav"
 import { useMe, usePostCount } from "@/lib/queries"
@@ -163,6 +164,14 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             Exit
           </button>
         </div>
+        <a
+          href={conf.source_url}
+          target="_blank"
+          rel="noreferrer"
+          className="eyebrow mt-4 inline-block min-h-6 hover:text-rust"
+        >
+          Source code ↗
+        </a>
       </div>
     </div>
   )

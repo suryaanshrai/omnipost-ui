@@ -2,11 +2,14 @@
 set -eu
 
 API_URL="${VITE_API_URL:-http://localhost:8000}"
+# The "Source" link (AGPL §13). Point it at your fork if you changed the code.
+SOURCE_URL="${SOURCE_URL:-https://github.com/suryaanshrai/omnipost}"
 
-# The URL goes into a JS string: escape backslashes and quotes, and "<" so
-# it can't close a script tag.
-js_url=$(printf '%s' "$API_URL" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/</\\u003c/g')
-printf 'window.__OMNIPOST_CONFIG__ = { apiUrl: "%s" };\n' "$js_url" > /usr/share/nginx/html/config.js
+# The URLs go into JS strings: escape backslashes and quotes, and "<" so
+# they can't close a script tag.
+js_string() { printf '%s' "$1" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/</\\u003c/g'; }
+printf 'window.__OMNIPOST_CONFIG__ = { apiUrl: "%s", sourceUrl: "%s" };\n' "$(js_string "$API_URL")" "$(js_string "$SOURCE_URL")" \
+  > /usr/share/nginx/html/config.js
 
 # CSP: scripts only from this origin plus the inline theme script (by hash);
 # API calls, and media served by the API or S3, from the API origin / https.

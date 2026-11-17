@@ -1,0 +1,14 @@
+OmniPost web app
+Copyright (C) 2025-2026 Suryaansh Rai and contributors
+
+This program is free software: you can redistribute it and/or modify it
+under the terms of the GNU Affero General Public License as published by the
+Free Software Foundation, either version 3 of the License, or (at your
+option) any later version. See LICENSE.
+
+Earlier versions were released under the GNU General Public License v3.
+Contributions made under GPLv3 that their authors haven't relicensed
+(rishika-07's commits) remain under GPLv3 (LICENSES/GPL-3.0.txt); section 13
+of GPLv3 permits combining them with AGPLv3 code, and the combined work is
+distributed under the AGPLv3. New contributions are accepted under the
+contributor agreement in CLA.md of the omnipost repository.

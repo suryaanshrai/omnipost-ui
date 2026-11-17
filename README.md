@@ -75,4 +75,6 @@ docker run -p 5173:5173 -e VITE_API_URL=https://api.example.com suryaanshrai515/
 
 ## License
 
-GPL-3.0. See [LICENSE](LICENSE).
+AGPL-3.0-or-later (see [LICENSE](LICENSE) and [NOTICE](NOTICE)). If you run a
+modified copy for other people, set `SOURCE_URL` to where its source is; the
+app links to it.

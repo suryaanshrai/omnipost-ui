@@ -34,8 +34,31 @@ jobs:
   # The Playwright smoke test (e2e/) needs a running API and worker, so it
   # runs locally or against a staging stack: see README "Tests".
 
+  # Every PR: build the image and fail on fixable HIGH/CRITICAL
+  # vulnerabilities in it (OS packages and dependencies).
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+      - name: Build (not pushed)
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          load: true
+          push: false
+          tags: omnipost-ui:scan
+          cache-from: type=gha
+      - name: Trivy
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+        with:
+          image-ref: omnipost-ui:scan
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
   image:
-    needs: verify
+    needs: [verify, scan]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 30
