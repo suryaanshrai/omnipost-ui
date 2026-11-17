@@ -1,22 +1,15 @@
-import { Navigate, useLocation } from "react-router";
-import type { ReactNode } from "react";
+import { Navigate, useLocation } from "react-router"
+import type { ReactNode } from "react"
+import { isSignedIn } from "@/lib/api"
 
 /**
- * Route guard. Previously only Home.tsx checked for a token — every other
- * route (drafts, instance, the composers) rendered fully and then fired
- * unauthorized requests. This wraps the whole authenticated layout instead.
- *
- * It only checks that a token exists, not that it's still valid — Home.tsx's
- * `/auth/user/` call remains the source of truth for session validity and
- * still clears the token and redirects on a 401.
+ * Route guard for /app/*. Only checks the signed-in hint; the first API
+ * call that gets a 401 clears it and sends the user back to /login.
  */
 export default function RequireAuth({ children }: { children: ReactNode }) {
-  const location = useLocation();
-  const token = localStorage.getItem("omniUserToken");
-
-  if (!token) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+  const location = useLocation()
+  if (!isSignedIn()) {
+    return <Navigate to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} replace />
   }
-
-  return <>{children}</>;
+  return <>{children}</>
 }

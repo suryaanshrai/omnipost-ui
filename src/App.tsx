@@ -1,6 +1,8 @@
 import { useState } from "react"
 import { Outlet } from "react-router"
+import NotificationBell from "@/components/app/NotificationBell"
 import Sidebar from "@/components/app/Sidebar"
+import { useCompose } from "@/components/compose/compose-context"
 import { ComposeProvider } from "@/components/compose/ComposeProvider"
 import FilmGrain from "@/components/editorial/FilmGrain"
 import Wordmark from "@/components/editorial/Wordmark"
@@ -32,14 +34,18 @@ export default function App() {
           {/* Below md the sidebar becomes a sheet behind a top bar. */}
           <header className="flex items-center justify-between border-b border-hair px-4 py-4 md:hidden">
             <Wordmark size={20} />
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              className="border border-hair px-3 py-2 text-[10px] font-bold tracking-[0.16em] uppercase"
-              aria-label="Open menu"
-            >
-              Menu
-            </button>
+            <div className="flex items-center gap-2">
+              <MobileComposeButton />
+              <NotificationBell />
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                className="border border-hair px-3 py-2 text-[10px] font-bold tracking-[0.16em] uppercase"
+                aria-label="Open menu"
+              >
+                Menu
+              </button>
+            </div>
           </header>
           <Sheet open={menuOpen && isMobile} onOpenChange={setMenuOpen}>
             <SheetContent side="left" className="w-[280px] gap-0 border-hair bg-page p-0 text-ink">
@@ -55,5 +61,19 @@ export default function App() {
         </div>
       </ComposeProvider>
     </WorkspaceProvider>
+  )
+}
+
+/** On phones Compose used to live only inside the menu sheet. */
+function MobileComposeButton() {
+  const { openCompose } = useCompose()
+  return (
+    <button
+      type="button"
+      onClick={() => openCompose()}
+      className="bg-ink px-3 py-2 text-[10px] font-bold tracking-[0.16em] text-page uppercase"
+    >
+      Compose +
+    </button>
   )
 }

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router"
 import Blip from "@/components/editorial/Blip"
 import Constellation from "@/components/editorial/Constellation"
@@ -12,8 +13,11 @@ import LandingNav from "@/components/landing/LandingNav"
 import LandingRail from "@/components/landing/LandingRail"
 import Manifesto from "@/components/landing/Manifesto"
 import Marquee from "@/components/landing/Marquee"
+import PlanInterest from "@/components/landing/PlanInterest"
+import { apiFetch } from "@/lib/api"
 import { LANDING_PLATFORMS, platformTint } from "@/lib/platforms"
 import { cn } from "@/lib/utils"
+import type { Pricing } from "@/types/api"
 
 const CAPABILITIES = [
   {
@@ -32,32 +36,74 @@ const FLOW = [
   { num: "03", title: "Dispatch", desc: "OmniPost publishes to every selected channel and reports what landed." },
 ]
 
-const TIERS = [
+type TierCta = { label: string; to: string } | { label: string; href: string } | { interest: string }
+
+type Tier = {
+  name: string
+  price: string
+  unit: string
+  blurb: string
+  features: string[]
+  cta: TierCta
+  featured: boolean
+}
+
+// Only what exists today. Hosted prices come from the server
+// (/public/pricing/) and only show when it turns them on; until billing is
+// live their buttons collect interest instead of taking payment.
+const TIERS: Tier[] = [
   {
-    name: "Free",
+    name: "Self-host",
     price: "$0",
-    blurb: "One account per platform, unlimited drafts.",
-    features: ["1 instance per platform", "Unlimited drafts", "Manual publishing", "Delivery notifications"],
-    cta: "Start free",
+    unit: "forever",
+    blurb: "Every feature, on your own server. Open source, GPL licensed.",
+    features: [
+      "All eleven networks",
+      "Scheduling, queue slots, recurring posts",
+      "Delivery reports and failure alerts",
+      "AI drafting with your own key",
+      "Teams with roles and approvals",
+    ],
+    cta: { label: "Read the setup guide", href: "https://github.com/suryaanshrai/omnipost#quick-start" },
     featured: false,
   },
   {
-    name: "Pro",
-    price: "$19",
-    blurb: "For anyone posting across every platform, every week.",
-    features: ["Unlimited instances", "Scheduled publishing", "Priority queue", "Full delivery history", "Email support"],
-    cta: "Start trial",
+    name: "Hosted",
+    price: "Soon",
+    unit: "",
+    blurb: "Everything in self-host, run for you.",
+    features: [
+      "One-click connect for Instagram, TikTok and YouTube (no developer apps)",
+      "Managed backups and media storage",
+      "AI included",
+    ],
+    cta: { label: "Create an account", to: "/register" },
     featured: true,
   },
-  {
-    name: "Team",
-    price: "$49",
-    blurb: "Shared drafts and publishing for small teams.",
-    features: ["Everything in Pro", "5 seats", "Shared draft library", "Role permissions"],
-    cta: "Talk to us",
-    featured: false,
-  },
 ]
+
+function useTiers(): Tier[] {
+  const pricing = useQuery({
+    queryKey: ["public-pricing"],
+    queryFn: () => apiFetch<Pricing>("/public/pricing/", { anonymous: true }),
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
+  if (!pricing.data?.show_pricing) return TIERS
+  const hosted: Tier[] = pricing.data.plans.map((plan) => ({
+    name: `Hosted ${plan.name}`,
+    price: plan.price_display.split("/")[0],
+    unit: plan.price_display.includes("/") ? `per ${plan.price_display.split("/")[1]}` : "",
+    blurb: plan.id === "free" ? "Try it without a server." : "Run for you, with one-click connect.",
+    features: plan.features,
+    cta:
+      plan.id === "free" || plan.purchasable
+        ? { label: plan.id === "free" ? "Create an account" : `Start ${plan.name}`, to: "/register" }
+        : { interest: plan.id },
+    featured: plan.id === "creator",
+  }))
+  return [TIERS[0], ...hosted]
+}
 
 const HERO_CHANNELS = ["Instagram", "LinkedIn", "Bluesky", "Mastodon", "+ 7 more"]
 
@@ -66,6 +112,7 @@ const HERO_CHANNELS = ["Instagram", "LinkedIn", "Bluesky", "Mastodon", "+ 7 more
 const GUTTER = "px-4 sm:px-10 lg:pl-[108px]"
 
 export default function Landing() {
+  const tiers = useTiers()
   return (
     <div className="landing-root theme-day min-h-screen overflow-x-clip bg-page text-ink">
       <FilmGrain opacity={0.3} />
@@ -236,11 +283,11 @@ export default function Landing() {
                 Pricing, without the <em className="text-rust italic">theatre</em>
               </>
             }
-            aside="Placeholder tiers"
+            aside="Open source"
           />
         </Reveal>
-        <div className="grid md:grid-cols-3">
-          {TIERS.map((tier, i) => (
+        <div className={cn("grid", tiers.length > 2 ? "md:grid-cols-2 xl:grid-cols-4" : "md:grid-cols-2")}>
+          {tiers.map((tier, i) => (
             <Reveal
               key={tier.name}
               delayMs={i * 70}
@@ -256,7 +303,7 @@ export default function Landing() {
               </div>
               <div className="mt-6 flex items-baseline gap-2">
                 <span className="display text-[60px] leading-none">{tier.price}</span>
-                <span className="eyebrow">/ mo</span>
+                {tier.unit && <span className="eyebrow">{tier.unit}</span>}
               </div>
               <p className="mt-5 max-w-[280px] text-[15px] leading-[1.6] text-pretty text-ink-55">{tier.blurb}</p>
               <ul className="mt-7 flex-1 space-y-3 border-t border-hair pt-6">
@@ -267,17 +314,30 @@ export default function Landing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                to="/register"
-                className={cn(
-                  "mt-9 self-start text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300",
-                  tier.featured
-                    ? "bg-ink px-[26px] py-[15px] text-page hover:bg-rust"
-                    : "border-b border-ink pb-1 hover:border-rust hover:text-rust"
-                )}
-              >
-                {tier.cta}
-              </Link>
+              {"interest" in tier.cta ? (
+                <PlanInterest plan={tier.cta.interest} />
+              ) : "to" in tier.cta ? (
+                <Link
+                  to={tier.cta.to}
+                  className={cn(
+                    "mt-9 self-start text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300",
+                    tier.featured
+                      ? "bg-ink px-[26px] py-[15px] text-page hover:bg-rust"
+                      : "border-b border-ink pb-1 hover:border-rust hover:text-rust"
+                  )}
+                >
+                  {tier.cta.label}
+                </Link>
+              ) : (
+                <a
+                  href={tier.cta.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-9 self-start border-b border-ink pb-1 text-[11px] font-bold tracking-[0.18em] uppercase transition-colors duration-300 hover:border-rust hover:text-rust"
+                >
+                  {tier.cta.label}
+                </a>
+              )}
             </Reveal>
           ))}
         </div>

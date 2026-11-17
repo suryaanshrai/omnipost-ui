@@ -4,7 +4,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import Blip from "@/components/editorial/Blip"
 import Wordmark from "@/components/editorial/Wordmark"
-import { apiFetch, ApiError, getToken } from "@/lib/api"
+import { apiFetch, ApiError, isSignedIn } from "@/lib/api"
 import { OAUTH_STASH_KEY, type OAuthStash } from "@/lib/connectors"
 import type { Channel } from "@/types/api"
 
@@ -36,7 +36,7 @@ export default function OAuthCallback() {
     }
 
     if (providerError) return setError(`The platform declined the connection: ${providerError}`)
-    if (!getToken()) return setError("You were signed out during the connection. Sign in and connect again.")
+    if (!isSignedIn()) return setError("You were signed out during the connection. Sign in and connect again.")
     if (!stash) return setError("This sign-in wasn't started from this browser tab, or it already finished.")
     if (!code || !state) return setError("The platform didn't send back an authorization code.")
 
@@ -46,9 +46,9 @@ export default function OAuthCallback() {
     })
       .then((channel) => {
         sessionStorage.removeItem(OAUTH_STASH_KEY)
-        queryClient.invalidateQueries({ queryKey: ["channels"] })
+        void queryClient.invalidateQueries({ queryKey: ["channels"] })
         toast(`${channel.display_name} connected`)
-        navigate("/app/connections", { replace: true })
+        void navigate("/app/connections", { replace: true })
       })
       .catch((err) => {
         sessionStorage.removeItem(OAUTH_STASH_KEY)

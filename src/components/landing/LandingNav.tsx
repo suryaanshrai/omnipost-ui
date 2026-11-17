@@ -2,11 +2,11 @@ import { useEffect, useState } from "react"
 import { Link } from "react-router"
 import MagneticLink from "@/components/editorial/MagneticLink"
 import Wordmark from "@/components/editorial/Wordmark"
-import { getToken } from "@/lib/api"
+import { isSignedIn } from "@/lib/api"
 import { cn } from "@/lib/utils"
 
 export default function LandingNav() {
-  const signedIn = !!getToken()
+  const signedIn = isSignedIn()
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {

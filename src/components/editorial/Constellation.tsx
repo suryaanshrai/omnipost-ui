@@ -48,6 +48,7 @@ export default function Constellation({ density = 1, className }: { density?: nu
         gl.compileShader(s)
         return s
       }
+      // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- tsc needs it
       const p = gl.createProgram()!
       gl.attachShader(p, sh(gl.VERTEX_SHADER, vs))
       gl.attachShader(p, sh(gl.FRAGMENT_SHADER, fsSrc))

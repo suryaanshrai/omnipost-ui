@@ -18,12 +18,13 @@ export default function MagneticLink<T extends ElementType = "a">({
   className?: string
   children: ReactNode
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- tsc needs it
   const Tag = (as ?? "a") as ElementType
   const ref = useRef<HTMLElement>(null)
 
   const onMouseMove = (e: React.MouseEvent) => {
     const el = ref.current
-    if (!el) return
+    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
     const r = el.getBoundingClientRect()
     const dx = (e.clientX - r.left - r.width / 2) * 0.16
     const dy = (e.clientY - r.top - r.height / 2) * 0.3

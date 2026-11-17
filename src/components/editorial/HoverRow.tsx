@@ -32,6 +32,7 @@ function HoverRow<T extends ElementType = "div">({
   className?: string
   children: ReactNode
 } & Omit<ComponentPropsWithoutRef<T>, "as" | "className" | "children">) {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- tsc needs it
   const Tag = (as ?? "div") as ElementType
   const style = tint ? ({ "--row-tint": tint } as CSSProperties) : undefined
 

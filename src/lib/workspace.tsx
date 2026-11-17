@@ -2,7 +2,8 @@ import { createContext, useContext, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { apiFetch, ApiError, type Page } from "@/lib/api"
+import { apiFetch, ApiError, setSignedIn, type Page } from "@/lib/api"
+import { setDisplayTimeZone } from "@/lib/format"
 import type { Workspace } from "@/types/api"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
@@ -52,7 +53,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     return stored ? Number(stored) : null
   })
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["workspaces"],
     queryFn: () => apiFetch<Page<Workspace>>("/workspaces/"),
   })
@@ -84,6 +85,12 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     )
   }
 
+  // A failed load is not "no workspaces": offering to create one here would
+  // make an existing user a duplicate organization.
+  if (isError) {
+    return <WorkspaceLoadError onRetry={() => refetch()} />
+  }
+
   if (workspaces.length === 0) {
     return (
       <NoWorkspace
@@ -94,6 +101,8 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }
 
   const activeWorkspace = workspaces.find((w) => w.id === activeId) ?? workspaces[0]
+  // Every time on screen is shown in this workspace's zone (see lib/format.ts).
+  setDisplayTimeZone(activeWorkspace.timezone)
 
   return (
     <WorkspaceContext.Provider
@@ -107,6 +116,31 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </WorkspaceContext.Provider>
+  )
+}
+
+function signOut() {
+  apiFetch("/auth/logout/", { method: "POST", anonymous: true }).catch(() => {})
+  setSignedIn(false)
+  window.location.assign("/login")
+}
+
+function WorkspaceLoadError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div role="alert" className="flex min-h-screen flex-col items-start justify-center gap-6 bg-page px-6 text-ink sm:px-16">
+      <div className="eyebrow">Couldn't load your workspace</div>
+      <p className="max-w-[440px] text-[15px] leading-[1.6] text-ink-55">
+        The server didn't answer. Check your connection and try again.
+      </p>
+      <div className="flex items-center gap-6">
+        <PrimaryButton type="button" onClick={onRetry}>
+          Try again
+        </PrimaryButton>
+        <button type="button" onClick={signOut} className="border-b border-hair text-[12px] text-ink-55 hover:text-ink">
+          Sign out
+        </button>
+      </div>
+    </div>
   )
 }
 
@@ -152,8 +186,11 @@ function NoWorkspace({
           {isCreating ? "Creating…" : "Create workspace"}
         </PrimaryButton>
       </form>
-      <div className="border-t border-hair pt-5">
-        <span className="eyebrow">OmniPost · 2026</span>
+      <div className="flex items-center justify-between border-t border-hair pt-5">
+        <span className="eyebrow">OmniPost</span>
+        <button type="button" onClick={signOut} className="eyebrow hover:text-ink">
+          Sign out
+        </button>
       </div>
     </div>
   )

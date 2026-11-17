@@ -4,6 +4,91 @@
  */
 
 export interface paths {
+    "/account/delete/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST {password} -> deletes your account. Workspaces where you're the
+         *     only member go with it (channels, posts, media). If you own a workspace
+         *     that has other members, make one of them an owner first.
+         */
+        post: operations["account_delete_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/export/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description GET -> everything OmniPost stores about you and your workspaces, as
+         *     JSON (no credentials or keys, which stay encrypted).
+         */
+        get: operations["account_export_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/tokens/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        get: operations["account_tokens_list"];
+        put?: never;
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        post: operations["account_tokens_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/account/tokens/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * @description Personal API tokens: `Authorization: Bearer <key>` on any endpoint, with
+         *     your permissions (or read-only). The key is returned once, on create.
+         */
+        delete: operations["account_tokens_destroy"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/ai/alt-text/": {
         parameters: {
             query?: never;
@@ -108,18 +193,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["app_credentials_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["app_credentials_create"];
         delete?: never;
@@ -136,36 +221,57 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["app_credentials_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["app_credentials_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["app_credentials_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["app_credentials_partial_update"];
+        trace?: never;
+    };
+    "/auth/cookie/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST, signed in with a session token in the Authorization header ->
+         *     the same session as an httpOnly cookie. Lets the web app move an older
+         *     sign-in out of localStorage without asking for the password again.
+         */
+        post: operations["auth_cookie_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/auth/login/": {
@@ -200,13 +306,17 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * @description Signs out: deletes the session token and clears the cookie. With an
+         *     API token it refuses, so a script can't sign you out of the web app;
+         *     revoke the token instead.
+         */
+        get: operations["auth_logout_retrieve"];
         put?: never;
         /**
-         * @description Calls Django logout method and delete the Token object
-         *     assigned to the current User object.
-         *
-         *     Accepts/Returns nothing.
+         * @description Signs out: deletes the session token and clears the cookie. With an
+         *     API token it refuses, so a script can't sign you out of the web app;
+         *     revoke the token instead.
          */
         post: operations["auth_logout_create"];
         delete?: never;
@@ -392,6 +502,57 @@ export interface paths {
         patch: operations["auth_user_partial_update"];
         trace?: never;
     };
+    "/billing/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET -> your plan, what you're using, and the plans on offer. */
+        get: operations["billing_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/checkout/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST {plan} -> a Stripe Checkout URL to send the browser to. */
+        post: operations["billing_checkout_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/portal/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description POST -> a Stripe Customer Portal URL (change plan, card, invoices, cancel). */
+        post: operations["billing_portal_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/blackout-windows/": {
         parameters: {
             query?: never;
@@ -400,18 +561,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["blackout_windows_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["blackout_windows_create"];
         delete?: never;
@@ -428,34 +589,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["blackout_windows_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["blackout_windows_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["blackout_windows_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["blackout_windows_partial_update"];
         trace?: never;
@@ -468,18 +629,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["channels_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["channels_create"];
         delete?: never;
@@ -496,34 +657,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["channels_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["channels_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["channels_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["channels_partial_update"];
         trace?: never;
@@ -572,6 +733,44 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/feeds/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        get: operations["feeds_list"];
+        put?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        post: operations["feeds_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/feeds/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        get: operations["feeds_retrieve"];
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        put: operations["feeds_update"];
+        post?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        delete: operations["feeds_destroy"];
+        options?: never;
+        head?: never;
+        /** @description RSS/Atom feeds whose new items become drafts for the chosen channels. */
+        patch: operations["feeds_partial_update"];
         trace?: never;
     };
     "/media/": {
@@ -695,18 +894,16 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         get: operations["memberships_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         post: operations["memberships_create"];
         delete?: never;
@@ -723,36 +920,96 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         get: operations["memberships_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         put: operations["memberships_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         delete: operations["memberships_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Admins add existing accounts by username or email, change roles and
+         *     remove members. Nobody can grant a role above their own, and a workspace
+         *     always keeps at least one owner.
          */
         patch: operations["memberships_partial_update"];
+        trace?: never;
+    };
+    "/notifications/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notifications_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/{id}/read/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications_read_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/read-all/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["notifications_read_all_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/notifications/unread-count/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["notifications_unread_count_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/oauth/complete/": {
@@ -801,10 +1058,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["post_targets_list"];
         put?: never;
@@ -823,10 +1080,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["post_targets_retrieve"];
         put?: never;
@@ -867,18 +1124,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["posts_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_create"];
         delete?: never;
@@ -895,34 +1152,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["posts_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["posts_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["posts_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["posts_partial_update"];
         trace?: never;
@@ -937,10 +1194,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_approve_create"];
         delete?: never;
@@ -959,12 +1216,27 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Cancels every target that hasn't started publishing. Bumping the
+         *     epoch makes any queued attempt a no-op when a worker reaches it.
          */
         post: operations["posts_cancel_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/posts/{id}/duplicate/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description A new draft with the same text, media, link and channels. */
+        post: operations["posts_duplicate_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1008,6 +1280,27 @@ export interface paths {
          *     min_gap_minutes) instead of one explicit run_at for every target.
          */
         post: operations["posts_queue_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/posts/{id}/repost/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description Evergreen: copy a post and send it again, into each channel's next
+         *     queue slot (default) or now. With approvals on, the copy goes to
+         *     review instead.
+         */
+        post: operations["posts_repost_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1083,10 +1376,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["posts_submit_for_review_create"];
         delete?: never;
@@ -1140,6 +1433,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/performance/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Latest metrics for many posts at once: {post_id: [entry, ...]},
+         *     one entry per published target that has a snapshot. Replaces one
+         *     request per post on the Analytics screen.
+         */
+        get: operations["posts_performance_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/provider-keys/": {
         parameters: {
             query?: never;
@@ -1148,18 +1462,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["provider_keys_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["provider_keys_create"];
         delete?: never;
@@ -1176,36 +1490,94 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["provider_keys_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["provider_keys_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["provider_keys_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["provider_keys_partial_update"];
+        trace?: never;
+    };
+    "/public/bio/{slug}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description GET /public/bio/<slug>/: a workspace's link-in-bio page, if it has
+         *     switched one on. Recent published posts, newest first, each pointing at
+         *     its link (or its first published copy).
+         */
+        get: operations["public_bio_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/interest/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * @description POST {email, plan, note?} -> "tell me when this plan is available".
+         *     Measures demand for the hosted plans before they're for sale.
+         */
+        post: operations["public_interest_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/public/pricing/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** @description GET -> whether to show hosted pricing, and the plans. */
+        get: operations["public_pricing_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/publish-attempts/": {
@@ -1260,18 +1632,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["queue_slots_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["queue_slots_create"];
         delete?: never;
@@ -1288,34 +1660,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["queue_slots_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["queue_slots_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["queue_slots_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["queue_slots_partial_update"];
         trace?: never;
@@ -1328,18 +1700,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["recurrence_rules_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["recurrence_rules_create"];
         delete?: never;
@@ -1356,34 +1728,34 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["recurrence_rules_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["recurrence_rules_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["recurrence_rules_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["recurrence_rules_partial_update"];
         trace?: never;
@@ -1419,18 +1791,18 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["voice_profiles_list"];
         put?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         post: operations["voice_profiles_create"];
         delete?: never;
@@ -1447,36 +1819,109 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         get: operations["voice_profiles_retrieve"];
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         put: operations["voice_profiles_update"];
         post?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         delete: operations["voice_profiles_destroy"];
         options?: never;
         head?: never;
         /**
-         * @description Base for any viewset whose model has a direct `workspace` FK: scopes
-         *     the queryset to workspaces the requesting user is a member of. The old
-         *     API had no such scoping at all — any authenticated user could read or
-         *     write any other user's rows by id.
+         * @description Base for any viewset whose rows belong to a workspace: scopes the
+         *     queryset to workspaces the requesting user is a member of, and requires
+         *     `write_role` (or the action's entry in `action_roles`) in the row's
+         *     workspace for every write — create, update, delete and POST actions.
          */
         patch: operations["voice_profiles_partial_update"];
+        trace?: never;
+    };
+    "/webhooks/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        get: operations["webhooks_list"];
+        put?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        post: operations["webhooks_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/webhooks/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        get: operations["webhooks_retrieve"];
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        put: operations["webhooks_update"];
+        post?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        delete: operations["webhooks_destroy"];
+        options?: never;
+        head?: never;
+        /**
+         * @description Signed POSTs to your URL on post.published, post.failed and
+         *     channel.broken. The signing secret is shown once, in the create response.
+         */
+        patch: operations["webhooks_partial_update"];
+        trace?: never;
+    };
+    "/webhooks/{id}/test/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** @description Sends a `ping` event now. */
+        post: operations["webhooks_test_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/workspaces/": {
@@ -1537,12 +1982,33 @@ export interface components {
             reserved: number;
             limit: number | null;
         };
+        AccountDelete: {
+            password: string;
+        };
+        AccountExport: {
+            user: {
+                [key: string]: unknown;
+            };
+        };
         AltTextRequest: {
             media: number;
             provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
         };
         AltTextResult: {
             alt_text: string;
+        };
+        ApiToken: {
+            readonly id: number;
+            name: string;
+            readonly prefix: string;
+            read_only?: boolean;
+            /** Format: date-time */
+            readonly expires_at: string | null;
+            /** Format: date-time */
+            readonly last_used_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            expires_in_days?: number | null;
         };
         /**
          * @description client_secret is write-only and never echoed back — unlike
@@ -1580,6 +2046,42 @@ export interface components {
             /** Format: double */
             avg_engagement: number;
         };
+        Billing: {
+            /** @description False on a self-hosted install: no plans, no limits. */
+            enabled: boolean;
+            plan: string;
+            status: string;
+            /** Format: date-time */
+            renews_at: string | null;
+            has_billing_account: boolean;
+            usage: {
+                [key: string]: number;
+            };
+            plans: components["schemas"]["Plan"][];
+        };
+        BillingRedirect: {
+            /** Format: uri */
+            url: string;
+        };
+        BioPage: {
+            name: string;
+            description: string;
+            links: {
+                [key: string]: unknown;
+            }[];
+            posts: {
+                [key: string]: unknown;
+            }[];
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         BlackoutWindow: {
             readonly id: number;
             workspace: number;
@@ -1604,6 +2106,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly parts: components["schemas"]["PostTargetPart"][];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
@@ -1623,6 +2127,15 @@ export interface components {
             readonly post_text: string;
             readonly post_status: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Channel: {
             readonly id: number;
             workspace: number;
@@ -1650,6 +2163,15 @@ export interface components {
          * @enum {string}
          */
         ChannelHealthEnum: "healthy" | "needs_attention" | "broken";
+        CheckoutRequest: {
+            plan: components["schemas"]["CheckoutRequestPlanEnum"];
+        };
+        /**
+         * @description * `creator` - creator
+         *     * `pro` - pro
+         * @enum {string}
+         */
+        CheckoutRequestPlanEnum: "creator" | "pro";
         /**
          * @description Read-only view of one connectors.registry entry: its slug plus the
          *     capability/gating facts the frontend needs and can't otherwise discover
@@ -1660,6 +2182,9 @@ export interface components {
             display_name: string;
             requires_own_app: boolean;
             supports_oauth: boolean;
+            available: boolean;
+            supports_metrics: boolean;
+            supports_first_comment: boolean;
             credential_fields: string[];
             oauth_extra_fields: string[];
             max_text_length: number | null;
@@ -1669,6 +2194,51 @@ export interface components {
             supports_scheduling_native: boolean;
             post_kinds: string[];
             media: components["schemas"]["MediaRule"][];
+        };
+        CreatedApiToken: {
+            readonly id: number;
+            name: string;
+            readonly prefix: string;
+            read_only?: boolean;
+            /** Format: date-time */
+            readonly expires_at: string | null;
+            /** Format: date-time */
+            readonly last_used_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            expires_in_days?: number | null;
+            /** @description Shown only in this response. */
+            readonly key: string;
+        };
+        /**
+         * @description * `post.published` - post.published
+         *     * `post.failed` - post.failed
+         *     * `channel.broken` - channel.broken
+         * @enum {string}
+         */
+        EventsEnum: "post.published" | "post.failed" | "channel.broken";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        Feed: {
+            readonly id: number;
+            workspace: number;
+            /** Format: uri */
+            url: string;
+            channels?: number[];
+            template?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly last_checked_at: string | null;
+            readonly last_error: string;
+            /** Format: date-time */
+            readonly created_at: string;
         };
         GenerateImageRequest: {
             workspace: number;
@@ -1705,12 +2275,34 @@ export interface components {
             row: number;
             detail: unknown;
         };
+        Interest: {
+            /** Format: email */
+            email: string;
+            plan: components["schemas"]["InterestPlanEnum"];
+            note?: string;
+        };
+        /**
+         * @description * `free` - free
+         *     * `creator` - creator
+         *     * `pro` - pro
+         * @enum {string}
+         */
+        InterestPlanEnum: "free" | "creator" | "pro";
         Login: {
             username?: string;
             /** Format: email */
             email?: string;
             password: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         MediaAsset: {
             readonly id: number;
             workspace: number;
@@ -1753,6 +2345,15 @@ export interface components {
             allowed_aspect_ratios: string[];
             allowed_mime_types: string[];
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Membership: {
             readonly id: number;
             workspace: number;
@@ -1760,7 +2361,27 @@ export interface components {
             role?: components["schemas"]["RoleEnum"];
             /** Format: date-time */
             readonly created_at: string;
+            username?: string;
         };
+        Notification: {
+            readonly id: number;
+            readonly workspace: number;
+            readonly kind: components["schemas"]["NotificationKindEnum"];
+            readonly title: string;
+            readonly body: string;
+            readonly link: string;
+            /** Format: date-time */
+            readonly read_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+        };
+        /**
+         * @description * `post_failed` - Post failed
+         *     * `channel_broken` - Channel needs reconnecting
+         *     * `preflight_failed` - Scheduled post at risk
+         * @enum {string}
+         */
+        NotificationKindEnum: "post_failed" | "channel_broken" | "preflight_failed";
         /** @enum {unknown} */
         NullEnum: null;
         OAuthCompleteRequest: {
@@ -1855,6 +2476,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["Channel"][];
         };
+        PaginatedFeedList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Feed"][];
+        };
         PaginatedMediaAssetList: {
             /** @example 123 */
             count: number;
@@ -1884,6 +2520,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["Membership"][];
+        };
+        PaginatedNotificationList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Notification"][];
         };
         PaginatedPostList: {
             /** @example 123 */
@@ -2020,6 +2671,21 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["VoiceProfile"][];
         };
+        PaginatedWebhookList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=400&limit=100
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?offset=200&limit=100
+             */
+            previous?: string | null;
+            results: components["schemas"]["Webhook"][];
+        };
         PaginatedWorkspaceList: {
             /** @example 123 */
             count: number;
@@ -2036,6 +2702,7 @@ export interface components {
             results: components["schemas"]["Workspace"][];
         };
         PasswordChange: {
+            old_password: string;
             new_password1: string;
             new_password2: string;
         };
@@ -2068,6 +2735,15 @@ export interface components {
             readonly created_at?: string;
             client_secret?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedBlackoutWindow: {
             readonly id?: number;
             workspace?: number;
@@ -2079,6 +2755,15 @@ export interface components {
             ends_at?: string;
             is_active?: boolean;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedChannel: {
             readonly id?: number;
             workspace?: number;
@@ -2099,6 +2784,38 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        PatchedFeed: {
+            readonly id?: number;
+            workspace?: number;
+            /** Format: uri */
+            url?: string;
+            channels?: number[];
+            template?: string;
+            is_active?: boolean;
+            /** Format: date-time */
+            readonly last_checked_at?: string | null;
+            readonly last_error?: string;
+            /** Format: date-time */
+            readonly created_at?: string;
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedMediaAsset: {
             readonly id?: number;
             workspace?: number;
@@ -2115,6 +2832,15 @@ export interface components {
             /** Format: date-time */
             readonly created_at?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedMembership: {
             readonly id?: number;
             workspace?: number;
@@ -2122,7 +2848,17 @@ export interface components {
             role?: components["schemas"]["RoleEnum"];
             /** Format: date-time */
             readonly created_at?: string;
+            username?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedPost: {
             readonly id?: number;
             workspace?: number;
@@ -2144,6 +2880,15 @@ export interface components {
             readonly targets?: components["schemas"]["PostTarget"][];
             target_specs?: components["schemas"]["PostTargetWrite"][];
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedProviderKey: {
             readonly id?: number;
             workspace?: number;
@@ -2156,6 +2901,15 @@ export interface components {
             readonly created_at?: string;
             api_key?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedQueueSlot: {
             readonly id?: number;
             channel?: number;
@@ -2164,6 +2918,15 @@ export interface components {
             time_of_day?: string;
             is_active?: boolean;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedRecurrenceRule: {
             readonly id?: number;
             workspace?: number;
@@ -2185,7 +2948,7 @@ export interface components {
             /** Format: date-time */
             readonly updated_at?: string;
         };
-        /** @description User model w/o password */
+        /** @description /auth/user/: dj-rest-auth's fields plus the email-alerts preference. */
         PatchedUserDetails: {
             /** ID */
             readonly pk?: number;
@@ -2198,7 +2961,19 @@ export interface components {
             readonly email?: string;
             first_name?: string;
             last_name?: string;
+            email_notifications?: boolean;
+            weekly_digest?: boolean;
+            readonly plan?: components["schemas"]["UserDetailsPlanEnum"];
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PatchedVoiceProfile: {
             readonly id?: number;
             workspace?: number;
@@ -2209,16 +2984,68 @@ export interface components {
             /** Format: date-time */
             readonly updated_at?: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        PatchedWebhook: {
+            readonly id?: number;
+            workspace?: number;
+            /** Format: uri */
+            url?: string;
+            events?: components["schemas"]["EventsEnum"][];
+            is_active?: boolean;
+            readonly last_status?: string;
+            /** Format: date-time */
+            readonly last_delivered_at?: string | null;
+            /** Format: date-time */
+            readonly created_at?: string;
+            readonly secret?: string;
+        };
         PatchedWorkspace: {
             readonly id?: number;
-            organization?: number;
+            readonly organization?: number;
             name?: string;
             slug?: string;
             timezone?: string;
             approval_workflow_enabled?: boolean;
+            utm_tagging?: boolean;
+            bio_enabled?: boolean;
+            bio_description?: string;
+            bio_links?: unknown;
             /** Format: date-time */
             readonly created_at?: string;
         };
+        PerformanceBatch: {
+            results: {
+                [key: string]: {
+                    [key: string]: unknown;
+                }[];
+            };
+        };
+        Plan: {
+            id: string;
+            name: string;
+            price_display: string;
+            channels: number | null;
+            scheduled_posts: number | null;
+            features: string[];
+            purchasable: boolean;
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         Post: {
             readonly id: number;
             workspace: number;
@@ -2285,6 +3112,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly parts: components["schemas"]["PostTargetPart"][];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
@@ -2308,6 +3137,15 @@ export interface components {
             media?: number[];
             delay_after_s?: number;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PostTargetPartWrite: {
             sequence: number;
             text?: string;
@@ -2324,12 +3162,27 @@ export interface components {
          * @enum {string}
          */
         PostTargetStatusEnum: "pending" | "scheduled" | "publishing" | "published" | "failed" | "canceled";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         PostTargetWrite: {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
             media?: number[];
             parts?: components["schemas"]["PostTargetPartWrite"][];
+        };
+        Pricing: {
+            show_pricing: boolean;
+            billing_enabled: boolean;
+            plans: components["schemas"]["Plan"][];
         };
         /**
          * @description * `anthropic` - anthropic
@@ -2339,6 +3192,15 @@ export interface components {
          * @enum {string}
          */
         Provider4baEnum: "anthropic" | "openai" | "gemini" | "openrouter";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         ProviderKey: {
             readonly id: number;
             workspace: number;
@@ -2380,6 +3242,15 @@ export interface components {
          * @enum {string}
          */
         PublishAttemptStatusEnum: "queued" | "running" | "waiting" | "succeeded" | "failed";
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         QueueSlot: {
             readonly id: number;
             channel: number;
@@ -2388,6 +3259,18 @@ export interface components {
             time_of_day: string;
             is_active?: boolean;
         };
+        ReadAll: {
+            updated: number;
+        };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         RecurrenceRule: {
             readonly id: number;
             workspace: number;
@@ -2412,9 +3295,13 @@ export interface components {
         Register: {
             username: string;
             /** Format: email */
-            email?: string;
+            email: string;
             password1: string;
             password2: string;
+        };
+        RepostRequest: {
+            /** @default queue */
+            when: components["schemas"]["WhenEnum"];
         };
         RepurposeRequest: {
             workspace: number;
@@ -2436,7 +3323,7 @@ export interface components {
         };
         ResendEmailVerification: {
             /** Format: email */
-            email?: string;
+            email: string;
         };
         RestAuthDetail: {
             readonly detail: string;
@@ -2448,6 +3335,8 @@ export interface components {
             channel: number;
             format?: components["schemas"]["PostKindEnum"] | components["schemas"]["BlankEnum"];
             text_override?: string;
+            first_comment?: string;
+            readonly first_comment_result: string;
             media?: number[];
             readonly status: components["schemas"]["PostTargetStatusEnum"];
             /** Format: date-time */
@@ -2482,6 +3371,9 @@ export interface components {
         Token: {
             key: string;
         };
+        UnreadCount: {
+            unread: number;
+        };
         User: {
             readonly id: number;
             /** @description Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only. */
@@ -2494,7 +3386,7 @@ export interface components {
             readonly first_name: string;
             readonly last_name: string;
         };
-        /** @description User model w/o password */
+        /** @description /auth/user/: dj-rest-auth's fields plus the email-alerts preference. */
         UserDetails: {
             /** ID */
             readonly pk: number;
@@ -2507,7 +3399,17 @@ export interface components {
             readonly email: string;
             first_name?: string;
             last_name?: string;
+            email_notifications?: boolean;
+            weekly_digest?: boolean;
+            readonly plan: components["schemas"]["UserDetailsPlanEnum"];
         };
+        /**
+         * @description * `free` - Free
+         *     * `creator` - Creator
+         *     * `pro` - Pro
+         * @enum {string}
+         */
+        UserDetailsPlanEnum: "free" | "creator" | "pro";
         /**
          * @description One connectors.errors.Finding — shared by POST /validate/ and the AI
          *     variant generator, which both report per-channel rule findings.
@@ -2535,6 +3437,15 @@ export interface components {
         VerifyEmail: {
             key: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
         VoiceProfile: {
             readonly id: number;
             workspace: number;
@@ -2545,13 +3456,46 @@ export interface components {
             /** Format: date-time */
             readonly updated_at: string;
         };
+        /**
+         * @description Base for every serializer whose rows belong to a workspace:
+         *     * related-object ids are limited to the request user's workspaces;
+         *     * every referenced object must belong to the row's own workspace (a post
+         *       in workspace A can't target workspace B's channel, even when the user
+         *       is a member of both);
+         *     * `workspace` (and anything in `immutable_on_update`) can't be changed
+         *       once the row exists.
+         */
+        Webhook: {
+            readonly id: number;
+            workspace: number;
+            /** Format: uri */
+            url: string;
+            events?: components["schemas"]["EventsEnum"][];
+            is_active?: boolean;
+            readonly last_status: string;
+            /** Format: date-time */
+            readonly last_delivered_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            readonly secret: string;
+        };
+        /**
+         * @description * `queue` - queue
+         *     * `now` - now
+         * @enum {string}
+         */
+        WhenEnum: "queue" | "now";
         Workspace: {
             readonly id: number;
-            organization?: number;
+            readonly organization: number;
             name: string;
             slug?: string;
             timezone?: string;
             approval_workflow_enabled?: boolean;
+            utm_tagging?: boolean;
+            bio_enabled?: boolean;
+            bio_description?: string;
+            bio_links?: unknown;
             /** Format: date-time */
             readonly created_at: string;
         };
@@ -2564,6 +3508,114 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    account_delete_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountDelete"];
+                "application/x-www-form-urlencoded": components["schemas"]["AccountDelete"];
+                "multipart/form-data": components["schemas"]["AccountDelete"];
+            };
+        };
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    account_export_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AccountExport"];
+                };
+            };
+        };
+    };
+    account_tokens_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiToken"][];
+                };
+            };
+        };
+    };
+    account_tokens_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApiToken"];
+                "application/x-www-form-urlencoded": components["schemas"]["ApiToken"];
+                "multipart/form-data": components["schemas"]["ApiToken"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CreatedApiToken"];
+                };
+            };
+        };
+    };
+    account_tokens_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this api token. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     ai_alt_text_create: {
         parameters: {
             query?: never;
@@ -2835,6 +3887,25 @@ export interface operations {
             };
         };
     };
+    auth_cookie_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestAuthDetail"];
+                };
+            };
+        };
+    };
     auth_login_create: {
         parameters: {
             query?: never;
@@ -2856,6 +3927,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Token"];
+                };
+            };
+        };
+    };
+    auth_logout_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RestAuthDetail"];
                 };
             };
         };
@@ -2986,7 +4076,7 @@ export interface operations {
             path?: never;
             cookie?: never;
         };
-        requestBody?: {
+        requestBody: {
             content: {
                 "application/json": components["schemas"]["ResendEmailVerification"];
                 "application/x-www-form-urlencoded": components["schemas"]["ResendEmailVerification"];
@@ -3094,6 +4184,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserDetails"];
+                };
+            };
+        };
+    };
+    billing_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Billing"];
+                };
+            };
+        };
+    };
+    billing_checkout_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CheckoutRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["CheckoutRequest"];
+                "multipart/form-data": components["schemas"]["CheckoutRequest"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRedirect"];
+                };
+            };
+        };
+    };
+    billing_portal_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BillingRedirect"];
                 };
             };
         };
@@ -3444,6 +4597,156 @@ export interface operations {
             };
         };
     };
+    feeds_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedFeedList"];
+                };
+            };
+        };
+    };
+    feeds_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Feed"];
+                "application/x-www-form-urlencoded": components["schemas"]["Feed"];
+                "multipart/form-data": components["schemas"]["Feed"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Feed"];
+                "application/x-www-form-urlencoded": components["schemas"]["Feed"];
+                "multipart/form-data": components["schemas"]["Feed"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
+    feeds_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    feeds_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this feed. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedFeed"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedFeed"];
+                "multipart/form-data": components["schemas"]["PatchedFeed"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Feed"];
+                };
+            };
+        };
+    };
     media_list: {
         parameters: {
             query?: {
@@ -3769,6 +5072,100 @@ export interface operations {
             };
         };
     };
+    notifications_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedNotificationList"];
+                };
+            };
+        };
+    };
+    notifications_read_create: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notification"];
+                };
+            };
+        };
+    };
+    notifications_read_all_create: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ReadAll"];
+                };
+            };
+        };
+    };
+    notifications_unread_count_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Only unread notifications. */
+                unread?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UnreadCount"];
+                };
+            };
+        };
+    };
     oauth_complete_create: {
         parameters: {
             query?: never;
@@ -3903,6 +5300,8 @@ export interface operations {
                 limit?: number;
                 /** @description The initial index from which to return the results. */
                 offset?: number;
+                /** @description Keep only scheduled posts whose time has come (`due`) or not yet (`upcoming`); posts in other statuses are unaffected. */
+                scheduled?: "due" | "upcoming";
                 /** @description Comma-separated statuses, e.g. `draft,failed`. */
                 status?: string;
                 /** @description Only rows belonging to this workspace (must be one of yours). */
@@ -4092,6 +5491,28 @@ export interface operations {
             };
         };
     };
+    posts_duplicate_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this post. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Post"];
+                };
+            };
+        };
+    };
     posts_performance_list: {
         parameters: {
             query?: {
@@ -4130,6 +5551,34 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Post"];
+                };
+            };
+        };
+    };
+    posts_repost_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this post. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RepostRequest"];
+                "application/x-www-form-urlencoded": components["schemas"]["RepostRequest"];
+                "multipart/form-data": components["schemas"]["RepostRequest"];
+            };
+        };
         responses: {
             200: {
                 headers: {
@@ -4290,6 +5739,29 @@ export interface operations {
             };
         };
     };
+    posts_performance_retrieve: {
+        parameters: {
+            query: {
+                /** @description Comma-separated post ids (up to 100). */
+                ids: string;
+                workspace: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PerformanceBatch"];
+                };
+            };
+        };
+    };
     provider_keys_list: {
         parameters: {
             query?: {
@@ -4436,6 +5908,71 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProviderKey"];
+                };
+            };
+        };
+    };
+    public_bio_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BioPage"];
+                };
+            };
+        };
+    };
+    public_interest_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Interest"];
+                "application/x-www-form-urlencoded": components["schemas"]["Interest"];
+                "multipart/form-data": components["schemas"]["Interest"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Interest"];
+                };
+            };
+        };
+    };
+    public_pricing_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Pricing"];
                 };
             };
         };
@@ -4964,6 +6501,177 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["VoiceProfile"];
                 };
+            };
+        };
+    };
+    webhooks_list: {
+        parameters: {
+            query?: {
+                /** @description Number of results to return per page. */
+                limit?: number;
+                /** @description The initial index from which to return the results. */
+                offset?: number;
+                /** @description Only rows belonging to this workspace (must be one of yours). */
+                workspace?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedWebhookList"];
+                };
+            };
+        };
+    };
+    webhooks_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Webhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["Webhook"];
+                "multipart/form-data": components["schemas"]["Webhook"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Webhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["Webhook"];
+                "multipart/form-data": components["schemas"]["Webhook"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_destroy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    webhooks_partial_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["PatchedWebhook"];
+                "application/x-www-form-urlencoded": components["schemas"]["PatchedWebhook"];
+                "multipart/form-data": components["schemas"]["PatchedWebhook"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Webhook"];
+                };
+            };
+        };
+    };
+    webhooks_test_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this webhook. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No response body */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

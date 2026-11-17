@@ -2,11 +2,14 @@ import { useState } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { ChannelChip } from "@/components/app/ChannelChip"
+import FirstPostChecklist from "@/components/app/FirstPostChecklist"
 import MediaBand from "@/components/app/MediaBand"
-import { kindLabel } from "@/components/compose/compose-context"
+import { kindLabel, useCompose } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Reveal from "@/components/editorial/Reveal"
 import SectionHeader from "@/components/editorial/SectionHeader"
+import RepostButton from "@/components/app/RepostButton"
+import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import { isDue } from "@/lib/posts"
@@ -18,6 +21,12 @@ import type { Channel, Post, PostTarget, PublishAttempt } from "@/types/api"
 
 const PAGE = 20
 const IN_FLIGHT = new Set(["pending", "scheduled", "publishing"])
+const FILTERS = [
+  { value: "published,publishing,failed,scheduled", label: "All" },
+  { value: "published", label: "Published" },
+  { value: "failed", label: "Failed" },
+  { value: "publishing,scheduled", label: "Sending" },
+]
 
 /** The moment a post "happened": its first publish, else when it was meant to go, else its last change. */
 function postStamp(post: Post): string {
@@ -32,12 +41,14 @@ export default function Posts() {
   const eyebrow = useSectionEyebrow("/app", "Published")
   const { activeWorkspace } = useWorkspace()
   const { map: channels } = useChannelMap()
+  const [search, setSearch] = useState("")
+  const [status, setStatus] = useState(FILTERS[0].value)
 
   const query = useInfiniteQuery({
-    queryKey: ["posts", activeWorkspace.id, "published"],
+    queryKey: ["posts", activeWorkspace.id, "published", search, status],
     queryFn: ({ pageParam }) =>
       apiFetch<Page<Post>>(
-        `/posts/?workspace=${activeWorkspace.id}&status=published,publishing,failed,scheduled&limit=${PAGE}&offset=${pageParam}`
+        `/posts/?workspace=${activeWorkspace.id}&status=${status}&scheduled=due&q=${encodeURIComponent(search)}&limit=${PAGE}&offset=${pageParam}`
       ),
     initialPageParam: 0,
     getNextPageParam: (last, pages) => (last.next ? pages.length * PAGE : undefined),
@@ -53,13 +64,31 @@ export default function Posts() {
   })
 
   // A scheduled post shows here once its hour has come (it's being
-  // dispatched); until then it waits in Drafts/Calendar.
-  const posts = query.data?.pages.flatMap((p) => p.results).filter((p) => p.status !== "scheduled" || isDue(p)) ?? []
+  // dispatched); until then it waits in Drafts/Calendar. The server does
+  // the filtering (scheduled=due), so a page is never empty while more exist.
+  const posts = query.data?.pages.flatMap((p) => p.results) ?? []
   const published = usePostCount("published")
 
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
+      <SearchBox label="Search your posts" onSearch={setSearch} />
+      <div role="group" aria-label="Show" className="mt-6 flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            type="button"
+            aria-pressed={status === f.value}
+            onClick={() => setStatus(f.value)}
+            className={cn(
+              "min-h-8 border px-3 text-[10.5px] font-bold tracking-[0.16em] uppercase transition-colors",
+              status === f.value ? "border-ink bg-ink text-page" : "border-hair text-ink-55 hover:border-ink hover:text-ink"
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
       {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {query.isError && (
@@ -67,8 +96,13 @@ export default function Posts() {
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
         </p>
       )}
-      {query.isSuccess && posts.length === 0 && (
-        <p className="mt-10 text-[15px] text-ink-55">Nothing dispatched yet. Dispatch a draft and it lands here.</p>
+      {query.isSuccess && posts.length === 0 && !query.hasNextPage && !search && status === FILTERS[0].value && (
+        <FirstPostChecklist />
+      )}
+      {query.isSuccess && posts.length === 0 && (search || status !== FILTERS[0].value) && (
+        <p className="mt-10 text-[15px] text-ink-55">
+          {search ? `No posts match “${search}”.` : "Nothing here."}
+        </p>
       )}
 
       <div>
@@ -92,6 +126,7 @@ export default function Posts() {
 
 function PostEntry({ post, channels }: { post: Post; channels: Map<number, Channel> }) {
   const [open, setOpen] = useState(false)
+  const { openCompose } = useCompose()
   const anyFailed = post.targets.some((t) => t.status === "failed")
 
   return (
@@ -104,10 +139,20 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
             <span className="eyebrow text-ink">· Dispatching</span>
           )}
         </div>
-        <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          Delivery
-          {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
-        </OutlineButton>
+        <div className="flex flex-wrap items-center justify-end gap-4">
+          {post.status === "published" && <RepostButton post={post} />}
+          <DuplicateButton post={post} />
+          {post.status === "failed" && (
+            // Every channel failed: fix the post itself and send it again.
+            <TextButton type="button" onClick={() => openCompose({ post })}>
+              Edit
+            </TextButton>
+          )}
+          <OutlineButton type="button" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+            Delivery
+            {anyFailed && <span aria-label="A channel failed" className="h-[6px] w-[6px] rounded-full bg-rust" />}
+          </OutlineButton>
+        </div>
       </div>
 
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
@@ -146,8 +191,8 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
       apiFetch(`/posts/${post.id}/retry-target/${target.id}/`, { method: "POST" }),
     onSuccess: () => {
       toast("Retry queued")
-      queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
-      queryClient.invalidateQueries({ queryKey: ["publish-attempts", post.id] })
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      void queryClient.invalidateQueries({ queryKey: ["publish-attempts", post.id] })
     },
     onError: (err) => toast.error(err instanceof ApiError ? err.detail : "Could not retry."),
   })
@@ -206,3 +251,22 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
     </div>
   )
 }
+
+/** Copies a post into a new draft (same text, media, link and channels). */
+function DuplicateButton({ post }: { post: Post }) {
+  const { activeWorkspace } = useWorkspace()
+  const queryClient = useQueryClient()
+  const duplicate = useMutation({
+    mutationFn: () => apiFetch<Post>(`/posts/${post.id}/duplicate/`, { method: "POST" }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["posts", activeWorkspace.id] })
+      toast("Copied to Drafts")
+    },
+  })
+  return (
+    <TextButton type="button" tone="muted" onClick={() => duplicate.mutate()} disabled={duplicate.isPending}>
+      Duplicate
+    </TextButton>
+  )
+}
+
