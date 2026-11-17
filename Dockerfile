@@ -12,7 +12,7 @@ RUN npm run build \
     && node -e "const h=require('fs').readFileSync('dist/index.html','utf8');const m=[...h.matchAll(/<script>([\s\S]*?)<\/script>/g)];if(m.length!==1)throw new Error('expected one inline script, found '+m.length);console.log('sha256-'+require('crypto').createHash('sha256').update(m[0][1]).digest('base64'))" > dist-csp-hash
 
 # Runtime: unprivileged nginx (no root in the container).
-FROM nginxinc/nginx-unprivileged:1.27-alpine
+FROM nginxinc/nginx-unprivileged:1.31-alpine
 COPY --from=build /usr/src/app/dist /usr/share/nginx/html
 COPY --from=build /usr/src/app/dist-csp-hash /etc/nginx/csp-script-hash
 COPY docker/nginx.conf.template /etc/nginx/nginx.conf.template
