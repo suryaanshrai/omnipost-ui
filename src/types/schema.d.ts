@@ -1992,7 +1992,7 @@ export interface components {
         };
         AltTextRequest: {
             media: number;
-            provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
+            provider?: (components["schemas"]["Provider934Enum"] | components["schemas"]["NullEnum"]) | null;
         };
         AltTextResult: {
             alt_text: string;
@@ -2244,14 +2244,14 @@ export interface components {
             workspace: number;
             prompt: string;
             aspect?: (components["schemas"]["AspectEnum"] | components["schemas"]["NullEnum"]) | null;
-            provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
+            provider?: (components["schemas"]["Provider934Enum"] | components["schemas"]["NullEnum"]) | null;
         };
         GenerateVariantsRequest: {
             workspace: number;
             brief: string;
             channels: number[];
             voice_profile?: number | null;
-            provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
+            provider?: (components["schemas"]["Provider934Enum"] | components["schemas"]["NullEnum"]) | null;
         };
         GenerateVariantsResult: {
             variants: components["schemas"]["GeneratedVariant"][];
@@ -2264,7 +2264,7 @@ export interface components {
         ImportCsvRequest: {
             workspace: number;
             /** Format: uri */
-            file?: string;
+            file?: string | null;
             csv_text?: string;
         };
         ImportCsvResult: {
@@ -2290,7 +2290,6 @@ export interface components {
         InterestPlanEnum: "free" | "creator" | "pro";
         Login: {
             username?: string;
-            /** Format: email */
             email?: string;
             password: string;
         };
@@ -2866,7 +2865,6 @@ export interface components {
             kind?: components["schemas"]["PostKindEnum"];
             base_text?: string;
             base_media?: number[];
-            /** Format: uri */
             link?: string;
             readonly status?: components["schemas"]["PostStatusEnum"];
             /** Format: date-time */
@@ -2933,7 +2931,6 @@ export interface components {
             channel?: number;
             kind?: components["schemas"]["PostKindEnum"];
             variants?: unknown;
-            /** Format: uri */
             link?: string;
             media?: number[];
             interval_hours?: number;
@@ -3053,7 +3050,6 @@ export interface components {
             kind?: components["schemas"]["PostKindEnum"];
             base_text?: string;
             base_media?: number[];
-            /** Format: uri */
             link?: string;
             readonly status: components["schemas"]["PostStatusEnum"];
             /** Format: date-time */
@@ -3191,7 +3187,7 @@ export interface components {
          *     * `openrouter` - openrouter
          * @enum {string}
          */
-        Provider4baEnum: "anthropic" | "openai" | "gemini" | "openrouter";
+        Provider934Enum: "anthropic" | "openai" | "gemini" | "openrouter";
         /**
          * @description Base for every serializer whose rows belong to a workspace:
          *     * related-object ids are limited to the request user's workspaces;
@@ -3277,7 +3273,6 @@ export interface components {
             channel: number;
             kind?: components["schemas"]["PostKindEnum"];
             variants?: unknown;
-            /** Format: uri */
             link?: string;
             media?: number[];
             interval_hours: number;
@@ -3307,14 +3302,10 @@ export interface components {
             workspace: number;
             /** @default  */
             source_text: string;
-            /**
-             * Format: uri
-             * @default
-             */
-            source_url: string;
+            source_url?: string;
             target_formats: string[];
             voice_profile?: number | null;
-            provider?: (components["schemas"]["Provider4baEnum"] | components["schemas"]["NullEnum"]) | null;
+            provider?: (components["schemas"]["Provider934Enum"] | components["schemas"]["NullEnum"]) | null;
         };
         RepurposeResult: {
             results: {
