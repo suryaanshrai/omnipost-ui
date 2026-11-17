@@ -1,5 +1,5 @@
 # Build: a static Vite build. (Previously the image shipped `npm run dev`.)
-FROM node:22-slim AS build
+FROM node:26-slim AS build
 WORKDIR /usr/src/app
 
 COPY package.json package-lock.json ./
