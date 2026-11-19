@@ -52,7 +52,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
     onSuccess: invalidate,
   })
   const name = (id: number | null | undefined) => (id ? channels.find((c) => c.id === id)?.display_name ?? "One channel" : "All channels")
-  const sorted = [...windows].sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+  const sorted = windows.toSorted((a, b) => b.starts_at.localeCompare(a.starts_at))
 
   return (
     <Block title="Blackout windows" aside="The queue skips these">

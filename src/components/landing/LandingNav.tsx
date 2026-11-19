@@ -24,8 +24,9 @@ export default function LandingNav() {
         scrolled ? "border-hair bg-page/92 backdrop-blur-[6px]" : "border-transparent"
       )}
     >
-      <a href="#top" aria-label="OmniPost, back to top">
+      <a href="#top">
         <Wordmark />
+        <span className="sr-only">, back to top</span>
       </a>
       <div className="flex items-center gap-5 sm:gap-8">
         <a

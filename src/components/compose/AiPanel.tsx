@@ -249,7 +249,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
                       return (
                         <li key={fmt} className="border-l border-hair pl-4">
                           <span className="eyebrow">{fmt.replace(/_/g, " ")}</span>
-                          <p className="mt-1 text-[13.5px] leading-[1.6] whitespace-pre-line">{out || "—"}</p>
+                          <p className="mt-1 text-[13.5px] leading-[1.6] user-text">{out || "—"}</p>
                           {out && (
                             <div className="mt-2 flex gap-5">
                               <TextButton type="button" onClick={() => onText(out)}>

@@ -25,7 +25,7 @@ export default function Connections() {
   const linkedCount = (slug: string) => (channels.data ?? []).filter((c) => c.connector_slug === slug).length
   // Platforms that work on this server first; ones needing an app this
   // deployment hasn't set up go last, marked as such.
-  const sortedConnectors = [...(connectors.data ?? [])].sort((a, b) => Number(b.available) - Number(a.available))
+  const sortedConnectors = (connectors.data ?? []).toSorted((a, b) => Number(b.available) - Number(a.available))
 
   const remove = useRemoveChannel(() => setRemoving(null))
 

@@ -89,7 +89,8 @@ export default function BioPage() {
             </ul>
           </section>
         )}
-        <Link to="/" className="mt-16 self-center opacity-60 transition-opacity hover:opacity-100" aria-label="Made with OmniPost">
+        <Link to="/" className="mt-16 self-center opacity-60 transition-opacity hover:opacity-100">
+          <span className="sr-only">Made with </span>
           <Wordmark />
         </Link>
       </main>

@@ -158,7 +158,7 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
 
       {post.base_text && (
-        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">
+        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty user-text text-ink">
           {post.base_text}
         </p>
       )}

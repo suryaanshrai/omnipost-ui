@@ -120,8 +120,7 @@ export default function Calendar() {
                   </div>
                 ))}
                 {byDay[i]
-                  .slice()
-                  .sort((a, b) => (a.run_at ?? "").localeCompare(b.run_at ?? ""))
+                  .toSorted((a, b) => (a.run_at ?? "").localeCompare(b.run_at ?? ""))
                   .map((e) => {
                     const ch = channels.get(e.channel)
                     return (

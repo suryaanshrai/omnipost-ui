@@ -298,7 +298,7 @@ export default function Landing() {
               )}
             >
               <div className="flex items-center gap-2.5">
-                {tier.featured && <span className="h-[6px] w-[6px] rounded-full bg-rust" aria-label="Recommended" />}
+                {tier.featured && <span role="img" className="h-[6px] w-[6px] rounded-full bg-rust" aria-label="Recommended" />}
                 <span className="eyebrow text-ink">{tier.name}</span>
               </div>
               <div className="mt-6 flex items-baseline gap-2">

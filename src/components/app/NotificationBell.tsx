@@ -88,7 +88,7 @@ export default function NotificationBell({ className }: { className?: string }) 
                     <span className="text-[14px] font-semibold text-ink">{n.title}</span>
                   </div>
                   {n.body && (
-                    <p className="mt-1 line-clamp-3 text-[13px] leading-[1.5] whitespace-pre-line text-ink-55">{n.body}</p>
+                    <p className="mt-1 line-clamp-3 text-[13px] leading-[1.5] user-text text-ink-55">{n.body}</p>
                   )}
                   <span className="eyebrow mt-1.5 block">{formatStamp(n.created_at)}</span>
                 </button>

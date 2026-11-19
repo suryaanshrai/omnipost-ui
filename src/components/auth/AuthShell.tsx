@@ -17,8 +17,9 @@ export default function AuthShell({
   return (
     <div className="grid min-h-screen bg-page text-ink md:grid-cols-2">
       <div className="flex min-h-screen flex-col justify-between px-4 py-8 sm:px-12 sm:py-11">
-        <Link to="/" aria-label="OmniPost home" className="self-start">
+        <Link to="/" className="self-start">
           <Wordmark />
+          <span className="sr-only">, home</span>
         </Link>
 
         <div className="rise-in w-full max-w-[390px] py-12">

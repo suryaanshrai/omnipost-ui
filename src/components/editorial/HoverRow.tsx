@@ -11,8 +11,11 @@ import type { ComponentPropsWithoutRef, CSSProperties, ElementType, ReactNode } 
  * that hand-query `[data-role="…"]` children and mutate their styles
  * directly — necessary there because the design canvas has no build step to
  * generate CSS. Here it's a plain `group`/`group-hover:` composition: no
- * JS, no DOM queries, and it composes with prefers-reduced-motion and
- * keyboard focus (`group-focus-within:`) for free.
+ * JS, no DOM queries. When the row itself is focusable (a button or link),
+ * keyboard focus shows the same inversion (`focus-visible:` /
+ * `group-focus-visible:`), and the slides are dropped for reduced motion.
+ * The number and arrow are decoration, hidden from assistive tech so a
+ * row's accessible name is just its title and description.
  *
  * Most rows invert to solid ink. A platform row in the design instead
  * hovers to that platform's own faint tint (`data-tint` in the source) —
@@ -40,7 +43,7 @@ function HoverRow<T extends ElementType = "div">({
     <Tag
       className={cn(
         "group border-b border-hair transition-colors duration-500",
-        tint ? "hover:bg-[var(--row-tint)]" : "hover:bg-ink",
+        tint ? "hover:bg-[var(--row-tint)] focus-visible:bg-[var(--row-tint)]" : "hover:bg-ink focus-visible:bg-ink",
         className
       )}
       style={style}
@@ -54,8 +57,9 @@ function HoverRow<T extends ElementType = "div">({
 function Num({ className, children }: { className?: string; children: ReactNode }) {
   return (
     <span
+      aria-hidden="true"
       className={cn(
-        "font-display text-ink-38 transition-colors duration-350 group-hover:text-ember",
+        "font-display text-ink-38 transition-colors duration-350 group-hover:text-ember group-focus-visible:text-ember",
         className
       )}
     >
@@ -68,7 +72,7 @@ function Title({ className, children }: { className?: string; children: ReactNod
   return (
     <span
       className={cn(
-        "text-ink transition-[color,transform] duration-450 ease-out group-hover:translate-x-2 group-hover:text-page",
+        "text-ink transition-[color,transform] duration-450 ease-out group-hover:text-page group-focus-visible:text-page motion-safe:group-hover:translate-x-2 motion-safe:group-focus-visible:translate-x-2",
         className
       )}
     >
@@ -79,7 +83,7 @@ function Title({ className, children }: { className?: string; children: ReactNod
 
 function Desc({ className, children }: { className?: string; children: ReactNode }) {
   return (
-    <p className={cn("text-ink-55 transition-colors duration-450 group-hover:text-page/65", className)}>
+    <p className={cn("text-ink-55 transition-colors duration-450 group-hover:text-page/65 group-focus-visible:text-page/65", className)}>
       {children}
     </p>
   )
@@ -88,8 +92,9 @@ function Desc({ className, children }: { className?: string; children: ReactNode
 function Arrow({ className, children = "→" }: { className?: string; children?: ReactNode }) {
   return (
     <span
+      aria-hidden="true"
       className={cn(
-        "text-rust opacity-0 -translate-x-3.5 transition-all duration-450 ease-out group-hover:translate-x-0 group-hover:opacity-100",
+        "text-rust opacity-0 transition-[opacity,translate] duration-450 ease-out group-hover:opacity-100 group-focus-visible:opacity-100 motion-safe:-translate-x-3.5 motion-safe:group-hover:translate-x-0 motion-safe:group-focus-visible:translate-x-0",
         className
       )}
     >

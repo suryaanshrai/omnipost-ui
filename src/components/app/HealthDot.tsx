@@ -7,6 +7,7 @@ export default function HealthDot({ health, className }: { health: ChannelHealth
   return (
     <span
       role="img"
+      data-health={health}
       aria-label={healthLabel(health)}
       title={healthLabel(health)}
       className={cn(

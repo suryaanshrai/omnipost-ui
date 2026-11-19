@@ -4,8 +4,9 @@ import Wordmark from "@/components/editorial/Wordmark"
 export default function NotFoundPage() {
   return (
     <div className="flex min-h-screen flex-col justify-between bg-page px-4 py-8 text-ink sm:px-12 sm:py-11">
-      <Link to="/" aria-label="OmniPost home" className="self-start">
+      <Link to="/" className="self-start">
         <Wordmark />
+          <span className="sr-only">, home</span>
       </Link>
       <div className="rise-in max-w-[520px]">
         <div className="eyebrow mb-5">Not found</div>

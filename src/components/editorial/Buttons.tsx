@@ -5,6 +5,9 @@ import type { ComponentPropsWithoutRef } from "react"
 export function PrimaryButton({ className, ...props }: ComponentPropsWithoutRef<"button">) {
   return (
     <button
+      // Not a submit button unless the call site says so: an unmarked
+      // button inside a <form> would otherwise submit it.
+      type="button"
       className={cn(
         "inline-flex items-center justify-center gap-2 bg-ink px-[26px] py-[15px] text-[11px] font-bold tracking-[0.18em] text-page uppercase transition-colors duration-300 hover:bg-rust disabled:pointer-events-none disabled:opacity-40",
         className
@@ -18,6 +21,9 @@ export function PrimaryButton({ className, ...props }: ComponentPropsWithoutRef<
 export function OutlineButton({ className, ...props }: ComponentPropsWithoutRef<"button">) {
   return (
     <button
+      // Not a submit button unless the call site says so: an unmarked
+      // button inside a <form> would otherwise submit it.
+      type="button"
       className={cn(
         "inline-flex items-center justify-center gap-2 border border-hair px-4 py-2.5 text-[10px] font-bold tracking-[0.16em] text-ink uppercase transition-colors duration-300 hover:border-ink hover:bg-ink hover:text-page disabled:pointer-events-none disabled:opacity-40",
         className
@@ -31,6 +37,9 @@ export function OutlineButton({ className, ...props }: ComponentPropsWithoutRef<
 export function TextButton({ className, tone = "ink", ...props }: ComponentPropsWithoutRef<"button"> & { tone?: "ink" | "rust" | "muted" }) {
   return (
     <button
+      // Not a submit button unless the call site says so: an unmarked
+      // button inside a <form> would otherwise submit it.
+      type="button"
       className={cn(
         // The invisible ::before grows the hit area to 24px+ tall (WCAG 2.5.8)
         // without moving the underline.

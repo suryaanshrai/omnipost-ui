@@ -80,7 +80,7 @@
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
   --ink-45: rgba(18, 16, 14, .62);
-  --ink-38: rgba(18, 16, 14, .55);
+  --ink-38: rgba(18, 16, 14, .6); /* .6 is the lightest that keeps small text at 4.5:1 on paper */
   --rust: #A8451A; /* 4.7:1 on paper, so small rust text (errors, alerts) is readable */
   --ember: #E0602A;
 
@@ -238,7 +238,7 @@ html.cursor-none * {
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
   --ink-45: rgba(18, 16, 14, .62);
-  --ink-38: rgba(18, 16, 14, .55);
+  --ink-38: rgba(18, 16, 14, .6);
   --background: #EAE3D7;
   --foreground: #12100E;
   background: var(--page);
@@ -324,4 +324,101 @@ html.cursor-none * {
     transparent 1px,
     transparent 7px
   );
+}
+
+/* ── Platform polish (modern-web-guidance: dark-mode, browser-ui-theming,
+   motion, color) ──────────────────────────────────────────────────────── */
+
+/* Native UI (scrollbars, <select> pickers, the timezone <datalist>,
+   autofill, date pickers) follows the palette in force: Day is a light
+   scheme, Night a dark one. Scoped too, so the Day-only landing and the
+   dark bands inside it get matching controls. */
+:root,
+.theme-day {
+  color-scheme: light;
+}
+.dark,
+.theme-night {
+  color-scheme: dark;
+}
+
+@layer base {
+  /* Checkboxes, radios, range and progress in the brand accent instead of
+     the browser's blue. */
+  :root {
+    accent-color: var(--rust);
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--page);
+  }
+
+  /* Headlines break into even lines; body copy avoids one-word last lines.
+     Both are hints: browsers without them wrap as before. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  blockquote {
+    text-wrap: pretty;
+  }
+
+  /* In-page anchors on the landing page land below the fixed nav. */
+  section[id] {
+    scroll-margin-top: 96px;
+  }
+}
+
+/* User-written text (posts, drafts, AI variants): a long URL or token
+   wraps instead of pushing the column wider than the screen. */
+@utility user-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Windows High Contrast / forced colors: status dots are drawn with
+   background colors, which forced colors removes. Give them an outline so
+   they stay visible; their meaning is also carried by text or a label. */
+@media (forced-colors: active) {
+  .blip {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .blip::after {
+    display: none;
+  }
+  /* Health keeps its shape: a ring for "needs attention", filled otherwise. */
+  [data-health] {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: CanvasText;
+  }
+  [data-health="needs_attention"] {
+    background: Canvas;
+  }
+}
+
+/* tw-animate-css (Sheet and Modal enter/exit) has no reduced-motion
+   handling of its own. Keep the fade, drop the slide and zoom. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-in,
+  .animate-out {
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+  }
+}
+
+/* The theme toggle cross-fades (theme-provider.tsx) through a view
+   transition; a short, plain fade keeps it calm. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
 }

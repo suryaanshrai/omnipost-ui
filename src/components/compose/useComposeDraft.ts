@@ -20,7 +20,7 @@ function assetKind(file: File): "image" | "video" | "gif" {
 /** The thread replies and first comment a saved post already has. */
 function initialExtras(post?: Post) {
   const threaded = post?.targets.find((t) => (t.parts?.length ?? 0) > 1)
-  const parts = threaded ? [...threaded.parts].sort((a, b) => a.sequence - b.sequence).slice(1).map((p) => p.text ?? "") : []
+  const parts = threaded ? threaded.parts.toSorted((a, b) => a.sequence - b.sequence).slice(1).map((p) => p.text ?? "") : []
   const firstComment = post?.targets.find((t) => t.first_comment)?.first_comment ?? ""
   return { parts, firstComment }
 }
