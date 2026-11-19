@@ -609,3 +609,57 @@ html.cursor-none * {
     animation: none;
   }
 }
+
+/* ── Scroll reveals (Reveal.tsx, Manifesto.tsx) ────────────────────────
+   The hidden starting state exists only when motion is welcome, so with
+   reduced motion (or when printing) the content is just there. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    transition:
+      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+      translate 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+  }
+  [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    translate: 0 22px;
+  }
+  .manifesto-word {
+    transition: translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i, 0) * 42ms);
+  }
+  .manifesto:not([data-revealed]) .manifesto-word {
+    translate: 0 112%;
+  }
+}
+@media print {
+  [data-reveal],
+  .manifesto-word {
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
+
+/* The landing rail's progress fill (LandingRail.tsx): driven by the page's
+   own scroll where scroll-driven animations exist (modern-web-guidance
+   scroll-progress-indicator), else by --rail-progress from a listener.
+   It reports position rather than adding motion, so it runs under
+   reduced motion too. */
+@keyframes rail-progress {
+  from { scale: 1 0; }
+  to { scale: 1 1; }
+}
+.rail-progress {
+  transform-origin: top;
+  scale: 1 var(--rail-progress, 0);
+}
+@supports (animation-timeline: scroll()) {
+  .rail-progress {
+    animation: rail-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* The marquee pauses while pointed at or focused within (WCAG 2.2.2). */
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
+}

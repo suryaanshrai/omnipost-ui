@@ -12,6 +12,9 @@ import { useEffect, useRef } from "react"
  * mirrored here so the ring itself doesn't render when it wouldn't apply)
  * and `prefers-reduced-motion` (a cursor trailing the pointer is exactly the
  * kind of motion that setting exists to suppress).
+ *
+ * Positions are written once per frame, through `translate` (composited)
+ * rather than `left`/`top` (layout), however fast the mouse events come.
  */
 export default function CursorRing() {
   const ringRef = useRef<HTMLDivElement>(null)
@@ -22,21 +25,25 @@ export default function CursorRing() {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     if (!finePointer || reducedMotion) return
 
-    const onMove = (e: MouseEvent) => {
-      // Hidden until the first move, so it doesn't sit at (0,0) on load.
-      if (ringRef.current) ringRef.current.style.opacity = "1"
-      if (dotRef.current) dotRef.current.style.opacity = "1"
-      if (dotRef.current) {
-        dotRef.current.style.left = `${e.clientX}px`
-        dotRef.current.style.top = `${e.clientY}px`
-      }
-      if (ringRef.current) {
-        ringRef.current.style.left = `${e.clientX}px`
-        ringRef.current.style.top = `${e.clientY}px`
+    let x = 0
+    let y = 0
+    let frame = 0
+    const paint = () => {
+      frame = 0
+      for (const el of [ringRef.current, dotRef.current]) {
+        if (!el) continue
+        // Hidden until the first move, so it doesn't sit at (0,0) on load.
+        el.style.opacity = "1"
+        el.style.translate = `${x}px ${y}px`
       }
     }
+    const onMove = (e: PointerEvent) => {
+      x = e.clientX
+      y = e.clientY
+      if (!frame) frame = requestAnimationFrame(paint)
+    }
     const isInteractive = (target: EventTarget | null) =>
-      target instanceof Element && target.closest("a,button,input,textarea,[data-tint]")
+      target instanceof Element && target.closest("a,button,input,textarea,select,label,summary,[role=button],[data-tint]")
     const onOver = (e: MouseEvent) => {
       if (ringRef.current && isInteractive(e.target)) ringRef.current.style.transform = "scale(2.1)"
     }
@@ -44,12 +51,13 @@ export default function CursorRing() {
       if (ringRef.current && isInteractive(e.target)) ringRef.current.style.transform = "scale(1)"
     }
 
-    document.addEventListener("mousemove", onMove)
+    document.addEventListener("pointermove", onMove)
     document.addEventListener("mouseover", onOver)
     document.addEventListener("mouseout", onOut)
     document.documentElement.classList.add("cursor-none")
     return () => {
-      document.removeEventListener("mousemove", onMove)
+      if (frame) cancelAnimationFrame(frame)
+      document.removeEventListener("pointermove", onMove)
       document.removeEventListener("mouseover", onOver)
       document.removeEventListener("mouseout", onOut)
       document.documentElement.classList.remove("cursor-none")
