@@ -19,6 +19,7 @@ import { EMPTY_APP, useAppCredentials, useRegisterApp, type AppCredentialInput }
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, OAuthStartResult } from "@/types/api"
 import AppCredentialFields from "./AppCredentialFields"
+import FormError from "@/components/editorial/FormError"
 
 type Step = "app" | "method" | "oauth" | "credentials"
 
@@ -144,14 +145,6 @@ export default function ConnectDialog({
 
   const fieldErrors = error?.fieldErrors ?? {}
   const shownKeys = new Set(["display_name", "client_id", "client_secret", "label", ...connector.credential_fields])
-  const formError = error
-    ? Object.keys(fieldErrors).some((k) => shownKeys.has(k))
-      ? Object.entries(fieldErrors)
-          .filter(([k]) => !shownKeys.has(k))
-          .flatMap(([, v]) => v)
-          .join(" ")
-      : error.detail
-    : ""
 
   const missingRequired =
     step === "app"
@@ -272,11 +265,7 @@ export default function ConnectDialog({
               ))}
             </>
           )}
-          {formError && (
-            <p role="alert" className="text-[13px] leading-[1.5] text-rust">
-              {formError}
-            </p>
-          )}
+          <FormError error={error} fields={[...shownKeys]} />
         </form>
       )}
     </Modal>

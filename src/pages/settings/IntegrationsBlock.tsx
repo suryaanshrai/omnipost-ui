@@ -224,8 +224,10 @@ function FeedsBlock() {
           errors={error?.fieldErrors.url ?? (error && !Object.keys(error.fieldErrors).length ? [error.detail] : undefined)}
         />
         <div>
-          <div className="eyebrow mb-2">Drafts for</div>
-          <div className="flex flex-wrap gap-2">
+          <div id="feed-drafts-for" className="eyebrow mb-2">
+            Drafts for
+          </div>
+          <div role="group" aria-labelledby="feed-drafts-for" className="flex flex-wrap gap-2">
             {(channels.data ?? []).map((c) => (
               <ChannelToggle
                 key={c.id}

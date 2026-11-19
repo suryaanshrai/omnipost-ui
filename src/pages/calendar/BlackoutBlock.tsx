@@ -10,6 +10,7 @@ import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BlackoutWindow, Channel } from "@/types/api"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 
 export function BlackoutBlock({ channels, windows }: { channels: Channel[]; windows: BlackoutWindow[] }) {
@@ -52,6 +53,8 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
     mutationFn: (w: BlackoutWindow) => apiFetch(`/blackout-windows/${w.id}/`, { method: "DELETE" }),
     onSuccess: invalidate,
   })
+  // datetime-local values compare correctly as strings.
+  const backwards = !!starts && !!ends && ends <= starts
   const name = (id: number | null | undefined) => (id ? channels.find((c) => c.id === id)?.display_name ?? "One channel" : "All channels")
   const sorted = windows.toSorted((a, b) => b.starts_at.localeCompare(a.starts_at))
 
@@ -93,12 +96,17 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           ))}
         </SelectField>
         <Field label="Starts" type="datetime-local" value={starts} onChange={(e) => setStarts(e.target.value)} errors={error?.fieldErrors.starts_at} />
-        <Field label="Ends" type="datetime-local" value={ends} onChange={(e) => setEnds(e.target.value)} errors={error?.fieldErrors.ends_at} />
-        {error && !error.fieldErrors.starts_at && !error.fieldErrors.ends_at && (
-          <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
-        )}
+        <Field
+          label="Ends"
+          type="datetime-local"
+          min={starts || undefined}
+          value={ends}
+          onChange={(e) => setEnds(e.target.value)}
+          errors={backwards ? ["It has to end after it starts."] : error?.fieldErrors.ends_at}
+        />
+        <FormError error={error} fields={["starts_at", "ends_at"]} className="sm:col-span-2" />
         <div className="sm:col-span-2">
-          <OutlineButton type="submit" disabled={!starts || !ends || add.isPending}>
+          <OutlineButton type="submit" disabled={!starts || !ends || backwards || add.isPending}>
             Add blackout
           </OutlineButton>
         </div>

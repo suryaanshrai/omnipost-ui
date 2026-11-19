@@ -11,6 +11,7 @@ import AppCredentialFields from "@/components/connect/AppCredentialFields"
 import { useWorkspace } from "@/lib/workspace"
 import type { AppCredential } from "@/types/api"
 import { errorText } from "./shared"
+import FormError from "@/components/editorial/FormError"
 
 export function AppCredentialsBlock() {
   const { activeWorkspace } = useWorkspace()
@@ -85,9 +86,7 @@ export function AppCredentialsBlock() {
             ))}
           </SelectField>
           <AppCredentialFields value={app} onChange={setApp} errors={error?.fieldErrors} />
-          {error && !error.fieldErrors.client_id && !error.fieldErrors.client_secret && (
-            <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
-          )}
+          <FormError error={error} fields={["client_id", "client_secret", "label"]} className="sm:col-span-2" />
           <div className="sm:col-span-2">
             <OutlineButton type="submit" disabled={!app.client_id.trim() || !app.client_secret.trim() || add.isPending}>
               Register app

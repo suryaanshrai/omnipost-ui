@@ -531,3 +531,54 @@ html.cursor-none * {
     position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
   }
 }
+
+/* ── Form controls (Field.tsx) ─────────────────────────────────────────
+   Textareas grow with their content, from their `rows` up to a cap,
+   where `field-sizing` is supported; elsewhere they keep `rows` and the
+   resize handle (modern-web-guidance form-fields-automatically-fit-
+   contents). */
+@supports (field-sizing: content) {
+  .autogrow {
+    field-sizing: content;
+    min-block-size: calc(var(--rows, 2) * 1lh + 1.25rem);
+    max-block-size: max(20lh, 50dvh);
+  }
+}
+
+/* Selects: where the customizable <select> exists, its open list is drawn
+   in paper and ink with hairline rows instead of the platform popup
+   (modern-web-guidance branded-select-styling). Elsewhere: the native
+   list, themed by color-scheme. */
+@supports (appearance: base-select) {
+  .select-field,
+  .select-field::picker(select) {
+    appearance: base-select;
+  }
+  .select-field::picker-icon {
+    color: var(--ink-55);
+    transition: rotate 0.2s;
+  }
+  .select-field:open::picker-icon {
+    rotate: 180deg;
+  }
+  .select-field::picker(select) {
+    border: 1px solid var(--hair);
+    background: var(--page);
+    color: var(--ink);
+    padding: 4px 0;
+    margin-block: 4px;
+  }
+  .select-field option {
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .select-field option:hover,
+  .select-field option:focus-visible {
+    background: var(--ink);
+    color: var(--page);
+  }
+  .select-field option::checkmark {
+    color: var(--rust);
+  }
+}

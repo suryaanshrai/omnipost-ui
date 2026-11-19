@@ -41,21 +41,3 @@ export default function AuthShell({
     </div>
   )
 }
-
-/** Field errors that don't belong to a rendered input, as one sentence. */
-export function formLevelMessage(
-  error: { detail: string; fieldErrors: Record<string, string[]> } | null,
-  shownFields: string[]
-): string {
-  if (!error) return ""
-  const fieldErrors = error.fieldErrors
-  const shown = new Set(shownFields)
-  const rest = [
-    ...(fieldErrors.non_field_errors ?? []),
-    ...Object.entries(fieldErrors)
-      .filter(([k]) => k !== "non_field_errors" && !shown.has(k))
-      .flatMap(([, v]) => v),
-  ]
-  if (rest.length) return rest.join(" ")
-  return Object.keys(fieldErrors).length ? "" : error.detail
-}

@@ -7,6 +7,7 @@ import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { Workspace } from "@/types/api"
+import FormError from "@/components/editorial/FormError"
 
 type BioLink = { label: string; url: string }
 
@@ -95,7 +96,7 @@ export default function BioBlock() {
         <PrimaryButton type="submit" className="self-start" disabled={save.isPending}>
           {save.isPending ? "Saving…" : "Save"}
         </PrimaryButton>
-        {error && !Object.keys(error.fieldErrors).length && <p className="text-[13px] text-rust">{error.detail}</p>}
+        <FormError error={error} fields={["bio_description", "bio_links", "bio_enabled", "bio_slug"]} />
       </form>
     </Block>
   )

@@ -48,6 +48,7 @@ export function ImportBlock() {
           accept=".csv,text/csv"
           className="sr-only"
           tabIndex={-1}
+          aria-hidden="true"
           onChange={(e) => {
             setFile(e.target.files?.[0] ?? null)
             setResult(null)

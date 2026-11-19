@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
-import Field from "@/components/editorial/Field"
+import Field, { SelectField } from "@/components/editorial/Field"
 import Modal from "@/components/editorial/Modal"
 import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
@@ -98,20 +98,13 @@ export default function ApiTokensBlock() {
           onChange={(e) => setName(e.target.value)}
           errors={error?.fieldErrors.name ?? (error && !Object.keys(error.fieldErrors).length ? [error.detail] : undefined)}
         />
-        <label className="flex flex-col gap-2">
-          <span className="eyebrow">Expires</span>
-          <select
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
-            className="min-h-11 border-b border-hair bg-transparent text-[15px] text-ink focus:border-ink focus:outline-none"
-          >
-            {EXPIRY.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
+        <SelectField label="Expires" value={expiry} onChange={(e) => setExpiry(e.target.value)}>
+          {EXPIRY.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </SelectField>
         <label className="flex cursor-pointer items-center gap-3 sm:col-span-2">
           <input
             type="checkbox"

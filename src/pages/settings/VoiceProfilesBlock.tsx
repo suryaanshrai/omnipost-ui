@@ -10,6 +10,7 @@ import { apiFetch, ApiError } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { VoiceProfile } from "@/types/api"
 import { useWorkspaceList, errorText } from "./shared"
+import FormError from "@/components/editorial/FormError"
 
 export function VoiceProfilesBlock() {
   const { activeWorkspace } = useWorkspace()
@@ -145,7 +146,7 @@ export function VoiceProfileForm({ profile, onDone }: { profile?: VoiceProfile; 
         <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-4 w-4 accent-[var(--rust)]" />
         Use by default
       </label>
-      {error && !Object.keys(error.fieldErrors).length && <p className="text-[13px] text-rust">{error.detail}</p>}
+      <FormError error={error} fields={["name", "style_summary", "example_posts", "is_default"]} />
       <div className="flex items-center gap-6">
         <PrimaryButton type="submit" disabled={!name.trim() || save.isPending}>
           {save.isPending ? "Saving…" : "Save"}

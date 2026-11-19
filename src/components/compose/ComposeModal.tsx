@@ -150,7 +150,7 @@ export default function ComposeModal({
                 </div>
               )}
               {media.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div role="group" aria-labelledby="compose-publish-to" className="flex flex-wrap gap-2">
                   {media.map((m) => (
                     <div key={m.id} className="group relative h-20 w-20 overflow-hidden border border-hair">
                       {m.kind === "video" ? (
@@ -229,7 +229,9 @@ export default function ComposeModal({
           )}
 
           <div>
-            <div className="eyebrow mb-3">Publish to</div>
+            <div id="compose-publish-to" className="eyebrow mb-3">
+              Publish to
+            </div>
             {d.channels.isLoading ? (
               <p className="text-[13px] text-ink-55">Loading channels…</p>
             ) : d.eligible.length ? (

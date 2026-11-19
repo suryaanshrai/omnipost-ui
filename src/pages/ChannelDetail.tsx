@@ -18,6 +18,7 @@ import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, QueueSlot } from "@/types/api"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 export default function ChannelDetail() {
   const { id } = useParams()
@@ -148,6 +149,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
         <Field
           label="Minimum gap (minutes)"
           type="number"
+          inputMode="numeric"
           min={0}
           value={gap}
           onChange={(e) => setGap(e.target.value)}
@@ -158,9 +160,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
           <PrimaryButton type="submit" disabled={!dirty || save.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>
-          {error && !error.fieldErrors.timezone && !error.fieldErrors.min_gap_minutes && (
-            <p className="mt-3 text-[13px] text-rust">{error.detail}</p>
-          )}
+          <FormError error={error} fields={["timezone", "min_gap_minutes"]} className="mt-3" />
         </div>
       </form>
     </Block>
@@ -257,7 +257,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
           Add slot
         </OutlineButton>
       </form>
-      {error && <p className="mt-3 text-[13px] text-rust">{error}</p>}
+      <FormError message={error} className="mt-3" />
       {confirmDialog}
     </Block>
   )

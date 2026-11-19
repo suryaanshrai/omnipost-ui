@@ -52,7 +52,7 @@ export default function Drafts() {
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
-      <SearchBox label="Search your drafts" onSearch={setSearch} />
+      <SearchBox label="Search your drafts" placeholder="Search drafts…" onSearch={setSearch} />
 
       {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
       {drafts.isError && (
@@ -344,10 +344,12 @@ function DraftEntry({
         <p className="mt-5 text-[15px] text-ink-45 italic">No caption yet.</p>
       )}
 
-      <div className="eyebrow mt-7 mb-3">Publish to</div>
+      <div id={`publish-to-${post.id}`} className="eyebrow mt-7 mb-3">
+        Publish to
+      </div>
       {editable ? (
         eligible.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div role="group" aria-labelledby={`publish-to-${post.id}`} className="flex flex-wrap gap-2">
             {eligible.map((c) => (
               <ChannelToggle key={c.id} channel={c} selected={selected.includes(c.id)} onToggle={() => toggle(c.id)} />
             ))}

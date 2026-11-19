@@ -75,7 +75,7 @@ export default function MembersBlock() {
                   aria-label={`Role for ${m.user.username}`}
                   value={m.role}
                   onChange={(e) => changeRole.mutate({ id: m.id, role: e.target.value })}
-                  className="border-b border-hair bg-page py-1 text-[12px] font-bold tracking-[0.12em] uppercase"
+                  className="select-field cursor-pointer border-b border-ink/50 bg-page py-1 text-[12px] font-bold tracking-[0.12em] uppercase"
                 >
                   {ROLES.filter((r) => RANK[r.value] <= RANK[myRole] || r.value === m.role).map((r) => (
                     <option key={r.value} value={r.value}>

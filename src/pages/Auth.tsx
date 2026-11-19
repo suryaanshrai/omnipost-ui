@@ -2,7 +2,8 @@ import { useState } from "react"
 import type { FormEvent } from "react"
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import AuthShell, { formLevelMessage } from "@/components/auth/AuthShell"
+import AuthShell from "@/components/auth/AuthShell"
+import FormError from "@/components/editorial/FormError"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError, isSignedIn, safeNextPath, setSignedIn } from "@/lib/api"
@@ -75,7 +76,6 @@ export default function Auth({ mode }: { mode: Mode }) {
   }
 
   const fieldErrors = error?.fieldErrors ?? {}
-  const formMessage = formLevelMessage(error, ["username", "email", "password", "password1", "password2"])
   const canSubmit =
     !!username && !!password && (mode === "login" || (!!email && !!confirm && !mismatch)) && !submitting
 
@@ -111,6 +111,10 @@ export default function Auth({ mode }: { mode: Mode }) {
         <Field
           label="Username"
           autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          enterKeyHint="next"
           autoFocus
           required
           value={username}
@@ -149,11 +153,7 @@ export default function Auth({ mode }: { mode: Mode }) {
             errors={mismatch ? ["The passwords don't match."] : fieldErrors.password2}
           />
         )}
-        {formMessage && (
-          <p role="alert" className="text-[13px] leading-[1.5] text-rust">
-            {formMessage}
-          </p>
-        )}
+        <FormError error={error} fields={["username", "email", "password", "password1", "password2"]} />
         <div className="mt-2 flex items-center justify-between gap-6">
           <PrimaryButton type="submit" disabled={!canSubmit}>
             {submitting ? "One moment…" : copy.submit}

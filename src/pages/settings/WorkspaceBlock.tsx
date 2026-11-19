@@ -7,6 +7,7 @@ import Field, { TimezoneField } from "@/components/editorial/Field"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { Workspace } from "@/types/api"
+import FormError from "@/components/editorial/FormError"
 
 export function WorkspaceBlock() {
   const { activeWorkspace } = useWorkspace()
@@ -99,9 +100,7 @@ export function WorkspaceBlock() {
           <PrimaryButton type="submit" disabled={!dirty || save.isPending || !name.trim()}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>
-          {error && !error.fieldErrors.name && !error.fieldErrors.timezone && (
-            <p className="mt-3 text-[13px] text-rust">{error.detail}</p>
-          )}
+          <FormError error={error} fields={["name", "timezone"]} className="mt-3" />
         </div>
       </form>
     </Block>

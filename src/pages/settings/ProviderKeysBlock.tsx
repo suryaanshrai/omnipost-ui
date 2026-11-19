@@ -10,6 +10,7 @@ import { useWorkspace } from "@/lib/workspace"
 import type { AIProvider, ProviderKey } from "@/types/api"
 import { useWorkspaceList, errorText } from "./shared"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "anthropic", label: "Anthropic" },
@@ -106,7 +107,7 @@ export function ProviderKeysBlock() {
           onChange={(e) => setApiKey(e.target.value)}
           errors={error?.fieldErrors.api_key}
         />
-        {error && !error.fieldErrors.api_key && <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>}
+        <FormError error={error} fields={["api_key", "provider"]} className="sm:col-span-2" />
         <div className="sm:col-span-2">
           <OutlineButton type="submit" disabled={!apiKey.trim() || add.isPending}>
             {add.isPending ? "Checking the key…" : "Add key"}

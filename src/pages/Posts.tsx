@@ -72,7 +72,7 @@ export default function Posts() {
   return (
     <div className="max-w-[760px]">
       <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
-      <SearchBox label="Search your posts" onSearch={setSearch} />
+      <SearchBox label="Search your posts" placeholder="Search posts…" onSearch={setSearch} />
       <div role="group" aria-label="Show" className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button

@@ -13,6 +13,7 @@ import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { PostKind, RecurrenceRule } from "@/types/api"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 
 export function RecurrenceBlock() {
@@ -30,6 +31,8 @@ export function RecurrenceBlock() {
   const [interval, setIntervalHours] = useState("168")
   const [next, setNext] = useState("")
   const [endAt, setEndAt] = useState("")
+  // datetime-local values compare correctly as strings.
+  const endsFirst = !!next && !!endAt && endAt <= next
   const [error, setError] = useState<ApiError | null>(null)
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["recurrence-rules", activeWorkspace.id] })
   const channelList = channels.data ?? []
@@ -143,6 +146,7 @@ export function RecurrenceBlock() {
           <Field
             label="Every (hours)"
             type="number"
+            inputMode="numeric"
             min={1}
             value={interval}
             onChange={(e) => setIntervalHours(e.target.value)}
@@ -150,12 +154,17 @@ export function RecurrenceBlock() {
             hint="168 = weekly."
           />
           <Field label="First run" type="datetime-local" value={next} onChange={(e) => setNext(e.target.value)} errors={error?.fieldErrors.next_run_at} />
-          <Field label="Stop after (optional)" type="datetime-local" value={endAt} onChange={(e) => setEndAt(e.target.value)} errors={error?.fieldErrors.end_at} />
-          {error && !Object.keys(error.fieldErrors).some((k) => ["channel", "variants", "interval_hours", "next_run_at", "end_at"].includes(k)) && (
-            <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
-          )}
+          <Field
+            label="Stop after (optional)"
+            type="datetime-local"
+            min={next || undefined}
+            value={endAt}
+            onChange={(e) => setEndAt(e.target.value)}
+            errors={endsFirst ? ["It has to stop after the first run."] : error?.fieldErrors.end_at}
+          />
+          <FormError error={error} fields={["channel", "variants", "interval_hours", "next_run_at", "end_at"]} className="sm:col-span-2" />
           <div className="sm:col-span-2">
-            <OutlineButton type="submit" disabled={!variants.trim() || !next || !interval || add.isPending}>
+            <OutlineButton type="submit" disabled={!variants.trim() || !next || !interval || endsFirst || add.isPending}>
               Add recurring post
             </OutlineButton>
           </div>
