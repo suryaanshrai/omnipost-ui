@@ -18,6 +18,7 @@ import { useSectionEyebrow } from "@/lib/nav"
 import { useHiddenPosts, useUndoableDelete } from "@/lib/undoDelete"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
 
 const EDITABLE = new Set(["draft", "failed"])
 const PAGE = 20
@@ -51,10 +52,10 @@ export default function Drafts() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
+      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${drafts.isSuccess ? total : "—"} waiting`} />
       <SearchBox label="Search your drafts" placeholder="Search drafts…" onSearch={setSearch} />
 
-      {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {drafts.isLoading && <ListSkeleton className="mt-4" />}
       {drafts.isError && (
         <p className="mt-10 text-[14px] text-rust">
           {drafts.error instanceof ApiError ? drafts.error.detail : "Could not load your drafts."}
@@ -321,7 +322,7 @@ function DraftEntry({
   const busy = action.isPending
 
   return (
-    <article className="border-b border-hair py-8">
+    <article className="border-b border-hair py-8 [contain-intrinsic-size:auto_420px] [content-visibility:auto]">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {onPick && (
           <input

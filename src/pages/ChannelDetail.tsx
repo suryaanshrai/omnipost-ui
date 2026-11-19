@@ -136,7 +136,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
           e.preventDefault()
           save.mutate()
         }}
-        className="grid gap-7 sm:grid-cols-2"
+        className="grid gap-7 @lg:grid-cols-2"
       >
         <TimezoneField
           label="Timezone"
@@ -156,7 +156,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
           errors={error?.fieldErrors.min_gap_minutes}
           hint="The queue never places two posts on this channel closer than this."
         />
-        <div className="sm:col-span-2">
+        <div className="@lg:col-span-2">
           <PrimaryButton type="submit" disabled={!dirty || save.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>

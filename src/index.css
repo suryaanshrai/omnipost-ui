@@ -582,3 +582,15 @@ html.cursor-none * {
     color: var(--rust);
   }
 }
+
+/* Loading placeholders (ListSkeleton): hairline-toned blocks with a slow
+   pulse; static under reduced motion. */
+@keyframes skeleton-pulse {
+  50% { opacity: 0.45; }
+}
+@utility skeleton {
+  background: var(--hair);
+  @media (prefers-reduced-motion: no-preference) {
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+}

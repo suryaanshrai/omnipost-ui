@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { cn } from "@/lib/utils"
 
-/** A titled sub-section of a screen: ink eyebrow + right-aligned aside over a hairline. */
+/** A titled sub-section of a screen: ink eyebrow + right-aligned aside over a hairline. Its body is a container-query container. */
 export default function Block({
   title,
   aside,
@@ -21,7 +21,8 @@ export default function Block({
         <h2 className="eyebrow text-ink">{title}</h2>
         {aside != null && <span className="eyebrow text-right">{aside}</span>}
       </div>
-      <div className="mt-6">{children}</div>
+      {/* A size container: forms inside go two-column by the room they have, not the viewport's. */}
+      <div className="@container mt-6">{children}</div>
     </section>
   )
 }

@@ -154,9 +154,9 @@ export default function ComposeModal({
                   {media.map((m) => (
                     <div key={m.id} className="group relative h-20 w-20 overflow-hidden border border-hair">
                       {m.kind === "video" ? (
-                        <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted />
+                        <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                       ) : (
-                        <img src={mediaUrl(m.file)} alt={m.alt_text || ""} className="h-full w-full object-cover" />
+                        <img src={mediaUrl(m.file)} alt={m.alt_text || ""} decoding="async" className="h-full w-full object-cover" />
                       )}
                       <button
                         type="button"

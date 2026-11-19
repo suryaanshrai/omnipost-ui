@@ -88,7 +88,7 @@ export function ProviderKeysBlock() {
           e.preventDefault()
           add.mutate()
         }}
-        className="mt-6 grid gap-6 sm:grid-cols-[160px_1fr]"
+        className="mt-6 grid gap-6 @lg:grid-cols-[160px_1fr]"
       >
         <SelectField label="Provider" value={provider} onChange={(e) => setProvider(e.target.value as AIProvider)}>
           {PROVIDERS.map((p) => (
@@ -99,7 +99,7 @@ export function ProviderKeysBlock() {
         </SelectField>
         <Field label="Label (optional)" value={label} onChange={(e) => setLabel(e.target.value)} />
         <Field
-          className="sm:col-span-2"
+          className="@lg:col-span-2"
           label="API key"
           type="password"
           autoComplete="off"
@@ -107,8 +107,8 @@ export function ProviderKeysBlock() {
           onChange={(e) => setApiKey(e.target.value)}
           errors={error?.fieldErrors.api_key}
         />
-        <FormError error={error} fields={["api_key", "provider"]} className="sm:col-span-2" />
-        <div className="sm:col-span-2">
+        <FormError error={error} fields={["api_key", "provider"]} className="@lg:col-span-2" />
+        <div className="@lg:col-span-2">
           <OutlineButton type="submit" disabled={!apiKey.trim() || add.isPending}>
             {add.isPending ? "Checking the key…" : "Add key"}
           </OutlineButton>

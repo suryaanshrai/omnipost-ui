@@ -14,6 +14,7 @@ import { useWorkspace } from "@/lib/workspace"
 import type { Feed, Webhook } from "@/types/api"
 import { useWorkspaceList } from "./shared"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import CopyButton from "@/components/editorial/CopyButton"
 
 const EVENTS = [
   { value: "post.published", label: "Post published" },
@@ -140,7 +141,7 @@ function WebhooksBlock() {
         description="It's shown only this once. Use it to check that events really come from OmniPost."
         footer={
           <>
-            <span />
+            {secret ? <CopyButton value={secret} /> : <span />}
             <PrimaryButton type="button" onClick={() => setSecret(null)}>
               Done
             </PrimaryButton>

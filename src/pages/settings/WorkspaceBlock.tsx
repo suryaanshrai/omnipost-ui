@@ -55,7 +55,7 @@ export function WorkspaceBlock() {
           e.preventDefault()
           save.mutate()
         }}
-        className="grid gap-7 sm:grid-cols-2"
+        className="grid gap-7 @lg:grid-cols-2"
       >
         <Field label="Name" value={name} onChange={(e) => setName(e.target.value)} errors={error?.fieldErrors.name} />
         <TimezoneField
@@ -66,7 +66,7 @@ export function WorkspaceBlock() {
           errors={error?.fieldErrors.timezone}
           hint="The default for channels that don't set their own."
         />
-        <label className="flex cursor-pointer items-start gap-3 sm:col-span-2">
+        <label className="flex cursor-pointer items-start gap-3 @lg:col-span-2">
           <input
             type="checkbox"
             checked={approvals}
@@ -96,7 +96,7 @@ export function WorkspaceBlock() {
             </span>
           </span>
         </label>
-        <div className="sm:col-span-2">
+        <div className="@lg:col-span-2">
           <PrimaryButton type="submit" disabled={!dirty || save.isPending || !name.trim()}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>

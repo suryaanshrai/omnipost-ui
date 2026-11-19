@@ -301,7 +301,7 @@ export default function AiPanel({ text, onText, channels, overrides, onOverrides
                   .filter((m) => m.kind === "image")
                   .map((m) => (
                     <li key={m.id} className="grid grid-cols-[56px_1fr] gap-3">
-                      <img src={mediaUrl(m.file)} alt="" className="h-14 w-14 border border-hair object-cover" />
+                      <img src={mediaUrl(m.file)} alt="" width={56} height={56} decoding="async" className="h-14 w-14 border border-hair object-cover" />
                       <div>
                         <p className="text-[13px] leading-[1.5] text-ink-55">{m.alt_text || "No alt text yet."}</p>
                         <TextButton type="button" className="mt-1.5" onClick={() => altText.mutate(m)} disabled={pending}>

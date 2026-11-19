@@ -31,7 +31,7 @@ export function VoiceProfilesBlock() {
 
   return (
     <Block title="Voice profiles" aside="Used by AI drafting">
-      {(profiles.data ?? []).length === 0 && (
+      {profiles.isSuccess && profiles.data.length === 0 && (
         <p className="text-[14px] text-ink-55">
           None yet. A voice profile describes how you write, so AI drafts sound like you.
         </p>

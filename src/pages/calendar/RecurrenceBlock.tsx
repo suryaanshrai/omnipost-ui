@@ -118,7 +118,7 @@ export function RecurrenceBlock() {
             e.preventDefault()
             add.mutate()
           }}
-          className="mt-6 grid gap-6 sm:grid-cols-2"
+          className="mt-6 grid gap-6 @lg:grid-cols-2"
         >
           <SelectField label="Channel" value={chosen} onChange={(e) => setChannel(e.target.value)} errors={error?.fieldErrors.channel}>
             {channelList.map((c) => (
@@ -135,7 +135,7 @@ export function RecurrenceBlock() {
             ))}
           </SelectField>
           <TextareaField
-            className="sm:col-span-2"
+            className="@lg:col-span-2"
             label="Variants"
             rows={4}
             hint="One per paragraph — separate them with a blank line."
@@ -162,8 +162,8 @@ export function RecurrenceBlock() {
             onChange={(e) => setEndAt(e.target.value)}
             errors={endsFirst ? ["It has to stop after the first run."] : error?.fieldErrors.end_at}
           />
-          <FormError error={error} fields={["channel", "variants", "interval_hours", "next_run_at", "end_at"]} className="sm:col-span-2" />
-          <div className="sm:col-span-2">
+          <FormError error={error} fields={["channel", "variants", "interval_hours", "next_run_at", "end_at"]} className="@lg:col-span-2" />
+          <div className="@lg:col-span-2">
             <OutlineButton type="submit" disabled={!variants.trim() || !next || !interval || endsFirst || add.isPending}>
               Add recurring post
             </OutlineButton>

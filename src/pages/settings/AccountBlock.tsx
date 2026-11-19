@@ -35,7 +35,8 @@ export default function AccountBlock() {
       a.href = url
       a.download = "omnipost-export.json"
       a.click()
-      URL.revokeObjectURL(url)
+      // Revoking right away can cancel the download in some browsers.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
     },
     onError: () => toast.error("Could not export your data."),
   })

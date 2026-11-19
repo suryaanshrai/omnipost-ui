@@ -12,6 +12,7 @@ import { platformHue, platformTint } from "@/lib/platforms"
 import { useChannels, useConnectors, useRemoveChannel } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import type { Channel, Connector } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
 
 export default function Connections() {
   const eyebrow = useSectionEyebrow("/app/connections", "Accounts")
@@ -80,20 +81,20 @@ export default function Connections() {
         </>
       )}
 
-      {connectors.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {connectors.isLoading && <ListSkeleton rows={4} className="mt-4" />}
       {connectors.isError && <p className="mt-10 text-[14px] text-rust">Could not load the platform list.</p>}
 
       <div className="mt-12 flex items-end justify-between border-b border-hair pb-4">
         <span className="eyebrow text-ink">Add an account</span>
       </div>
-      <div>
+      <div className="@container">
         {sortedConnectors.map((c, i) => {
           const count = linkedCount(c.slug)
           return (
             <Reveal key={c.slug} delayMs={Math.min(i, 6) * 70}>
               <HoverRow
                 tint={platformTint(c.slug)}
-                className="grid grid-cols-1 items-center gap-3 px-2 py-6 sm:grid-cols-[minmax(160px,1fr)_1.3fr_auto] sm:gap-6 sm:px-3"
+                className="grid grid-cols-1 items-center gap-3 px-2 py-6 @xl:grid-cols-[minmax(160px,1fr)_1.3fr_auto] @xl:gap-6 @xl:px-3"
               >
                 <div className="flex items-center gap-3">
                   <span aria-hidden="true" className="h-[7px] w-[7px] rounded-full" style={{ background: platformHue(c.slug) }} />

@@ -84,7 +84,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           e.preventDefault()
           add.mutate()
         }}
-        className="mt-6 grid gap-6 sm:grid-cols-2"
+        className="mt-6 grid gap-6 @lg:grid-cols-2"
       >
         <Field label="Label (optional)" placeholder="Product launch freeze" value={label} onChange={(e) => setLabel(e.target.value)} />
         <SelectField label="Applies to" value={channel} onChange={(e) => setChannel(e.target.value)}>
@@ -104,8 +104,8 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           onChange={(e) => setEnds(e.target.value)}
           errors={backwards ? ["It has to end after it starts."] : error?.fieldErrors.ends_at}
         />
-        <FormError error={error} fields={["starts_at", "ends_at"]} className="sm:col-span-2" />
-        <div className="sm:col-span-2">
+        <FormError error={error} fields={["starts_at", "ends_at"]} className="@lg:col-span-2" />
+        <div className="@lg:col-span-2">
           <OutlineButton type="submit" disabled={!starts || !ends || backwards || add.isPending}>
             Add blackout
           </OutlineButton>

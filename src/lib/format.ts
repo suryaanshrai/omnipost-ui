@@ -37,11 +37,23 @@ function fmt(locale: string, options: Intl.DateTimeFormatOptions, tz = displayTi
   return f
 }
 
-/** "Aug 24 · 10:00 AM" */
-export function formatStamp(iso: string | null | undefined): string {
+/**
+ * "Aug 24 · 10:00 AM", or "Aug 24, 2025 · 10:00 AM" outside the current
+ * year, so an old post or a token that expires next year isn't ambiguous.
+ */
+export function formatStamp(iso: string | null | undefined, now: Date = new Date()): string {
   if (!iso) return ""
   const d = new Date(iso)
-  return `${fmt("en-US", { month: "short", day: "numeric" }).format(d)} · ${fmt("en-US", { hour: "numeric", minute: "2-digit" }).format(d)}`
+  const year = fmt("en-US", { year: "numeric" })
+  const sameYear = year.format(d) === year.format(now)
+  const day = fmt("en-US", sameYear ? { month: "short", day: "numeric" } : { month: "short", day: "numeric", year: "numeric" }).format(d)
+  return `${day} · ${fmt("en-US", { hour: "numeric", minute: "2-digit" }).format(d)}`
+}
+
+const numbers = new Intl.NumberFormat("en-US")
+/** "12,480": thousands separators, one cached formatter. */
+export function formatNumber(n: number): string {
+  return numbers.format(n)
 }
 
 /** "02 Oct, 14:05" — the sidebar's live clock. */

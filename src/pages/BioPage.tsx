@@ -5,20 +5,12 @@ import Wordmark from "@/components/editorial/Wordmark"
 import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import type { BioPage as BioPageData } from "@/types/api"
+import { safeHref } from "@/lib/url"
 
 type BioLink = { label: string; url: string }
 type BioPost = { text: string; url: string; published_at: string | null }
 
 /** Only http(s) links are ever rendered, whatever the API sends. */
-function safeHref(url: unknown): string | null {
-  try {
-    const parsed = new URL(String(url))
-    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null
-  } catch {
-    return null
-  }
-}
-
 /** /bio/:slug: a workspace's public link-in-bio page. */
 export default function BioPage() {
   const { slug = "" } = useParams()

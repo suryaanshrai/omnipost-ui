@@ -13,6 +13,7 @@ import { useChannelMap } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Post } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
 
 /**
  * Posts waiting on a reviewer. Only reachable while the workspace has the
@@ -35,8 +36,8 @@ export default function Approvals() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Approvals" aside={`${list.length} in review`} />
-      {inReview.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      <SectionHeader eyebrow={eyebrow} title="Approvals" aside={`${inReview.isSuccess ? list.length : "—"} in review`} />
+      {inReview.isLoading && <ListSkeleton className="mt-4" />}
       {inReview.isSuccess && list.length === 0 && (
         <p className="mt-10 text-[15px] text-ink-55">Nothing to review. Drafts submitted for review wait here.</p>
       )}

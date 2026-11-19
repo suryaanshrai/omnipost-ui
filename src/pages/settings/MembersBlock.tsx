@@ -131,7 +131,7 @@ function AddMember({ roles, onAdded }: { roles: typeof ROLES; onAdded: () => voi
     add.mutate()
   }
   return (
-    <form onSubmit={submit} className="mt-6 grid gap-5 sm:grid-cols-[1fr_180px_auto] sm:items-end">
+    <form onSubmit={submit} className="mt-6 grid gap-5 @lg:grid-cols-[1fr_180px_auto] @lg:items-end">
       <Field
         label="Add someone"
         placeholder="Their username or email"

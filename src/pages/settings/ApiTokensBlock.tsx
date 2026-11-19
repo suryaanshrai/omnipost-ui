@@ -11,6 +11,7 @@ import { formatStamp } from "@/lib/format"
 import type { ApiToken, CreatedApiToken } from "@/types/api"
 import { errorText } from "./shared"
 import { useConfirm } from "@/components/editorial/useConfirm"
+import CopyButton from "@/components/editorial/CopyButton"
 
 const EXPIRY = [
   { value: "", label: "Never" },
@@ -90,7 +91,7 @@ export default function ApiTokensBlock() {
         ))}
         {tokens.isSuccess && !tokens.data.length && <li className="py-3 text-[13.5px] text-ink-55">No tokens yet.</li>}
       </ul>
-      <form onSubmit={submit} className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto]">
+      <form onSubmit={submit} className="mt-6 grid gap-5 @lg:grid-cols-[1fr_auto]">
         <Field
           label="Name"
           placeholder="e.g. Claude, n8n"
@@ -105,7 +106,7 @@ export default function ApiTokensBlock() {
             </option>
           ))}
         </SelectField>
-        <label className="flex cursor-pointer items-center gap-3 sm:col-span-2">
+        <label className="flex cursor-pointer items-center gap-3 @lg:col-span-2">
           <input
             type="checkbox"
             className="h-4 w-4 accent-[var(--rust)]"
@@ -114,7 +115,7 @@ export default function ApiTokensBlock() {
           />
           <span className="text-[14px]">Read-only: can look, can't post or change anything</span>
         </label>
-        <PrimaryButton type="submit" className="self-start sm:col-span-2 sm:justify-self-start" disabled={!name.trim() || add.isPending}>
+        <PrimaryButton type="submit" className="self-start @lg:col-span-2 @lg:justify-self-start" disabled={!name.trim() || add.isPending}>
           {add.isPending ? "Making…" : "Make token"}
         </PrimaryButton>
       </form>
@@ -126,9 +127,7 @@ export default function ApiTokensBlock() {
         description="It's shown only this once. Store it somewhere safe, like a password manager."
         footer={
           <>
-            <TextButton type="button" onClick={() => created && navigator.clipboard?.writeText(created).then(() => toast("Copied"))}>
-              Copy
-            </TextButton>
+            {created ? <CopyButton value={created} /> : <span />}
             <PrimaryButton type="button" onClick={() => setCreated(null)}>
               Done
             </PrimaryButton>

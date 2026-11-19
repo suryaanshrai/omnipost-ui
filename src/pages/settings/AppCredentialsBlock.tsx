@@ -76,7 +76,7 @@ export function AppCredentialsBlock() {
             e.preventDefault()
             register()
           }}
-          className="mt-6 grid gap-6 sm:grid-cols-2"
+          className="mt-6 grid gap-6 @lg:grid-cols-2"
         >
           <SelectField label="Platform" value={chosen} onChange={(e) => setSlug(e.target.value)}>
             {ownApp.map((c) => (
@@ -86,8 +86,8 @@ export function AppCredentialsBlock() {
             ))}
           </SelectField>
           <AppCredentialFields value={app} onChange={setApp} errors={error?.fieldErrors} />
-          <FormError error={error} fields={["client_id", "client_secret", "label"]} className="sm:col-span-2" />
-          <div className="sm:col-span-2">
+          <FormError error={error} fields={["client_id", "client_secret", "label"]} className="@lg:col-span-2" />
+          <div className="@lg:col-span-2">
             <OutlineButton type="submit" disabled={!app.client_id.trim() || !app.client_secret.trim() || add.isPending}>
               Register app
             </OutlineButton>
