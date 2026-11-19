@@ -34,9 +34,9 @@ export function useConfirm(): [(options: ConfirmOptions) => Promise<boolean>, Re
     resolver.current?.(false)
     setOptions(next)
     setOpen(true)
-    return new Promise<boolean>((resolve) => {
-      resolver.current = resolve
-    })
+    const { promise, resolve } = Promise.withResolvers<boolean>()
+    resolver.current = resolve
+    return promise
   }, [])
 
   const element = (
