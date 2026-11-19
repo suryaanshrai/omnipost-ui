@@ -2,7 +2,11 @@ import type { ReactNode } from "react"
 import { PrimaryButton, TextButton } from "./Buttons"
 import Modal from "./Modal"
 
-/** A two-button confirm in the modal language. `pending` disables both while the action runs. */
+/**
+ * A two-button confirm in the modal language. While `pending`, both buttons
+ * are disabled and Escape / backdrop clicks do nothing. A destructive
+ * confirm (`tone="rust"`) puts focus on Cancel, the safe choice.
+ */
 export default function ConfirmDialog({
   open,
   onOpenChange,
@@ -11,6 +15,7 @@ export default function ConfirmDialog({
   description,
   children,
   confirmLabel,
+  cancelLabel = "Cancel",
   onConfirm,
   pending,
   tone = "ink",
@@ -22,6 +27,7 @@ export default function ConfirmDialog({
   description?: ReactNode
   children?: ReactNode
   confirmLabel: string
+  cancelLabel?: string
   onConfirm: () => void
   pending?: boolean
   tone?: "ink" | "rust"
@@ -30,6 +36,9 @@ export default function ConfirmDialog({
     <Modal
       open={open}
       onOpenChange={(next) => !pending && onOpenChange(next)}
+      dismissible={!pending}
+      closeButton={false}
+      busy={pending}
       eyebrow={eyebrow}
       title={title}
       description={description}
@@ -38,15 +47,15 @@ export default function ConfirmDialog({
         <>
           <span />
           <div className="flex items-center gap-6">
-            <TextButton type="button" tone="muted" onClick={() => onOpenChange(false)} disabled={pending}>
-              Cancel
-            </TextButton>
-            <PrimaryButton
-              type="button"
-              onClick={onConfirm}
+            <TextButton
+              tone="muted"
+              onClick={() => onOpenChange(false)}
               disabled={pending}
-              className={tone === "rust" ? "bg-rust hover:bg-ink" : undefined}
+              {...(tone === "rust" ? { "data-autofocus": "" } : {})}
             >
+              {cancelLabel}
+            </TextButton>
+            <PrimaryButton onClick={onConfirm} disabled={pending} className={tone === "rust" ? "bg-rust hover:bg-ink" : undefined}>
               {pending ? "Working…" : confirmLabel}
             </PrimaryButton>
           </div>

@@ -1,5 +1,5 @@
 import { MutationCache, QueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ApiError } from "@/lib/api"
 
 /** A hosted plan's limit (402): say so once, with the way out. */

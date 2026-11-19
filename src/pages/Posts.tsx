@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ChannelChip } from "@/components/app/ChannelChip"
 import FirstPostChecklist from "@/components/app/FirstPostChecklist"
 import MediaBand from "@/components/app/MediaBand"

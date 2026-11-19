@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import HealthDot from "@/components/app/HealthDot"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
@@ -17,6 +17,7 @@ import { useConnectors, useRemoveChannel } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, QueueSlot } from "@/types/api"
+import { useConfirm } from "@/components/editorial/useConfirm"
 
 export default function ChannelDetail() {
   const { id } = useParams()
@@ -219,6 +220,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
 
   const list = slots.data ?? []
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Queue slots" aside={`${list.length} weekly`}>
       <p className="max-w-[560px] text-[14px] leading-[1.6] text-ink-55">
@@ -235,7 +237,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(slot)}>
                 {slot.is_active ? "Pause" : "Resume"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(slot)}>
+              <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this slot?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(slot))}>
                 Remove
               </TextButton>
             </li>
@@ -256,6 +258,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
         </OutlineButton>
       </form>
       {error && <p className="mt-3 text-[13px] text-rust">{error}</p>}
+      {confirmDialog}
     </Block>
   )
 }

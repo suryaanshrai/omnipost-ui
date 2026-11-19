@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { kindLabel, POST_KINDS } from "@/components/compose/compose-context"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
@@ -12,6 +12,7 @@ import { useChannels } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { PostKind, RecurrenceRule } from "@/types/api"
+import { useConfirm } from "@/components/editorial/useConfirm"
 
 
 export function RecurrenceBlock() {
@@ -72,6 +73,7 @@ export function RecurrenceBlock() {
 
   const every = (h: number) => (h % 168 === 0 ? `${h / 168} wk` : h % 24 === 0 ? `${h / 24} d` : `${h} h`)
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Recurring posts" aside="Evergreen">
       <p className="mb-5 max-w-[560px] text-[14px] leading-[1.6] text-ink-55">
@@ -93,7 +95,7 @@ export function RecurrenceBlock() {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(r)}>
                 {r.is_active === false ? "Resume" : "Pause"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(r)}>
+              <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this rule?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(r))}>
                 Remove
               </TextButton>
             </li>
@@ -159,6 +161,7 @@ export function RecurrenceBlock() {
           </div>
         </form>
       )}
+      {confirmDialog}
     </Block>
   )
 }

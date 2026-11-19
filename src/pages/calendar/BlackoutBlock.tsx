@@ -9,6 +9,7 @@ import { formatStamp, fromLocalInput } from "@/lib/format"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BlackoutWindow, Channel } from "@/types/api"
+import { useConfirm } from "@/components/editorial/useConfirm"
 
 
 export function BlackoutBlock({ channels, windows }: { channels: Channel[]; windows: BlackoutWindow[] }) {
@@ -54,6 +55,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
   const name = (id: number | null | undefined) => (id ? channels.find((c) => c.id === id)?.display_name ?? "One channel" : "All channels")
   const sorted = windows.toSorted((a, b) => b.starts_at.localeCompare(a.starts_at))
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Blackout windows" aside="The queue skips these">
       <ul className="-mt-6 empty:mt-0">
@@ -68,7 +70,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
             <TextButton type="button" tone="muted" onClick={() => toggle.mutate(w)}>
               {w.is_active === false ? "Resume" : "Pause"}
             </TextButton>
-            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(w)}>
+            <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this blackout?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(w))}>
               Remove
             </TextButton>
           </li>
@@ -101,6 +103,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           </OutlineButton>
         </div>
       </form>
+      {confirmDialog}
     </Block>
   )
 }

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
@@ -10,6 +10,7 @@ import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import type { ApiToken, CreatedApiToken } from "@/types/api"
 import { errorText } from "./shared"
+import { useConfirm } from "@/components/editorial/useConfirm"
 
 const EXPIRY = [
   { value: "", label: "Never" },
@@ -57,6 +58,7 @@ export default function ApiTokensBlock() {
     add.mutate()
   }
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="API tokens" aside="Scripts, Zapier, n8n, AI assistants">
       <p className="-mt-2 text-[14px] leading-[1.6] text-ink-55">
@@ -80,7 +82,7 @@ export default function ApiTokensBlock() {
             <TextButton
               type="button"
               tone="muted"
-              onClick={() => window.confirm(`Revoke "${t.name}"? Anything using it stops working.`) && revoke.mutate(t)}
+              onClick={() => void confirm({ title: `Revoke "${t.name}"?`, description: "Anything using it stops working.", confirmLabel: "Revoke" }).then((ok) => ok && revoke.mutate(t))}
             >
               Revoke
             </TextButton>
@@ -142,6 +144,7 @@ export default function ApiTokensBlock() {
       >
         <code className="block border border-hair p-3 text-[13px] break-all select-all">{created}</code>
       </Modal>
+      {confirmDialog}
     </Block>
   )
 }

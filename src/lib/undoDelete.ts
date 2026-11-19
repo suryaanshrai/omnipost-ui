@@ -3,7 +3,7 @@
 // Leaving the page first still sends it (keepalive), so nothing reappears.
 import { useSyncExternalStore } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { apiFetch, ApiError } from "@/lib/api"
 
 const UNDO_MS = 6000

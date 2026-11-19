@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field, { TimezoneField } from "@/components/editorial/Field"

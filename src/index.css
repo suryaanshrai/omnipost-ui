@@ -12,7 +12,6 @@
 @import "@fontsource/manrope/700.css";
 
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -402,23 +401,133 @@ html.cursor-none * {
   }
 }
 
-/* tw-animate-css (Sheet and Modal enter/exit) has no reduced-motion
-   handling of its own. Keep the fade, drop the slide and zoom. */
-@media (prefers-reduced-motion: reduce) {
-  .animate-in,
-  .animate-out {
-    --tw-enter-translate-x: 0;
-    --tw-enter-translate-y: 0;
-    --tw-exit-translate-x: 0;
-    --tw-exit-translate-y: 0;
-    --tw-enter-scale: 1;
-    --tw-exit-scale: 1;
-  }
-}
-
 /* The theme toggle cross-fades (theme-provider.tsx) through a view
    transition; a short, plain fade keeps it calm. */
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: 0.28s;
+}
+
+/* ── Native dialogs (NativeDialog.tsx) ─────────────────────────────────
+   modern-web-guidance `animate-to-from-top-layer` and
+   `prevent-page-scroll-under-modal-dialog`. A short fade and an 8px rise
+   in, the reverse out; `display` and `overlay` transition discretely so
+   the panel stays in the top layer until the fade ends. Browsers without
+   @starting-style or allow-discrete just open and close without motion. */
+.native-dialog {
+  margin: auto;
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: 0.24s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 8px;
+  }
+}
+.native-dialog[open] {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 0 8px;
+    }
+  }
+}
+.native-dialog::backdrop {
+  background-color: rgb(18 16 14 / 0);
+  backdrop-filter: blur(0);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 0.24s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+.native-dialog[open]::backdrop {
+  background-color: rgb(18 16 14 / 0.55);
+  backdrop-filter: blur(3px);
+
+  @starting-style {
+    background-color: rgb(18 16 14 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+/* Scrolling over the backdrop or inside the panel never scrolls the page. */
+.native-dialog:modal {
+  overscroll-behavior: contain;
+}
+.native-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* The mobile menu: a full-height drawer that slides in from the left. */
+.native-dialog.drawer {
+  margin: 0;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  height: 100dvh;
+  max-height: none;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: -100% 0;
+  }
+}
+.native-dialog.drawer[open] {
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: -100% 0;
+    }
+  }
+}
+
+/* The alerts panel (NotificationBell): a popover under its button. Same
+   fade-and-rise as the dialogs. Tethered with CSS anchor positioning where
+   supported, flipping at the viewport edges; elsewhere the browser's
+   default centred popover placement applies, so the inset/margin reset is
+   gated with it (modern-web-guidance `viewport-aware-dropdowns`). */
+.alerts-panel {
+  margin: auto; /* Tailwind's preflight zeroes it; the browser's centring needs it */
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 -6px;
+  }
+}
+.alerts-panel:popover-open {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 0 -6px;
+    }
+  }
+}
+@supports (position-area: block-end) {
+  .alerts-panel {
+    inset: auto;
+    margin: 0;
+    margin-block-start: 8px;
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+  }
 }

@@ -2,7 +2,7 @@
 // keys are namespaced by workspace id so switching workspace never shows
 // another workspace's cached rows.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { AppCredential, Billing, Channel, Connector, MediaAsset, Post, UserDetails } from "@/types/api"

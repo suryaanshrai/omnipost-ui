@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Blip from "@/components/editorial/Blip"
 import Wordmark from "@/components/editorial/Wordmark"
 import { apiFetch, ApiError, isSignedIn } from "@/lib/api"

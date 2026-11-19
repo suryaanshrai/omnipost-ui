@@ -1,13 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Outlet } from "react-router"
 import NotificationBell from "@/components/app/NotificationBell"
 import Sidebar from "@/components/app/Sidebar"
 import { useCompose } from "@/components/compose/compose-context"
 import { ComposeProvider } from "@/components/compose/ComposeProvider"
 import FilmGrain from "@/components/editorial/FilmGrain"
+import NativeDialog from "@/components/editorial/NativeDialog"
 import Wordmark from "@/components/editorial/Wordmark"
-import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { WorkspaceProvider } from "@/lib/workspace"
 
 /**
@@ -18,8 +17,14 @@ import { WorkspaceProvider } from "@/lib/workspace"
  */
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
-  // Widening past md while the sheet is open drops straight into the docked sidebar.
-  const isMobile = useIsMobile()
+  // Widening past md while the menu is open drops straight into the docked
+  // sidebar, and the menu stays closed when narrowing again.
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 768px)")
+    const onChange = () => desktop.matches && setMenuOpen(false)
+    desktop.addEventListener("change", onChange)
+    return () => desktop.removeEventListener("change", onChange)
+  }, [])
 
   return (
     <WorkspaceProvider>
@@ -31,7 +36,7 @@ export default function App() {
             <Sidebar />
           </aside>
 
-          {/* Below md the sidebar becomes a sheet behind a top bar. */}
+          {/* Below md the sidebar becomes a drawer behind a top bar. */}
           <header className="flex items-center justify-between border-b border-hair px-4 py-4 md:hidden">
             <Wordmark size={20} />
             <div className="flex items-center gap-2">
@@ -47,13 +52,22 @@ export default function App() {
               </button>
             </div>
           </header>
-          <Sheet open={menuOpen && isMobile} onOpenChange={setMenuOpen}>
-            <SheetContent side="left" className="w-[280px] gap-0 border-hair bg-page p-0 text-ink">
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
-              <SheetDescription className="sr-only">Sections of the app, compose, and account controls.</SheetDescription>
-              <Sidebar onNavigate={() => setMenuOpen(false)} />
-            </SheetContent>
-          </Sheet>
+          <NativeDialog
+            open={menuOpen}
+            onOpenChange={setMenuOpen}
+            label="Navigation"
+            className="drawer w-[280px] max-w-[calc(100vw-48px)] overflow-y-auto border-r border-hair bg-page p-0 text-ink"
+          >
+            <Sidebar onNavigate={() => setMenuOpen(false)} />
+            {/* After the menu in focus order; drawn in the top corner the wordmark leaves free. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen(false)}
+              className="absolute top-4 right-3 min-h-11 px-3 text-[10px] font-bold tracking-[0.16em] text-ink-55 uppercase transition-colors hover:text-rust"
+            >
+              Close
+            </button>
+          </NativeDialog>
 
           <main className="min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-16 sm:px-8 md:px-14 md:pt-[52px] md:pb-[90px]">
             <Outlet />

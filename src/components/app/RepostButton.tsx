@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { TextButton } from "@/components/editorial/Buttons"
 import { apiFetch } from "@/lib/api"
 import { formatStamp } from "@/lib/format"

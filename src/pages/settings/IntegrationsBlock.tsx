@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { ChannelToggle } from "@/components/app/ChannelChip"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
@@ -13,6 +13,7 @@ import { useChannels } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import type { Feed, Webhook } from "@/types/api"
 import { useWorkspaceList } from "./shared"
+import { useConfirm } from "@/components/editorial/useConfirm"
 
 const EVENTS = [
   { value: "post.published", label: "Post published" },
@@ -71,6 +72,7 @@ function WebhooksBlock() {
     add.mutate()
   }
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Webhooks" aside="For Zapier, n8n or your own code">
       <p className="-mt-2 text-[14px] leading-[1.6] text-ink-55">
@@ -94,7 +96,7 @@ function WebhooksBlock() {
             <TextButton
               type="button"
               tone="muted"
-              onClick={() => window.confirm("Remove this webhook?") && remove.mutate(h)}
+              onClick={() => void confirm({ title: "Remove this webhook?" }).then((ok) => ok && remove.mutate(h))}
             >
               Remove
             </TextButton>
@@ -147,6 +149,7 @@ function WebhooksBlock() {
       >
         <code className="block border border-hair p-3 text-[13px] break-all select-all">{secret}</code>
       </Modal>
+      {confirmDialog}
     </Block>
   )
 }
@@ -187,6 +190,7 @@ function FeedsBlock() {
     add.mutate()
   }
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Feeds" aside="RSS or Atom → Drafts">
       <p className="-mt-2 text-[14px] leading-[1.6] text-ink-55">
@@ -204,7 +208,7 @@ function FeedsBlock() {
               </span>
               {f.last_error && <span className="mt-1 block text-[13px] text-rust">{f.last_error}</span>}
             </span>
-            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this feed?") && remove.mutate(f)}>
+            <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this feed?" }).then((ok) => ok && remove.mutate(f))}>
               Remove
             </TextButton>
           </li>
@@ -239,6 +243,7 @@ function FeedsBlock() {
           {add.isPending ? "Adding…" : "Add feed"}
         </PrimaryButton>
       </form>
+      {confirmDialog}
     </Block>
   )
 }

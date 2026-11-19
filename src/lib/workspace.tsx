@@ -1,7 +1,7 @@
 import { createContext, useContext, useMemo, useState } from "react"
 import type { ReactNode } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { apiFetch, ApiError, setSignedIn, type Page } from "@/lib/api"
 import { setDisplayTimeZone } from "@/lib/format"
 import type { Workspace } from "@/types/api"
