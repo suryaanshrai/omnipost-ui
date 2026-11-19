@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react"
 import { Link, useNavigate, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Blip from "@/components/editorial/Blip"
 import Wordmark from "@/components/editorial/Wordmark"
 import { apiFetch, ApiError, isSignedIn } from "@/lib/api"
 import { OAUTH_STASH_KEY, type OAuthStash } from "@/lib/connectors"
 import type { Channel } from "@/types/api"
+import { useDocumentTitle } from "@/lib/page"
 
 /**
  * Where a connector's OAuth redirect lands: exchanges `code` + `state` via
@@ -15,6 +16,7 @@ import type { Channel } from "@/types/api"
  * exchange is guarded against StrictMode's double effect run.
  */
 export default function OAuthCallback() {
+  useDocumentTitle("Connecting")
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const queryClient = useQueryClient()

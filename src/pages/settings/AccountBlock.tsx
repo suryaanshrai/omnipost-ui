@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
@@ -9,6 +9,7 @@ import Modal from "@/components/editorial/Modal"
 import { apiFetch, ApiError, setSignedIn } from "@/lib/api"
 import { useMe } from "@/lib/queries"
 import type { UserDetails } from "@/types/api"
+import FormError from "@/components/editorial/FormError"
 
 /** The signed-in person: email alerts, password, data export, account deletion. */
 export default function AccountBlock() {
@@ -34,7 +35,8 @@ export default function AccountBlock() {
       a.href = url
       a.download = "omnipost-export.json"
       a.click()
-      URL.revokeObjectURL(url)
+      // Revoking right away can cancel the download in some browsers.
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
     },
     onError: () => toast.error("Could not export your data."),
   })
@@ -148,11 +150,7 @@ function ChangePassword() {
         onChange={(e) => setConfirm(e.target.value)}
         errors={mismatch ? ["The passwords don't match."] : error?.fieldErrors.new_password2}
       />
-      {error && !Object.keys(error.fieldErrors).length && (
-        <p role="alert" className="text-[13px] text-rust">
-          {error.detail}
-        </p>
-      )}
+      <FormError error={error} fields={["old_password", "new_password1", "new_password2"]} />
       <div className="flex items-center gap-6">
         <PrimaryButton type="submit" disabled={!old || !next || !confirm || mismatch || change.isPending}>
           {change.isPending ? "Saving…" : "Change password"}
@@ -211,11 +209,7 @@ function DeleteAccount() {
           onChange={(e) => setPassword(e.target.value)}
           errors={error?.fieldErrors.password}
         />
-        {error && !error.fieldErrors.password && (
-          <p role="alert" className="mt-4 text-[13px] text-rust">
-            {error.detail}
-          </p>
-        )}
+        <FormError error={error} fields={["password"]} className="mt-4" />
       </Modal>
     </>
   )

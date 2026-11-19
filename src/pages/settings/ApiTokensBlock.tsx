@@ -1,15 +1,17 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
-import Field from "@/components/editorial/Field"
+import Field, { SelectField } from "@/components/editorial/Field"
 import Modal from "@/components/editorial/Modal"
 import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import type { ApiToken, CreatedApiToken } from "@/types/api"
 import { errorText } from "./shared"
+import { useConfirm } from "@/components/editorial/useConfirm"
+import CopyButton from "@/components/editorial/CopyButton"
 
 const EXPIRY = [
   { value: "", label: "Never" },
@@ -57,6 +59,7 @@ export default function ApiTokensBlock() {
     add.mutate()
   }
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="API tokens" aside="Scripts, Zapier, n8n, AI assistants">
       <p className="-mt-2 text-[14px] leading-[1.6] text-ink-55">
@@ -80,7 +83,7 @@ export default function ApiTokensBlock() {
             <TextButton
               type="button"
               tone="muted"
-              onClick={() => window.confirm(`Revoke "${t.name}"? Anything using it stops working.`) && revoke.mutate(t)}
+              onClick={() => void confirm({ title: `Revoke "${t.name}"?`, description: "Anything using it stops working.", confirmLabel: "Revoke" }).then((ok) => ok && revoke.mutate(t))}
             >
               Revoke
             </TextButton>
@@ -88,7 +91,7 @@ export default function ApiTokensBlock() {
         ))}
         {tokens.isSuccess && !tokens.data.length && <li className="py-3 text-[13.5px] text-ink-55">No tokens yet.</li>}
       </ul>
-      <form onSubmit={submit} className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto]">
+      <form onSubmit={submit} className="mt-6 grid gap-5 @lg:grid-cols-[1fr_auto]">
         <Field
           label="Name"
           placeholder="e.g. Claude, n8n"
@@ -96,21 +99,14 @@ export default function ApiTokensBlock() {
           onChange={(e) => setName(e.target.value)}
           errors={error?.fieldErrors.name ?? (error && !Object.keys(error.fieldErrors).length ? [error.detail] : undefined)}
         />
-        <label className="flex flex-col gap-2">
-          <span className="eyebrow">Expires</span>
-          <select
-            value={expiry}
-            onChange={(e) => setExpiry(e.target.value)}
-            className="min-h-11 border-b border-hair bg-transparent text-[15px] text-ink focus:border-ink focus:outline-none"
-          >
-            {EXPIRY.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex cursor-pointer items-center gap-3 sm:col-span-2">
+        <SelectField label="Expires" value={expiry} onChange={(e) => setExpiry(e.target.value)}>
+          {EXPIRY.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </SelectField>
+        <label className="flex cursor-pointer items-center gap-3 @lg:col-span-2">
           <input
             type="checkbox"
             className="h-4 w-4 accent-[var(--rust)]"
@@ -119,7 +115,7 @@ export default function ApiTokensBlock() {
           />
           <span className="text-[14px]">Read-only: can look, can't post or change anything</span>
         </label>
-        <PrimaryButton type="submit" className="self-start sm:col-span-2 sm:justify-self-start" disabled={!name.trim() || add.isPending}>
+        <PrimaryButton type="submit" className="self-start @lg:col-span-2 @lg:justify-self-start" disabled={!name.trim() || add.isPending}>
           {add.isPending ? "Making…" : "Make token"}
         </PrimaryButton>
       </form>
@@ -131,9 +127,7 @@ export default function ApiTokensBlock() {
         description="It's shown only this once. Store it somewhere safe, like a password manager."
         footer={
           <>
-            <TextButton type="button" onClick={() => created && navigator.clipboard?.writeText(created).then(() => toast("Copied"))}>
-              Copy
-            </TextButton>
+            {created ? <CopyButton value={created} /> : <span />}
             <PrimaryButton type="button" onClick={() => setCreated(null)}>
               Done
             </PrimaryButton>
@@ -142,6 +136,7 @@ export default function ApiTokensBlock() {
       >
         <code className="block border border-hair p-3 text-[13px] break-all select-all">{created}</code>
       </Modal>
+      {confirmDialog}
     </Block>
   )
 }

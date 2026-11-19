@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { Workspace } from "@/types/api"
+import FormError from "@/components/editorial/FormError"
 
 type BioLink = { label: string; url: string }
 
@@ -77,7 +78,7 @@ export default function BioBlock() {
         <fieldset className="flex flex-col gap-4">
           <legend className="eyebrow mb-1">Links</legend>
           {links.map((l, i) => (
-            <div key={i} className="grid items-end gap-4 sm:grid-cols-[1fr_2fr_auto]">
+            <div key={i} className="grid items-end gap-4 @lg:grid-cols-[1fr_2fr_auto]">
               <Field label="Label" value={l.label} onChange={(e) => setLink(i, { label: e.target.value })} />
               <Field label="URL" type="url" placeholder="https://" value={l.url} onChange={(e) => setLink(i, { url: e.target.value })} />
               <TextButton type="button" tone="muted" onClick={() => setLinks((prev) => prev.filter((_, j) => j !== i))}>
@@ -95,7 +96,7 @@ export default function BioBlock() {
         <PrimaryButton type="submit" className="self-start" disabled={save.isPending}>
           {save.isPending ? "Saving…" : "Save"}
         </PrimaryButton>
-        {error && !Object.keys(error.fieldErrors).length && <p className="text-[13px] text-rust">{error.detail}</p>}
+        <FormError error={error} fields={["bio_description", "bio_links", "bio_enabled", "bio_slug"]} />
       </form>
     </Block>
   )

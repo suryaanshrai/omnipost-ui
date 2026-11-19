@@ -19,8 +19,11 @@ import { useEffect, useRef } from "react"
  * animation frame is canceled, and the context itself is explicitly lost
  * via WEBGL_lose_context on unmount — repeated navigation between the
  * landing page and the app must not slowly exhaust the browser's context
- * budget. The loop also pauses while the tab is hidden and never starts at
- * all under prefers-reduced-motion (drawn once, statically, instead).
+ * budget. The loop runs only while the canvas is on screen and the tab is
+ * visible (two of these sit on the landing page, one far below the fold),
+ * and never under prefers-reduced-motion, where it is drawn once and
+ * redrawn after a resize. Frames reuse one vertex buffer instead of
+ * allocating new arrays sixty times a second.
  */
 export default function Constellation({ density = 1, className }: { density?: number; className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -29,8 +32,7 @@ export default function Constellation({ density = 1, className }: { density?: nu
     const canvas = canvasRef.current
     if (!canvas) return
 
-    const gl = (canvas.getContext("webgl", { antialias: true, alpha: true }) ||
-      canvas.getContext("experimental-webgl")) as WebGLRenderingContext | null
+    const gl = canvas.getContext("webgl", { antialias: true, alpha: true })
     if (!gl) return // static fallback: whatever background sits behind the canvas shows through
 
     const vs =
@@ -99,14 +101,21 @@ export default function Constellation({ density = 1, className }: { density?: nu
       gl.viewport(0, 0, canvas.width, canvas.height)
     }
     resize()
-    window.addEventListener("resize", resize)
+    // The canvas's own box, not the window: the layout can change its size
+    // without the window resizing (and vice versa).
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => {
+      resize()
+      if (raf === null) draw() // setting canvas.width cleared it; repaint the still frame
+    })
+    if (resizeObserver) resizeObserver.observe(canvas)
+    else window.addEventListener("resize", resize)
 
     let mx = W / 2,
       my = H / 2,
       tmx = W / 2,
       tmy = H / 2
     const host = canvas.parentElement
-    const onHostMove = (e: MouseEvent) => {
+    const onHostMove = (e: PointerEvent) => {
       const r = canvas.getBoundingClientRect()
       tmx = e.clientX - r.left
       tmy = e.clientY - r.top
@@ -115,11 +124,15 @@ export default function Constellation({ density = 1, className }: { density?: nu
       tmx = W / 2
       tmy = H / 2
     }
-    host?.addEventListener("mousemove", onHostMove)
-    host?.addEventListener("mouseleave", onHostLeave)
+    host?.addEventListener("pointermove", onHostMove)
+    host?.addEventListener("pointerleave", onHostLeave)
 
     const start = performance.now()
     let raf: number | null = null
+    // Reused every frame; grown when a frame needs more room.
+    const lines: number[] = []
+    const points: number[] = []
+    let vertices = new Float32Array(0)
 
     const draw = () => {
       const t = (performance.now() - start) / 1000
@@ -156,7 +169,7 @@ export default function Constellation({ density = 1, className }: { density?: nu
         return [x, y]
       })
 
-      const lines: number[] = []
+      lines.length = 0
       const pushLine = (a: number[], b: number[], col: number[], alpha: number) => {
         lines.push(a[0], a[1], col[0], col[1], col[2], alpha, 1)
         lines.push(b[0], b[1], col[0], col[1], col[2], alpha, 1)
@@ -190,7 +203,7 @@ export default function Constellation({ density = 1, className }: { density?: nu
         }
       }
 
-      const points: number[] = []
+      points.length = 0
       const pushPoint = (p: number[], col: number[], alpha: number, size: number) =>
         points.push(p[0], p[1], col[0], col[1], col[2], alpha, size * dpr)
       sats.forEach((s, i) => pushPoint(spos[i], BONE, s.a, s.sz))
@@ -198,9 +211,12 @@ export default function Constellation({ density = 1, className }: { density?: nu
       heads.forEach((hp) => pushPoint(hp, FIRE, 1, 5.4))
       pushPoint([cx, cy], FIRE, 1, 8 + Math.sin(t * 2.2) * 1.2)
 
-      const data = new Float32Array([...lines, ...points])
+      const total = lines.length + points.length
+      if (vertices.length < total) vertices = new Float32Array(total * 2)
+      vertices.set(lines, 0)
+      vertices.set(points, lines.length)
       gl.bindBuffer(gl.ARRAY_BUFFER, buf)
-      gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW)
+      gl.bufferData(gl.ARRAY_BUFFER, vertices.subarray(0, total), gl.DYNAMIC_DRAW)
       gl.clearColor(0, 0, 0, 0)
       gl.clear(gl.COLOR_BUFFER_BIT)
 
@@ -223,37 +239,59 @@ export default function Constellation({ density = 1, className }: { density?: nu
       gl.drawArrays(gl.POINTS, lineVerts, pointVerts)
     }
 
-    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let onScreen = true
+    let lost = false
     const loop = () => {
       draw()
       raf = requestAnimationFrame(loop)
     }
-    if (reducedMotion) {
-      draw() // one static frame, no continuous animation
-    } else {
-      loop()
+    const stop = () => {
+      if (raf !== null) cancelAnimationFrame(raf)
+      raf = null
     }
-
-    const onVisibility = () => {
-      if (reducedMotion) return
-      if (document.hidden && raf !== null) {
-        cancelAnimationFrame(raf)
-        raf = null
-      } else if (!document.hidden && raf === null) {
-        loop()
+    // Animate only when it can be seen and motion is welcome; otherwise
+    // hold one still frame.
+    const sync = () => {
+      if (lost) return stop()
+      const run = onScreen && !document.hidden && !motion.matches
+      if (run && raf === null) loop()
+      else if (!run) {
+        stop()
+        draw()
       }
     }
-    document.addEventListener("visibilitychange", onVisibility)
+    sync()
+
+    const visibility = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
+      onScreen = entry.isIntersecting
+      sync()
+    })
+    visibility?.observe(canvas)
+    document.addEventListener("visibilitychange", sync)
+    motion.addEventListener("change", sync)
+    // The GPU dropped the context (driver reset, too many contexts): stop
+    // drawing; the dark panel behind the canvas still shows.
+    const onLost = (e: Event) => {
+      e.preventDefault()
+      lost = true
+      stop()
+    }
+    canvas.addEventListener("webglcontextlost", onLost)
 
     return () => {
-      if (raf !== null) cancelAnimationFrame(raf)
+      stop()
+      resizeObserver?.disconnect()
       window.removeEventListener("resize", resize)
-      document.removeEventListener("visibilitychange", onVisibility)
-      host?.removeEventListener("mousemove", onHostMove)
-      host?.removeEventListener("mouseleave", onHostLeave)
+      visibility?.disconnect()
+      document.removeEventListener("visibilitychange", sync)
+      motion.removeEventListener("change", sync)
+      canvas.removeEventListener("webglcontextlost", onLost)
+      host?.removeEventListener("pointermove", onHostMove)
+      host?.removeEventListener("pointerleave", onHostLeave)
       gl.getExtension("WEBGL_lose_context")?.loseContext()
     }
   }, [density])
 
-  return <canvas ref={canvasRef} className={className} style={{ display: "block", width: "100%", height: "100%" }} />
+  return <canvas ref={canvasRef} aria-hidden="true" className={className} style={{ display: "block", width: "100%", height: "100%" }} />
 }

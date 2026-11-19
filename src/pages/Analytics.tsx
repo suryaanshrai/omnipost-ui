@@ -7,17 +7,20 @@ import { kindLabel } from "@/components/compose/compose-context"
 import { TextButton } from "@/components/editorial/Buttons"
 import SectionHeader from "@/components/editorial/SectionHeader"
 import { apiFetch, type Page } from "@/lib/api"
-import { formatStamp, WEEKDAYS } from "@/lib/format"
+import { WEEKDAYS, formatNumber, formatStamp } from "@/lib/format"
 import { useChannelMap, useConnectors, useMetricsSlugs } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, Post, PostMetric, PostPerformanceEntry, PostTarget } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
+import { safeHref } from "@/lib/url"
+import Stamp from "@/components/editorial/Stamp"
 
 const PAGE = 20
 
 function n(v: number | null | undefined): string {
-  return v == null ? "—" : v.toLocaleString("en-US")
+  return v == null ? "—" : formatNumber(v)
 }
 
 export default function Analytics() {
@@ -81,8 +84,8 @@ export default function Analytics() {
   const reporting = (connectors.data ?? []).filter((c) => c.supports_metrics).map((c) => c.display_name)
 
   return (
-    <div className="max-w-[860px]">
-      <SectionHeader eyebrow={eyebrow} title="Analytics" aside={`${posts.data?.pages[0]?.count ?? 0} published`} />
+    <div className="@container max-w-[860px]">
+      <SectionHeader eyebrow={eyebrow} title="Analytics" aside={`${posts.data?.pages[0]?.count ?? "—"} published`} />
 
       <p className="mt-6 max-w-[620px] border-l-2 border-rust pl-4 text-[14px] leading-[1.6] text-ink-55">
         Numbers come straight from {reporting.length ? <span className="text-ink">{reporting.join(", ")}</span> : "the platforms"}
@@ -91,7 +94,7 @@ export default function Analytics() {
       </p>
 
       {measurable.length > 0 && (
-        <dl className="mt-10 grid grid-cols-2 border-t border-l border-hair sm:grid-cols-4">
+        <dl className="mt-10 grid grid-cols-2 border-t border-l border-hair @xl:grid-cols-4">
           {(
             [
               ["Likes", totals.likes],
@@ -102,7 +105,7 @@ export default function Analytics() {
           ).map(([label, value]) => (
             <div key={label} className="border-r border-b border-hair px-5 py-5">
               <dt className="eyebrow">{label}</dt>
-              <dd className="display mt-2 text-[40px] leading-none">{value.toLocaleString("en-US")}</dd>
+              <dd className="display mt-2 text-[40px] leading-none">{formatNumber(value)}</dd>
             </div>
           ))}
         </dl>
@@ -117,7 +120,7 @@ export default function Analytics() {
                 <span className="display text-[24px] leading-none text-rust">{i + 1}</span>
                 <span className="min-w-0">
                   <span className="line-clamp-2 text-[15px] leading-[1.5]">{p.base_text || "—"}</span>
-                  <span className="eyebrow mt-1 block">{engagement(p.id).toLocaleString("en-US")} interactions</span>
+                  <span className="eyebrow mt-1 block">{formatNumber(engagement(p.id))} interactions</span>
                 </span>
                 <RepostButton post={p} />
               </li>
@@ -127,7 +130,7 @@ export default function Analytics() {
       )}
 
       <Block title="Posts">
-        {posts.isLoading && <p className="eyebrow">Loading…</p>}
+        {posts.isLoading && <ListSkeleton />}
         {posts.isSuccess && list.length === 0 && <p className="text-[15px] text-ink-55">Nothing published yet.</p>}
         <ul className="-mt-6">
           {list.map((p) => (
@@ -148,7 +151,7 @@ export default function Analytics() {
             least five published posts.
           </p>
         ) : (
-          <div className="grid gap-8 sm:grid-cols-2">
+          <div className="grid gap-8 @lg:grid-cols-2">
             {measurable.map((c) => (
               <BestTimes key={c.id} channel={c} />
             ))}
@@ -206,8 +209,8 @@ function PostRow({
                     {supported ? (measurable ? "No snapshot yet — numbers arrive after the next poll." : "") : "This platform doesn't report numbers."}
                   </span>
                 )}
-                {t.permalink && (
-                  <a href={t.permalink} target="_blank" rel="noreferrer" className="text-[12px] text-ink-55 underline underline-offset-4 hover:text-rust">
+                {safeHref(t.permalink) && (
+                  <a href={safeHref(t.permalink)!} target="_blank" rel="noreferrer" className="text-[12px] text-ink-55 underline underline-offset-4 hover:text-rust">
                     View ↗
                   </a>
                 )}
@@ -240,28 +243,39 @@ function History({ target }: { target: PostTarget }) {
     <div className="mt-3 border-l border-hair pl-5">
       {history.isLoading && <p className="eyebrow">Loading…</p>}
       {rows.length > 0 && (
-        <table className="w-full max-w-[520px] text-left text-[12.5px]">
-          <thead>
-            <tr className="eyebrow">
-              <th className="py-1.5 font-bold">Fetched</th>
-              <th className="py-1.5 font-bold">Likes</th>
-              <th className="py-1.5 font-bold">Replies</th>
-              <th className="py-1.5 font-bold">Reposts</th>
-              <th className="py-1.5 font-bold">Views</th>
-            </tr>
-          </thead>
-          <tbody className="tabular-nums">
+        // Scrolls sideways on its own on a narrow screen instead of widening
+        // the page; focusable so the keyboard can scroll it too (a named
+        // region, which is what jsx-a11y's rule can't see).
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        <div role="region" aria-labelledby={`history-${target.id}`} tabIndex={0} className="max-w-[520px] overflow-x-auto">
+          <table className="w-full min-w-[420px] text-left text-[12.5px]">
+            <caption id={`history-${target.id}`} className="sr-only">
+              Numbers over time
+            </caption>
+            <thead>
+              <tr className="eyebrow">
+                <th scope="col" className="py-1.5 font-bold">Fetched</th>
+                <th scope="col" className="py-1.5 font-bold">Likes</th>
+                <th scope="col" className="py-1.5 font-bold">Replies</th>
+                <th scope="col" className="py-1.5 font-bold">Reposts</th>
+                <th scope="col" className="py-1.5 font-bold">Views</th>
+              </tr>
+            </thead>
+            <tbody className="tabular-nums">
             {rows.map((m) => (
               <tr key={m.id} className="border-t border-hair">
-                <td className="py-1.5 text-ink-55">{formatStamp(m.fetched_at)}</td>
+                <th scope="row" className="py-1.5 text-left font-normal text-ink-55">
+                  <Stamp iso={m.fetched_at} />
+                </th>
                 <td>{n(m.likes)}</td>
                 <td>{n(m.comments)}</td>
                 <td>{n(m.shares)}</td>
                 <td>{n(m.impressions)}</td>
               </tr>
             ))}
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )

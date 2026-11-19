@@ -1,7 +1,7 @@
 import { useEffect } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, PrimaryButton } from "@/components/editorial/Buttons"
 import { apiFetch } from "@/lib/api"
@@ -9,6 +9,7 @@ import { formatStamp } from "@/lib/format"
 import { useBilling } from "@/lib/queries"
 import type { Plan } from "@/types/api"
 import { errorText } from "./shared"
+import { safeHref } from "@/lib/url"
 
 function limit(used: number | undefined, max: number | null | undefined) {
   return max == null ? `${used ?? 0}` : `${used ?? 0} of ${max}`
@@ -31,7 +32,11 @@ export default function BillingBlock() {
         method: "POST",
         body: plan ? { plan } : {},
       }),
-    onSuccess: ({ url }) => window.location.assign(url),
+    onSuccess: ({ url }) => {
+      const href = safeHref(url)
+      if (href) window.location.assign(href)
+      else toast.error("The billing page address looked wrong. Try again.")
+    },
     onError: (err) => toast.error(errorText(err, "Couldn't reach billing. Try again in a moment.")),
   })
 
@@ -42,7 +47,7 @@ export default function BillingBlock() {
 
   return (
     <Block title="Plan" aside={current?.name ?? data.plan}>
-      <dl className="grid grid-cols-2 gap-6 text-[14px] sm:grid-cols-3">
+      <dl className="grid grid-cols-2 gap-6 text-[14px] @lg:grid-cols-3">
         <div>
           <dt className="eyebrow">Channels</dt>
           <dd className="mt-1 font-semibold">{limit(data.usage.channels, current?.channels)}</dd>

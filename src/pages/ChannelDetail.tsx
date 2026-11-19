@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import HealthDot from "@/components/app/HealthDot"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
@@ -17,6 +17,8 @@ import { useConnectors, useRemoveChannel } from "@/lib/queries"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BestTime, Channel, QueueSlot } from "@/types/api"
+import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 export default function ChannelDetail() {
   const { id } = useParams()
@@ -134,7 +136,7 @@ function SettingsBlock({ channel }: { channel: Channel }) {
           e.preventDefault()
           save.mutate()
         }}
-        className="grid gap-7 sm:grid-cols-2"
+        className="grid gap-7 @lg:grid-cols-2"
       >
         <TimezoneField
           label="Timezone"
@@ -147,19 +149,18 @@ function SettingsBlock({ channel }: { channel: Channel }) {
         <Field
           label="Minimum gap (minutes)"
           type="number"
+          inputMode="numeric"
           min={0}
           value={gap}
           onChange={(e) => setGap(e.target.value)}
           errors={error?.fieldErrors.min_gap_minutes}
           hint="The queue never places two posts on this channel closer than this."
         />
-        <div className="sm:col-span-2">
+        <div className="@lg:col-span-2">
           <PrimaryButton type="submit" disabled={!dirty || save.isPending}>
             {save.isPending ? "Saving…" : "Save"}
           </PrimaryButton>
-          {error && !error.fieldErrors.timezone && !error.fieldErrors.min_gap_minutes && (
-            <p className="mt-3 text-[13px] text-rust">{error.detail}</p>
-          )}
+          <FormError error={error} fields={["timezone", "min_gap_minutes"]} className="mt-3" />
         </div>
       </form>
     </Block>
@@ -219,6 +220,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
 
   const list = slots.data ?? []
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Queue slots" aside={`${list.length} weekly`}>
       <p className="max-w-[560px] text-[14px] leading-[1.6] text-ink-55">
@@ -235,7 +237,7 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
               <TextButton type="button" tone="muted" onClick={() => toggle.mutate(slot)}>
                 {slot.is_active ? "Pause" : "Resume"}
               </TextButton>
-              <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(slot)}>
+              <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this slot?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(slot))}>
                 Remove
               </TextButton>
             </li>
@@ -255,7 +257,8 @@ function QueueSlotsBlock({ channel }: { channel: Channel }) {
           Add slot
         </OutlineButton>
       </form>
-      {error && <p className="mt-3 text-[13px] text-rust">{error}</p>}
+      <FormError message={error} className="mt-3" />
+      {confirmDialog}
     </Block>
   )
 }

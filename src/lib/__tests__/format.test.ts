@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { fromLocalInput, toLocalInput, timeZoneLabel } from "@/lib/format"
+import { formatStamp, fromLocalInput, setDisplayTimeZone, toLocalInput, timeZoneLabel } from "@/lib/format"
 
 describe("workspace time zone conversion", () => {
   it("reads a datetime-local value as wall time in the workspace zone", () => {
@@ -19,5 +19,15 @@ describe("workspace time zone conversion", () => {
     expect(fromLocalInput("", "UTC")).toBeNull()
     expect(fromLocalInput("tomorrow", "UTC")).toBeNull()
     expect(timeZoneLabel("America/New_York")).toBe("New York")
+  })
+})
+
+describe("stamps", () => {
+  it("adds the year only outside the current one", () => {
+    setDisplayTimeZone("UTC")
+    const now = new Date("2026-11-19T12:00:00Z")
+    expect(formatStamp("2026-08-24T10:00:00Z", now)).toBe("Aug 24 · 10:00 AM")
+    expect(formatStamp("2025-08-24T10:00:00Z", now)).toBe("Aug 24, 2025 · 10:00 AM")
+    expect(formatStamp(null, now)).toBe("")
   })
 })

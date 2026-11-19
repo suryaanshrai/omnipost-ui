@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
@@ -75,7 +75,7 @@ export default function MembersBlock() {
                   aria-label={`Role for ${m.user.username}`}
                   value={m.role}
                   onChange={(e) => changeRole.mutate({ id: m.id, role: e.target.value })}
-                  className="border-b border-hair bg-page py-1 text-[12px] font-bold tracking-[0.12em] uppercase"
+                  className="select-field cursor-pointer border-b border-ink/50 bg-page py-1 text-[12px] font-bold tracking-[0.12em] uppercase"
                 >
                   {ROLES.filter((r) => RANK[r.value] <= RANK[myRole] || r.value === m.role).map((r) => (
                     <option key={r.value} value={r.value}>
@@ -131,7 +131,7 @@ function AddMember({ roles, onAdded }: { roles: typeof ROLES; onAdded: () => voi
     add.mutate()
   }
   return (
-    <form onSubmit={submit} className="mt-6 grid gap-5 sm:grid-cols-[1fr_180px_auto] sm:items-end">
+    <form onSubmit={submit} className="mt-6 grid gap-5 @lg:grid-cols-[1fr_180px_auto] @lg:items-end">
       <Field
         label="Add someone"
         placeholder="Their username or email"

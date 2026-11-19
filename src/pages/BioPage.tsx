@@ -5,20 +5,12 @@ import Wordmark from "@/components/editorial/Wordmark"
 import { apiFetch, ApiError } from "@/lib/api"
 import { formatStamp } from "@/lib/format"
 import type { BioPage as BioPageData } from "@/types/api"
+import { safeHref } from "@/lib/url"
 
 type BioLink = { label: string; url: string }
 type BioPost = { text: string; url: string; published_at: string | null }
 
 /** Only http(s) links are ever rendered, whatever the API sends. */
-function safeHref(url: unknown): string | null {
-  try {
-    const parsed = new URL(String(url))
-    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.href : null
-  } catch {
-    return null
-  }
-}
-
 /** /bio/:slug: a workspace's public link-in-bio page. */
 export default function BioPage() {
   const { slug = "" } = useParams()
@@ -28,8 +20,14 @@ export default function BioPage() {
     retry: (count, err) => !(err instanceof ApiError && err.status === 404) && count < 2,
   })
 
+  // The page's own name, restored when leaving it.
   useEffect(() => {
-    if (page.data) document.title = page.data.name
+    if (!page.data) return
+    const previous = document.title
+    document.title = page.data.name
+    return () => {
+      document.title = previous
+    }
   }, [page.data])
 
   if (page.isPending) {
@@ -89,7 +87,8 @@ export default function BioPage() {
             </ul>
           </section>
         )}
-        <Link to="/" className="mt-16 self-center opacity-60 transition-opacity hover:opacity-100" aria-label="Made with OmniPost">
+        <Link to="/" className="mt-16 self-center opacity-60 transition-opacity hover:opacity-100">
+          <span className="sr-only">Made with </span>
           <Wordmark />
         </Link>
       </main>

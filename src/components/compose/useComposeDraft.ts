@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { apiFetch, ApiError } from "@/lib/api"
 import { fromLocalInput, toLocalInput } from "@/lib/format"
 import { targetSpecsFor } from "@/lib/posts"
@@ -20,7 +20,7 @@ function assetKind(file: File): "image" | "video" | "gif" {
 /** The thread replies and first comment a saved post already has. */
 function initialExtras(post?: Post) {
   const threaded = post?.targets.find((t) => (t.parts?.length ?? 0) > 1)
-  const parts = threaded ? [...threaded.parts].sort((a, b) => a.sequence - b.sequence).slice(1).map((p) => p.text ?? "") : []
+  const parts = threaded ? threaded.parts.toSorted((a, b) => a.sequence - b.sequence).slice(1).map((p) => p.text ?? "") : []
   const firstComment = post?.targets.find((t) => t.first_comment)?.first_comment ?? ""
   return { parts, firstComment }
 }

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import ConfirmDialog from "@/components/editorial/ConfirmDialog"
@@ -10,6 +10,7 @@ import { apiFetch, ApiError } from "@/lib/api"
 import { useWorkspace } from "@/lib/workspace"
 import type { VoiceProfile } from "@/types/api"
 import { useWorkspaceList, errorText } from "./shared"
+import FormError from "@/components/editorial/FormError"
 
 export function VoiceProfilesBlock() {
   const { activeWorkspace } = useWorkspace()
@@ -30,7 +31,7 @@ export function VoiceProfilesBlock() {
 
   return (
     <Block title="Voice profiles" aside="Used by AI drafting">
-      {(profiles.data ?? []).length === 0 && (
+      {profiles.isSuccess && profiles.data.length === 0 && (
         <p className="text-[14px] text-ink-55">
           None yet. A voice profile describes how you write, so AI drafts sound like you.
         </p>
@@ -145,7 +146,7 @@ export function VoiceProfileForm({ profile, onDone }: { profile?: VoiceProfile; 
         <input type="checkbox" checked={isDefault} onChange={(e) => setIsDefault(e.target.checked)} className="h-4 w-4 accent-[var(--rust)]" />
         Use by default
       </label>
-      {error && !Object.keys(error.fieldErrors).length && <p className="text-[13px] text-rust">{error.detail}</p>}
+      <FormError error={error} fields={["name", "style_summary", "example_posts", "is_default"]} />
       <div className="flex items-center gap-6">
         <PrimaryButton type="submit" disabled={!name.trim() || save.isPending}>
           {save.isPending ? "Saving…" : "Save"}

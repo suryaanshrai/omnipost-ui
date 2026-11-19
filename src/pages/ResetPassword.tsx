@@ -1,13 +1,16 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { Link, useSearchParams } from "react-router"
-import AuthShell, { formLevelMessage } from "@/components/auth/AuthShell"
+import AuthShell from "@/components/auth/AuthShell"
+import { formLevelMessage } from "@/lib/forms"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError } from "@/lib/api"
+import { useDocumentTitle } from "@/lib/page"
 
 /** The page the reset email links to: /reset-password?uid=…&token=… */
 export default function ResetPassword() {
+  useDocumentTitle("New password")
   const [params] = useSearchParams()
   const uid = params.get("uid") ?? ""
   const token = params.get("token") ?? ""

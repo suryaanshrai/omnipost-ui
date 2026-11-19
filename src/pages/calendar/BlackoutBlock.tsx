@@ -9,6 +9,8 @@ import { formatStamp, fromLocalInput } from "@/lib/format"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { BlackoutWindow, Channel } from "@/types/api"
+import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 
 export function BlackoutBlock({ channels, windows }: { channels: Channel[]; windows: BlackoutWindow[] }) {
@@ -51,9 +53,12 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
     mutationFn: (w: BlackoutWindow) => apiFetch(`/blackout-windows/${w.id}/`, { method: "DELETE" }),
     onSuccess: invalidate,
   })
+  // datetime-local values compare correctly as strings.
+  const backwards = !!starts && !!ends && ends <= starts
   const name = (id: number | null | undefined) => (id ? channels.find((c) => c.id === id)?.display_name ?? "One channel" : "All channels")
-  const sorted = [...windows].sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+  const sorted = windows.toSorted((a, b) => b.starts_at.localeCompare(a.starts_at))
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="Blackout windows" aside="The queue skips these">
       <ul className="-mt-6 empty:mt-0">
@@ -68,7 +73,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
             <TextButton type="button" tone="muted" onClick={() => toggle.mutate(w)}>
               {w.is_active === false ? "Resume" : "Pause"}
             </TextButton>
-            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(w)}>
+            <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this blackout?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(w))}>
               Remove
             </TextButton>
           </li>
@@ -79,7 +84,7 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           e.preventDefault()
           add.mutate()
         }}
-        className="mt-6 grid gap-6 sm:grid-cols-2"
+        className="mt-6 grid gap-6 @lg:grid-cols-2"
       >
         <Field label="Label (optional)" placeholder="Product launch freeze" value={label} onChange={(e) => setLabel(e.target.value)} />
         <SelectField label="Applies to" value={channel} onChange={(e) => setChannel(e.target.value)}>
@@ -91,16 +96,22 @@ export function BlackoutBlock({ channels, windows }: { channels: Channel[]; wind
           ))}
         </SelectField>
         <Field label="Starts" type="datetime-local" value={starts} onChange={(e) => setStarts(e.target.value)} errors={error?.fieldErrors.starts_at} />
-        <Field label="Ends" type="datetime-local" value={ends} onChange={(e) => setEnds(e.target.value)} errors={error?.fieldErrors.ends_at} />
-        {error && !error.fieldErrors.starts_at && !error.fieldErrors.ends_at && (
-          <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
-        )}
-        <div className="sm:col-span-2">
-          <OutlineButton type="submit" disabled={!starts || !ends || add.isPending}>
+        <Field
+          label="Ends"
+          type="datetime-local"
+          min={starts || undefined}
+          value={ends}
+          onChange={(e) => setEnds(e.target.value)}
+          errors={backwards ? ["It has to end after it starts."] : error?.fieldErrors.ends_at}
+        />
+        <FormError error={error} fields={["starts_at", "ends_at"]} className="@lg:col-span-2" />
+        <div className="@lg:col-span-2">
+          <OutlineButton type="submit" disabled={!starts || !ends || backwards || add.isPending}>
             Add blackout
           </OutlineButton>
         </div>
       </form>
+      {confirmDialog}
     </Block>
   )
 }

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import type { FormEvent } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import Modal from "@/components/editorial/Modal"
@@ -19,6 +19,8 @@ import { EMPTY_APP, useAppCredentials, useRegisterApp, type AppCredentialInput }
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, OAuthStartResult } from "@/types/api"
 import AppCredentialFields from "./AppCredentialFields"
+import FormError from "@/components/editorial/FormError"
+import { safeHref } from "@/lib/url"
 
 type Step = "app" | "method" | "oauth" | "credentials"
 
@@ -98,7 +100,12 @@ export default function ConnectDialog({
     onSuccess: ({ result, redirect_uri }) => {
       const stash: OAuthStash = { connector_slug: connector.slug, redirect_uri }
       sessionStorage.setItem(OAUTH_STASH_KEY, JSON.stringify(stash))
-      window.location.assign(result.authorize_url)
+      const url = safeHref(result.authorize_url)
+      if (!url) {
+        setError(new ApiError(0, "The platform sent back an address we can't open. Try again."))
+        return
+      }
+      window.location.assign(url)
     },
     onError: (err) => {
       if (err instanceof ApiError && isMissingAppCredential(err.detail)) {
@@ -144,14 +151,6 @@ export default function ConnectDialog({
 
   const fieldErrors = error?.fieldErrors ?? {}
   const shownKeys = new Set(["display_name", "client_id", "client_secret", "label", ...connector.credential_fields])
-  const formError = error
-    ? Object.keys(fieldErrors).some((k) => shownKeys.has(k))
-      ? Object.entries(fieldErrors)
-          .filter(([k]) => !shownKeys.has(k))
-          .flatMap(([, v]) => v)
-          .join(" ")
-      : error.detail
-    : ""
 
   const missingRequired =
     step === "app"
@@ -272,11 +271,7 @@ export default function ConnectDialog({
               ))}
             </>
           )}
-          {formError && (
-            <p role="alert" className="text-[13px] leading-[1.5] text-rust">
-              {formError}
-            </p>
-          )}
+          <FormError error={error} fields={[...shownKeys]} />
         </form>
       )}
     </Modal>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Link } from "react-router"
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ChannelChip, ChannelToggle } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel, useCompose } from "@/components/compose/compose-context"
@@ -18,6 +18,7 @@ import { useSectionEyebrow } from "@/lib/nav"
 import { useHiddenPosts, useUndoableDelete } from "@/lib/undoDelete"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Connector, Post } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
 
 const EDITABLE = new Set(["draft", "failed"])
 const PAGE = 20
@@ -51,10 +52,10 @@ export default function Drafts() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${total} waiting`} />
-      <SearchBox label="Search your drafts" onSearch={setSearch} />
+      <SectionHeader eyebrow={eyebrow} title="Drafts" aside={`${drafts.isSuccess ? total : "—"} waiting`} />
+      <SearchBox label="Search your drafts" placeholder="Search drafts…" onSearch={setSearch} />
 
-      {drafts.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {drafts.isLoading && <ListSkeleton className="mt-4" />}
       {drafts.isError && (
         <p className="mt-10 text-[14px] text-rust">
           {drafts.error instanceof ApiError ? drafts.error.detail : "Could not load your drafts."}
@@ -321,7 +322,7 @@ function DraftEntry({
   const busy = action.isPending
 
   return (
-    <article className="border-b border-hair py-8">
+    <article className="border-b border-hair py-8 [contain-intrinsic-size:auto_420px] [content-visibility:auto]">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {onPick && (
           <input
@@ -339,15 +340,17 @@ function DraftEntry({
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
 
       {post.base_text ? (
-        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">{post.base_text}</p>
+        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty user-text text-ink">{post.base_text}</p>
       ) : (
         <p className="mt-5 text-[15px] text-ink-45 italic">No caption yet.</p>
       )}
 
-      <div className="eyebrow mt-7 mb-3">Publish to</div>
+      <div id={`publish-to-${post.id}`} className="eyebrow mt-7 mb-3">
+        Publish to
+      </div>
       {editable ? (
         eligible.length ? (
-          <div className="flex flex-wrap gap-2">
+          <div role="group" aria-labelledby={`publish-to-${post.id}`} className="flex flex-wrap gap-2">
             {eligible.map((c) => (
               <ChannelToggle key={c.id} channel={c} selected={selected.includes(c.id)} onToggle={() => toggle(c.id)} />
             ))}

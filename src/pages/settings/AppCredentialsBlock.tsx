@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import { SelectField } from "@/components/editorial/Field"
@@ -11,6 +11,7 @@ import AppCredentialFields from "@/components/connect/AppCredentialFields"
 import { useWorkspace } from "@/lib/workspace"
 import type { AppCredential } from "@/types/api"
 import { errorText } from "./shared"
+import FormError from "@/components/editorial/FormError"
 
 export function AppCredentialsBlock() {
   const { activeWorkspace } = useWorkspace()
@@ -75,7 +76,7 @@ export function AppCredentialsBlock() {
             e.preventDefault()
             register()
           }}
-          className="mt-6 grid gap-6 sm:grid-cols-2"
+          className="mt-6 grid gap-6 @lg:grid-cols-2"
         >
           <SelectField label="Platform" value={chosen} onChange={(e) => setSlug(e.target.value)}>
             {ownApp.map((c) => (
@@ -85,10 +86,8 @@ export function AppCredentialsBlock() {
             ))}
           </SelectField>
           <AppCredentialFields value={app} onChange={setApp} errors={error?.fieldErrors} />
-          {error && !error.fieldErrors.client_id && !error.fieldErrors.client_secret && (
-            <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>
-          )}
-          <div className="sm:col-span-2">
+          <FormError error={error} fields={["client_id", "client_secret", "label"]} className="@lg:col-span-2" />
+          <div className="@lg:col-span-2">
             <OutlineButton type="submit" disabled={!app.client_id.trim() || !app.client_secret.trim() || add.isPending}>
               Register app
             </OutlineButton>

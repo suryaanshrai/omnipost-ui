@@ -1,5 +1,6 @@
+import { useEffect, useRef, type ReactNode } from "react"
+import { takeHeadingFocus, useDocumentTitle } from "@/lib/page"
 import { cn } from "@/lib/utils"
-import type { ReactNode } from "react"
 
 /**
  * The section header repeated on every screen of the design: a tracked
@@ -7,6 +8,9 @@ import type { ReactNode } from "react"
  * right-aligned in the same eyebrow style, and a hairline underneath.
  * `size="app"` is the ~44px in-app headline; `size="landing"` is the
  * landing page's clamp(30px, 3.4vw, 46px).
+ *
+ * An in-app screen's h1 also names the tab ("Drafts · OmniPost") and takes
+ * focus after an in-app navigation (lib/page.ts).
  */
 export default function SectionHeader({
   eyebrow,
@@ -23,12 +27,22 @@ export default function SectionHeader({
   as?: "h1" | "h2"
   className?: string
 }) {
+  const heading = useRef<HTMLHeadingElement>(null)
+  const isPageTitle = Heading === "h1" && size === "app"
+  useDocumentTitle(isPageTitle && typeof title === "string" ? title : null)
+  useEffect(() => {
+    if (isPageTitle) takeHeadingFocus(heading.current)
+  }, [isPageTitle])
+
   return (
     <header className={cn("flex items-end justify-between gap-6 border-b border-hair pb-5", className)}>
       <div className="min-w-0">
         <div className="eyebrow mb-3">{eyebrow}</div>
         <Heading
+          ref={heading}
+          tabIndex={isPageTitle ? -1 : undefined}
           className={cn(
+            "focus:outline-none",
             "display text-ink",
             size === "app" ? "text-[36px] sm:text-[44px] leading-[1.02]" : "text-[clamp(30px,3.4vw,46px)] leading-[1.04]"
           )}

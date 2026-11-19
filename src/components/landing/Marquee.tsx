@@ -20,7 +20,7 @@ export default function Marquee() {
   )
 
   return (
-    <div className="overflow-hidden border-y border-hair py-5" aria-hidden="true">
+    <div className="marquee overflow-hidden border-y border-hair py-5" aria-hidden="true">
       <div className="marquee-track flex w-max">
         <div className="flex">{half}</div>
         <div className="flex">{half}</div>

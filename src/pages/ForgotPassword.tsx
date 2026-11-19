@@ -5,8 +5,11 @@ import AuthShell from "@/components/auth/AuthShell"
 import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError } from "@/lib/api"
+import FormError from "@/components/editorial/FormError"
+import { useDocumentTitle } from "@/lib/page"
 
 export default function ForgotPassword() {
+  useDocumentTitle("Forgot password")
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
@@ -58,11 +61,7 @@ export default function ForgotPassword() {
             onChange={(e) => setEmail(e.target.value)}
             errors={error?.fieldErrors.email}
           />
-          {error && !error.fieldErrors.email && (
-            <p role="alert" className="text-[13px] text-rust">
-              {error.detail}
-            </p>
-          )}
+          <FormError error={error} fields={["email"]} />
           <div className="flex items-center justify-between gap-6">
             <PrimaryButton type="submit" disabled={!email || submitting}>
               {submitting ? "Sending…" : "Send reset link"}

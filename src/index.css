@@ -12,7 +12,6 @@
 @import "@fontsource/manrope/700.css";
 
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -80,7 +79,7 @@
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
   --ink-45: rgba(18, 16, 14, .62);
-  --ink-38: rgba(18, 16, 14, .55);
+  --ink-38: rgba(18, 16, 14, .6); /* .6 is the lightest that keeps small text at 4.5:1 on paper */
   --rust: #A8451A; /* 4.7:1 on paper, so small rust text (errors, alerts) is readable */
   --ember: #E0602A;
 
@@ -238,7 +237,7 @@ html.cursor-none * {
   --hair: rgba(18, 16, 14, .14);
   --ink-55: rgba(18, 16, 14, .6);
   --ink-45: rgba(18, 16, 14, .62);
-  --ink-38: rgba(18, 16, 14, .55);
+  --ink-38: rgba(18, 16, 14, .6);
   --background: #EAE3D7;
   --foreground: #12100E;
   background: var(--page);
@@ -324,4 +323,343 @@ html.cursor-none * {
     transparent 1px,
     transparent 7px
   );
+}
+
+/* ── Platform polish (modern-web-guidance: dark-mode, browser-ui-theming,
+   motion, color) ──────────────────────────────────────────────────────── */
+
+/* Native UI (scrollbars, <select> pickers, the timezone <datalist>,
+   autofill, date pickers) follows the palette in force: Day is a light
+   scheme, Night a dark one. Scoped too, so the Day-only landing and the
+   dark bands inside it get matching controls. */
+:root,
+.theme-day {
+  color-scheme: light;
+}
+.dark,
+.theme-night {
+  color-scheme: dark;
+}
+
+@layer base {
+  /* Checkboxes, radios, range and progress in the brand accent instead of
+     the browser's blue. */
+  :root {
+    accent-color: var(--rust);
+  }
+
+  ::selection {
+    background: var(--ink);
+    color: var(--page);
+  }
+
+  /* Headlines break into even lines; body copy avoids one-word last lines.
+     Both are hints: browsers without them wrap as before. */
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  blockquote {
+    text-wrap: pretty;
+  }
+
+  /* In-page anchors on the landing page land below the fixed nav. */
+  section[id] {
+    scroll-margin-top: 96px;
+  }
+}
+
+/* User-written text (posts, drafts, AI variants): a long URL or token
+   wraps instead of pushing the column wider than the screen. */
+@utility user-text {
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* Windows High Contrast / forced colors: status dots are drawn with
+   background colors, which forced colors removes. Give them an outline so
+   they stay visible; their meaning is also carried by text or a label. */
+@media (forced-colors: active) {
+  .blip {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+  .blip::after {
+    display: none;
+  }
+  /* Health keeps its shape: a ring for "needs attention", filled otherwise. */
+  [data-health] {
+    forced-color-adjust: none;
+    border-color: CanvasText;
+    background: CanvasText;
+  }
+  [data-health="needs_attention"] {
+    background: Canvas;
+  }
+}
+
+/* The theme toggle cross-fades (theme-provider.tsx) through a view
+   transition; a short, plain fade keeps it calm. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.28s;
+}
+
+/* ── Native dialogs (NativeDialog.tsx) ─────────────────────────────────
+   modern-web-guidance `animate-to-from-top-layer` and
+   `prevent-page-scroll-under-modal-dialog`. A short fade and an 8px rise
+   in, the reverse out; `display` and `overlay` transition discretely so
+   the panel stays in the top layer until the fade ends. Browsers without
+   @starting-style or allow-discrete just open and close without motion. */
+.native-dialog {
+  margin: auto;
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: 0.24s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 8px;
+  }
+}
+.native-dialog[open] {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 0 8px;
+    }
+  }
+}
+.native-dialog::backdrop {
+  background-color: rgb(18 16 14 / 0);
+  backdrop-filter: blur(0);
+  transition-property: background-color, backdrop-filter, display, overlay;
+  transition-duration: 0.24s;
+  transition-timing-function: ease-out;
+  transition-behavior: allow-discrete;
+}
+.native-dialog[open]::backdrop {
+  background-color: rgb(18 16 14 / 0.55);
+  backdrop-filter: blur(3px);
+
+  @starting-style {
+    background-color: rgb(18 16 14 / 0);
+    backdrop-filter: blur(0);
+  }
+}
+/* Scrolling over the backdrop or inside the panel never scrolls the page. */
+.native-dialog:modal {
+  overscroll-behavior: contain;
+}
+.native-dialog::backdrop {
+  overflow: hidden;
+  overscroll-behavior: contain;
+}
+
+/* The mobile menu: a full-height drawer that slides in from the left. */
+.native-dialog.drawer {
+  margin: 0;
+  inset-block: 0;
+  inset-inline-start: 0;
+  inset-inline-end: auto;
+  height: 100dvh;
+  max-height: none;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: -100% 0;
+  }
+}
+.native-dialog.drawer[open] {
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: -100% 0;
+    }
+  }
+}
+
+/* The alerts panel (NotificationBell): a popover under its button. Same
+   fade-and-rise as the dialogs. Tethered with CSS anchor positioning where
+   supported, flipping at the viewport edges; elsewhere the browser's
+   default centred popover placement applies, so the inset/margin reset is
+   gated with it (modern-web-guidance `viewport-aware-dropdowns`). */
+.alerts-panel {
+  margin: auto; /* Tailwind's preflight zeroes it; the browser's centring needs it */
+  opacity: 0;
+  transition-property: opacity, translate, display, overlay;
+  transition-duration: 0.2s;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  transition-behavior: allow-discrete;
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 -6px;
+  }
+}
+.alerts-panel:popover-open {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    translate: 0 0;
+
+    @starting-style {
+      translate: 0 -6px;
+    }
+  }
+}
+@supports (position-area: block-end) {
+  .alerts-panel {
+    inset: auto;
+    margin: 0;
+    margin-block-start: 8px;
+    position-area: block-end span-inline-end;
+    position-try-fallbacks: flip-inline, flip-block, flip-block flip-inline;
+  }
+}
+
+/* ── Form controls (Field.tsx) ─────────────────────────────────────────
+   Textareas grow with their content, from their `rows` up to a cap,
+   where `field-sizing` is supported; elsewhere they keep `rows` and the
+   resize handle (modern-web-guidance form-fields-automatically-fit-
+   contents). */
+@supports (field-sizing: content) {
+  .autogrow {
+    field-sizing: content;
+    min-block-size: calc(var(--rows, 2) * 1lh + 1.25rem);
+    max-block-size: max(20lh, 50dvh);
+  }
+}
+
+/* Selects: where the customizable <select> exists, its open list is drawn
+   in paper and ink with hairline rows instead of the platform popup
+   (modern-web-guidance branded-select-styling). Elsewhere: the native
+   list, themed by color-scheme. */
+@supports (appearance: base-select) {
+  .select-field,
+  .select-field::picker(select) {
+    appearance: base-select;
+  }
+  .select-field::picker-icon {
+    color: var(--ink-55);
+    transition: rotate 0.2s;
+  }
+  .select-field:open::picker-icon {
+    rotate: 180deg;
+  }
+  .select-field::picker(select) {
+    border: 1px solid var(--hair);
+    background: var(--page);
+    color: var(--ink);
+    padding: 4px 0;
+    margin-block: 4px;
+  }
+  .select-field option {
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .select-field option:hover,
+  .select-field option:focus-visible {
+    background: var(--ink);
+    color: var(--page);
+  }
+  .select-field option::checkmark {
+    color: var(--rust);
+  }
+}
+
+/* Loading placeholders (ListSkeleton): hairline-toned blocks with a slow
+   pulse; static under reduced motion. */
+@keyframes skeleton-pulse {
+  50% { opacity: 0.45; }
+}
+@utility skeleton {
+  background: var(--hair);
+  @media (prefers-reduced-motion: no-preference) {
+    animation: skeleton-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+/* In-app navigation cross-fades through a view transition (the sidebar's
+   links use React Router's `viewTransition`); the sidebar itself stays put
+   as its own layer. Only when motion is welcome; elsewhere an instant
+   switch, as before. modern-web-guidance same-document-transitions. */
+.app-sidebar {
+  view-transition-name: app-sidebar;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}
+
+/* ── Scroll reveals (Reveal.tsx, Manifesto.tsx) ────────────────────────
+   The hidden starting state exists only when motion is welcome, so with
+   reduced motion (or when printing) the content is just there. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    transition:
+      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
+      translate 0.8s cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+  }
+  [data-reveal]:not([data-revealed]) {
+    opacity: 0;
+    translate: 0 22px;
+  }
+  .manifesto-word {
+    transition: translate 0.9s cubic-bezier(0.16, 1, 0.3, 1) calc(var(--i, 0) * 42ms);
+  }
+  .manifesto:not([data-revealed]) .manifesto-word {
+    translate: 0 112%;
+  }
+}
+@media print {
+  [data-reveal],
+  .manifesto-word {
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
+
+/* The landing rail's progress fill (LandingRail.tsx): driven by the page's
+   own scroll where scroll-driven animations exist (modern-web-guidance
+   scroll-progress-indicator), else by --rail-progress from a listener.
+   It reports position rather than adding motion, so it runs under
+   reduced motion too. */
+@keyframes rail-progress {
+  from { scale: 1 0; }
+  to { scale: 1 1; }
+}
+.rail-progress {
+  transform-origin: top;
+  scale: 1 var(--rail-progress, 0);
+}
+@supports (animation-timeline: scroll()) {
+  .rail-progress {
+    animation: rail-progress linear both;
+    animation-timeline: scroll(root block);
+  }
+}
+
+/* The marquee pauses while pointed at or focused within (WCAG 2.2.2). */
+.marquee:hover .marquee-track,
+.marquee:focus-within .marquee-track {
+  animation-play-state: paused;
 }

@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ChannelChip } from "@/components/app/ChannelChip"
 import FirstPostChecklist from "@/components/app/FirstPostChecklist"
 import MediaBand from "@/components/app/MediaBand"
@@ -11,13 +11,15 @@ import SectionHeader from "@/components/editorial/SectionHeader"
 import RepostButton from "@/components/app/RepostButton"
 import SearchBox from "@/components/app/SearchBox"
 import { apiFetch, ApiError, type Page } from "@/lib/api"
-import { formatStamp } from "@/lib/format"
 import { isDue } from "@/lib/posts"
 import { useChannelMap, usePostCount } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import { cn } from "@/lib/utils"
 import type { Channel, Post, PostTarget, PublishAttempt } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
+import { safeHref } from "@/lib/url"
+import Stamp from "@/components/editorial/Stamp"
 
 const PAGE = 20
 const IN_FLIGHT = new Set(["pending", "scheduled", "publishing"])
@@ -29,12 +31,12 @@ const FILTERS = [
 ]
 
 /** The moment a post "happened": its first publish, else when it was meant to go, else its last change. */
-function postStamp(post: Post): string {
+function postInstant(post: Post): string {
   const published = post.targets
     .map((t) => t.published_at)
     .filter((d): d is string => !!d)
     .sort()[0]
-  return formatStamp(published ?? post.scheduled_for ?? post.updated_at)
+  return published ?? post.scheduled_for ?? post.updated_at
 }
 
 export default function Posts() {
@@ -71,8 +73,8 @@ export default function Posts() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? 0} published`} />
-      <SearchBox label="Search your posts" onSearch={setSearch} />
+      <SectionHeader eyebrow={eyebrow} title="Your posts" aside={`${published.data ?? "—"} published`} />
+      <SearchBox label="Search your posts" placeholder="Search posts…" onSearch={setSearch} />
       <div role="group" aria-label="Show" className="mt-6 flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <button
@@ -90,7 +92,7 @@ export default function Posts() {
         ))}
       </div>
 
-      {query.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      {query.isLoading && <ListSkeleton className="mt-4" />}
       {query.isError && (
         <p className="mt-10 text-[14px] text-rust">
           {query.error instanceof ApiError ? query.error.detail : "Could not load your posts."}
@@ -130,11 +132,11 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
   const anyFailed = post.targets.some((t) => t.status === "failed")
 
   return (
-    <article className="border-b border-hair py-8">
+    <article className="border-b border-hair py-8 [contain-intrinsic-size:auto_320px] [content-visibility:auto]">
       <div className="flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className="eyebrow text-rust">{kindLabel(post.kind)}</span>
-          <span className="eyebrow">{postStamp(post)}</span>
+          <Stamp iso={postInstant(post)} className="eyebrow" />
           {(post.status === "publishing" || post.status === "scheduled") && (
             <span className="eyebrow text-ink">· Dispatching</span>
           )}
@@ -158,7 +160,7 @@ function PostEntry({ post, channels }: { post: Post; channels: Map<number, Chann
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
 
       {post.base_text && (
-        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">
+        <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty user-text text-ink">
           {post.base_text}
         </p>
       )}
@@ -221,7 +223,10 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
                 <span className="font-semibold text-ink">{channel?.display_name ?? "Channel"}</span>
                 <span className="text-ink-45"> · attempt {a.attempt_number} · </span>
                 <span className={cn(failed ? "text-rust" : "text-ink-55")}>{a.status}</span>
-                <span className="text-ink-38"> · {formatStamp(a.finished_at ?? a.started_at ?? a.run_at)}</span>
+                <span className="text-ink-38">
+                  {" · "}
+                  <Stamp iso={a.finished_at ?? a.started_at ?? a.run_at} />
+                </span>
                 {a.error_detail && <p className="mt-0.5 text-ink-55">{a.error_detail}</p>}
               </div>
             </li>
@@ -239,8 +244,8 @@ function DeliveryLog({ post, channels }: { post: Post; channels: Map<number, Cha
                   Retry
                 </TextButton>
               )}
-              {t.permalink && (
-                <a href={t.permalink} target="_blank" rel="noreferrer" className="text-[12px] text-ink-55 underline underline-offset-4 hover:text-rust">
+              {safeHref(t.permalink) && (
+                <a href={safeHref(t.permalink)!} target="_blank" rel="noreferrer" className="text-[12px] text-ink-55 underline underline-offset-4 hover:text-rust">
                   View on platform ↗
                 </a>
               )}

@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react"
-import { BrowserRouter, Navigate, Route, Routes } from "react-router"
-import ErrorBoundary from "./components/ErrorBoundary"
+import { createBrowserRouter, createRoutesFromElements, Navigate, Outlet, Route } from "react-router"
+import { RouterProvider } from "react-router/dom"
+import RouteError from "./components/ErrorBoundary"
 import RequireAuth from "./components/require-auth"
 import Landing from "./pages/Landing"
 
@@ -43,54 +44,63 @@ function Loading() {
   )
 }
 
+function Shell() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <Outlet />
+    </Suspense>
+  )
+}
+
 // Landing owns "/"; the authenticated app lives under /app/*. Old bare
 // paths still redirect so an existing bookmark or a stale link doesn't 404.
-export default function OmniRouter() {
-  return (
-    <BrowserRouter>
-      <ErrorBoundary>
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Auth mode="login" />} />
-            <Route path="/register" element={<Auth mode="register" />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/verify-email" element={<VerifyEmail />} />
-            <Route path="/oauth/callback" element={<OAuthCallback />} />
-            <Route path="/bio/:slug" element={<BioPage />} />
+//
+// A data router (rather than <BrowserRouter>) so in-app links can animate
+// with a view transition; the route tree itself is unchanged.
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<Shell />} errorElement={<RouteError />}>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Auth mode="login" />} />
+      <Route path="/register" element={<Auth mode="register" />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/verify-email" element={<VerifyEmail />} />
+      <Route path="/oauth/callback" element={<OAuthCallback />} />
+      <Route path="/bio/:slug" element={<BioPage />} />
 
-            <Route
-              path="/app"
-              element={
-                <RequireAuth>
-                  <App />
-                </RequireAuth>
-              }
-            >
-              <Route index element={<Posts />} />
-              <Route path="drafts" element={<Drafts />} />
-              <Route path="connections" element={<Connections />} />
-              <Route path="connections/:id" element={<ChannelDetail />} />
-              <Route path="approvals" element={<Approvals />} />
-              <Route path="calendar" element={<Calendar />} />
-              <Route path="analytics" element={<Analytics />} />
-              <Route path="settings" element={<Settings />} />
-              {COMPOSER_REDIRECTS.map(([path, kind]) => (
-                <Route key={path} path={path} element={<Navigate to={`/app?compose=${kind}`} replace />} />
-              ))}
-            </Route>
+      <Route
+        path="/app"
+        element={
+          <RequireAuth>
+            <App />
+          </RequireAuth>
+        }
+      >
+        <Route index element={<Posts />} />
+        <Route path="drafts" element={<Drafts />} />
+        <Route path="connections" element={<Connections />} />
+        <Route path="connections/:id" element={<ChannelDetail />} />
+        <Route path="approvals" element={<Approvals />} />
+        <Route path="calendar" element={<Calendar />} />
+        <Route path="analytics" element={<Analytics />} />
+        <Route path="settings" element={<Settings />} />
+        {COMPOSER_REDIRECTS.map(([path, kind]) => (
+          <Route key={path} path={path} element={<Navigate to={`/app?compose=${kind}`} replace />} />
+        ))}
+      </Route>
 
-            {COMPOSER_REDIRECTS.map(([path, kind]) => (
-              <Route key={path} path={`/${path}`} element={<Navigate to={`/app?compose=${kind}`} replace />} />
-            ))}
-            <Route path="/instance" element={<Navigate to="/app/connections" replace />} />
-            <Route path="/drafts" element={<Navigate to="/app/drafts" replace />} />
+      {COMPOSER_REDIRECTS.map(([path, kind]) => (
+        <Route key={path} path={`/${path}`} element={<Navigate to={`/app?compose=${kind}`} replace />} />
+      ))}
+      <Route path="/instance" element={<Navigate to="/app/connections" replace />} />
+      <Route path="/drafts" element={<Navigate to="/app/drafts" replace />} />
 
-            <Route path="*" element={<NotFoundPage />} />
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
-    </BrowserRouter>
+      <Route path="*" element={<NotFoundPage />} />
+    </Route>
   )
+)
+
+export default function OmniRouter() {
+  return <RouterProvider router={router} />
 }

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton } from "@/components/editorial/Buttons"
 import Field, { } from "@/components/editorial/Field"

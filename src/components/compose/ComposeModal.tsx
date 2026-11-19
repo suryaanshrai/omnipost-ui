@@ -1,7 +1,9 @@
+import { useState } from "react"
 import { Link, useNavigate } from "react-router"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ChannelToggle } from "@/components/app/ChannelChip"
 import { PrimaryButton, TextButton } from "@/components/editorial/Buttons"
+import ConfirmDialog from "@/components/editorial/ConfirmDialog"
 import Field, { TextareaField } from "@/components/editorial/Field"
 import HoverRow from "@/components/editorial/HoverRow"
 import Modal from "@/components/editorial/Modal"
@@ -36,6 +38,7 @@ export default function ComposeModal({
   post?: Post
 }) {
   const navigate = useNavigate()
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
   const onSaved = (outcome: SaveOutcome) => {
     onOpenChange(false)
     if (outcome === "draft") {
@@ -65,9 +68,15 @@ export default function ComposeModal({
       onOpenChange={(o) => {
         if (save.isPending) return
         // Escape or a click outside used to throw away a half-written post.
-        if (!o && d.dirty && !window.confirm("Discard this post? What you've written won't be saved.")) return
+        if (!o && d.dirty) {
+          setConfirmDiscard(true)
+          return
+        }
         onOpenChange(o)
       }}
+      dismissible={!save.isPending}
+      closeButton={false}
+      busy={save.isPending}
       eyebrow={step === 1 ? "Step one · Format" : `Step two · ${kindLabel(kind)}`}
       title={step === 1 ? "What are you posting?" : d.editing ? "Edit the draft" : "Write it once"}
       footer={
@@ -141,13 +150,13 @@ export default function ComposeModal({
                 </div>
               )}
               {media.length > 0 && (
-                <div className="flex flex-wrap gap-2">
+                <div role="group" aria-labelledby="compose-publish-to" className="flex flex-wrap gap-2">
                   {media.map((m) => (
                     <div key={m.id} className="group relative h-20 w-20 overflow-hidden border border-hair">
                       {m.kind === "video" ? (
-                        <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted />
+                        <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                       ) : (
-                        <img src={mediaUrl(m.file)} alt={m.alt_text || ""} className="h-full w-full object-cover" />
+                        <img src={mediaUrl(m.file)} alt={m.alt_text || ""} decoding="async" className="h-full w-full object-cover" />
                       )}
                       <button
                         type="button"
@@ -220,7 +229,9 @@ export default function ComposeModal({
           )}
 
           <div>
-            <div className="eyebrow mb-3">Publish to</div>
+            <div id="compose-publish-to" className="eyebrow mb-3">
+              Publish to
+            </div>
             {d.channels.isLoading ? (
               <p className="text-[13px] text-ink-55">Loading channels…</p>
             ) : d.eligible.length ? (
@@ -274,6 +285,21 @@ export default function ComposeModal({
           )}
         </div>
       )}
+
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        eyebrow="Unsaved"
+        title="Discard this post?"
+        description="What you've written won't be saved."
+        cancelLabel="Keep writing"
+        confirmLabel="Discard"
+        tone="rust"
+        onConfirm={() => {
+          setConfirmDiscard(false)
+          onOpenChange(false)
+        }}
+      />
     </Modal>
   )
 }

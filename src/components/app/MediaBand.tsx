@@ -15,7 +15,7 @@ export default function MediaBand({ mediaId, className }: { mediaId: number | un
         (isVideo ? (
           <video src={src} className="h-full w-full object-cover" muted playsInline controls preload="metadata" />
         ) : (
-          <img src={src} alt={data.alt_text || ""} className="h-full w-full object-cover" loading="lazy" />
+          <img src={src} alt={data.alt_text || ""} className="h-full w-full object-cover" loading="lazy" decoding="async" />
         ))}
     </div>
   )

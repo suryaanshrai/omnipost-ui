@@ -33,7 +33,7 @@ export function MediaLibrary({
   }
   const items = library.data ?? []
   return (
-    <div className="border border-hair p-3">
+    <div className="@container border border-hair p-3">
       <div className="mb-3 flex items-center justify-between">
         <span className="eyebrow">Your library</span>
         <button type="button" onClick={() => setOpen(false)} className="eyebrow hover:text-ink">
@@ -45,7 +45,7 @@ export function MediaLibrary({
       ) : items.length === 0 ? (
         <p className="text-[13px] text-ink-55">Nothing uploaded yet.</p>
       ) : (
-        <ul className="grid grid-cols-4 gap-2 sm:grid-cols-6">
+        <ul className="grid grid-cols-3 gap-2 @xs:grid-cols-4 @md:grid-cols-6">
           {items.map((m) => {
             const taken = chosen.includes(m.id)
             return (
@@ -58,9 +58,9 @@ export function MediaLibrary({
                   className={cn("block aspect-square w-full overflow-hidden border border-hair", taken ? "opacity-40" : "hover:border-ink")}
                 >
                   {m.kind === "video" ? (
-                    <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted />
+                    <video src={mediaUrl(m.file)} className="h-full w-full object-cover" muted playsInline preload="metadata" />
                   ) : (
-                    <img src={mediaUrl(m.file)} alt="" className="h-full w-full object-cover" />
+                    <img src={mediaUrl(m.file)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                   )}
                 </button>
               </li>

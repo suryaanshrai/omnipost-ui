@@ -12,19 +12,23 @@
     <!-- Populated at container start from $VITE_API_URL (see docker/entrypoint.sh).
          Lets the same built image be pointed at a different API without a rebuild. -->
     <script src="/config.js"></script>
+    <!-- Browser UI (address bar, overscroll) in the page color; kept in
+         step with the theme by ThemeProvider. -->
+    <meta name="theme-color" content="#EAE3D7" />
     <script>
-      // Applies the stored Day/Night choice before the React bundle loads,
-      // so a Night-mode visitor doesn't see a flash of the (very visible,
-      // paper-colored) Day background on every load. Mirrors the storage
-      // key/values ThemeProvider owns at runtime — see
-      // src/components/theme-provider.tsx.
+      // Picks Day or Night before the React bundle loads, so nobody sees a
+      // flash of the wrong one: a stored choice wins, otherwise the OS
+      // setting. Mirrors the rules in src/components/theme-provider.tsx;
+      // keep the two in step.
       (function () {
+        var theme = "light";
         try {
           var stored = localStorage.getItem("vite-ui-theme");
-          document.documentElement.classList.add(stored === "dark" ? "dark" : "light");
-        } catch (e) {
-          document.documentElement.classList.add("light");
-        }
+          if (stored === "dark" || stored === "light") theme = stored;
+          else if (window.matchMedia("(prefers-color-scheme: dark)").matches) theme = "dark";
+        } catch (e) {}
+        document.documentElement.classList.add(theme);
+        if (theme === "dark") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#14110D");
       })();
     </script>
   </head>

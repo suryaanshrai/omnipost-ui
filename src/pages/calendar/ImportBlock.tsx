@@ -1,6 +1,6 @@
 import { useRef, useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, PrimaryButton } from "@/components/editorial/Buttons"
 import { apiFetch, ApiError } from "@/lib/api"
@@ -48,6 +48,7 @@ export function ImportBlock() {
           accept=".csv,text/csv"
           className="sr-only"
           tabIndex={-1}
+          aria-hidden="true"
           onChange={(e) => {
             setFile(e.target.files?.[0] ?? null)
             setResult(null)

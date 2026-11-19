@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import Block from "@/components/app/Block"
 import { OutlineButton, TextButton } from "@/components/editorial/Buttons"
 import Field, { SelectField } from "@/components/editorial/Field"
@@ -9,6 +9,8 @@ import { formatStamp } from "@/lib/format"
 import { useWorkspace } from "@/lib/workspace"
 import type { AIProvider, ProviderKey } from "@/types/api"
 import { useWorkspaceList, errorText } from "./shared"
+import { useConfirm } from "@/components/editorial/useConfirm"
+import FormError from "@/components/editorial/FormError"
 
 const PROVIDERS: { value: AIProvider; label: string }[] = [
   { value: "anthropic", label: "Anthropic" },
@@ -52,6 +54,7 @@ export function ProviderKeysBlock() {
     onSuccess: invalidate,
   })
 
+  const [confirm, confirmDialog] = useConfirm()
   return (
     <Block title="AI provider keys" aside="Bring your own">
       <p className="mb-5 max-w-[560px] text-[14px] leading-[1.6] text-ink-55">
@@ -74,7 +77,7 @@ export function ProviderKeysBlock() {
             <TextButton type="button" tone="muted" onClick={() => toggle.mutate(k)}>
               {k.is_active ? "Pause" : "Resume"}
             </TextButton>
-            <TextButton type="button" tone="muted" onClick={() => window.confirm("Remove this? It can't be undone.") && remove.mutate(k)}>
+            <TextButton type="button" tone="muted" onClick={() => void confirm({ title: "Remove this key?", description: "It can't be undone." }).then((ok) => ok && remove.mutate(k))}>
               Remove
             </TextButton>
           </li>
@@ -85,7 +88,7 @@ export function ProviderKeysBlock() {
           e.preventDefault()
           add.mutate()
         }}
-        className="mt-6 grid gap-6 sm:grid-cols-[160px_1fr]"
+        className="mt-6 grid gap-6 @lg:grid-cols-[160px_1fr]"
       >
         <SelectField label="Provider" value={provider} onChange={(e) => setProvider(e.target.value as AIProvider)}>
           {PROVIDERS.map((p) => (
@@ -96,7 +99,7 @@ export function ProviderKeysBlock() {
         </SelectField>
         <Field label="Label (optional)" value={label} onChange={(e) => setLabel(e.target.value)} />
         <Field
-          className="sm:col-span-2"
+          className="@lg:col-span-2"
           label="API key"
           type="password"
           autoComplete="off"
@@ -104,13 +107,14 @@ export function ProviderKeysBlock() {
           onChange={(e) => setApiKey(e.target.value)}
           errors={error?.fieldErrors.api_key}
         />
-        {error && !error.fieldErrors.api_key && <p className="text-[13px] text-rust sm:col-span-2">{error.detail}</p>}
-        <div className="sm:col-span-2">
+        <FormError error={error} fields={["api_key", "provider"]} className="@lg:col-span-2" />
+        <div className="@lg:col-span-2">
           <OutlineButton type="submit" disabled={!apiKey.trim() || add.isPending}>
             {add.isPending ? "Checking the key…" : "Add key"}
           </OutlineButton>
         </div>
       </form>
+      {confirmDialog}
     </Block>
   )
 }

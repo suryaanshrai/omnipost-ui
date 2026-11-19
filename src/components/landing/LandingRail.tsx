@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 const SECTIONS = [
@@ -14,23 +14,44 @@ const SECTIONS = [
  * scroll, then the five section labels set vertical-rl. A section is
  * "active" once its top has crossed 45% of the viewport. Hidden under
  * 1024px, where there's no gutter to put it in.
+ *
+ * The fill is a CSS scroll-driven animation (`.rail-progress`) where
+ * supported, so it costs no JavaScript at all while scrolling; elsewhere a
+ * frame-throttled listener writes the same scale. The active label is
+ * worked out only when a section crosses the 45% line (an
+ * IntersectionObserver), not on every scroll frame.
  */
 export default function LandingRail() {
-  const [progress, setProgress] = useState(0)
+  const fill = useRef<HTMLDivElement>(null)
   const [active, setActive] = useState("top")
 
   useEffect(() => {
-    let frame = 0
-    const update = () => {
-      frame = 0
-      const max = document.documentElement.scrollHeight - window.innerHeight
-      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0)
+    const pick = () => {
       let current = SECTIONS[0].id
       for (const s of SECTIONS) {
         const el = document.getElementById(s.id)
         if (el && el.getBoundingClientRect().top <= window.innerHeight * 0.45) current = s.id
       }
       setActive(current)
+    }
+    pick()
+    // The top 45% of the viewport: a section's top entering or leaving it is
+    // exactly when the active label can change.
+    const crossing = new IntersectionObserver(pick, { rootMargin: "0px 0px -55% 0px" })
+    for (const s of SECTIONS) {
+      const el = document.getElementById(s.id)
+      if (el) crossing.observe(el)
+    }
+    return () => crossing.disconnect()
+  }, [])
+
+  useEffect(() => {
+    if (CSS.supports("animation-timeline: scroll()")) return
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const max = document.documentElement.scrollHeight - window.innerHeight
+      fill.current?.style.setProperty("--rail-progress", String(max > 0 ? Math.min(1, window.scrollY / max) : 0))
     }
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update)
@@ -51,7 +72,7 @@ export default function LandingRail() {
       className="fixed top-1/2 left-10 z-[250] hidden -translate-y-1/2 flex-col items-center gap-7 lg:flex"
     >
       <div className="relative h-14 w-px bg-hair" aria-hidden="true">
-        <div className="absolute top-0 left-0 w-px bg-rust" style={{ height: `${progress * 100}%` }} />
+        <div ref={fill} className="rail-progress absolute inset-0 bg-rust" />
       </div>
       <ul className="flex flex-col items-center gap-6">
         {SECTIONS.map((s) => (

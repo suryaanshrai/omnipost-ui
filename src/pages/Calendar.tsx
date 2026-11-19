@@ -66,8 +66,8 @@ export default function Calendar() {
   const total = entries.data?.length ?? 0
 
   return (
-    <div className="max-w-[1100px]">
-      <SectionHeader eyebrow={eyebrow} title="Calendar" aside={`${total} this week`} />
+    <div className="@container max-w-[1100px]">
+      <SectionHeader eyebrow={eyebrow} title="Calendar" aside={`${entries.isSuccess ? total : "—"} this week`} />
       {getDisplayTimeZone() !== BROWSER_TIME_ZONE && (
         <p className="mt-4 text-[13px] text-ink-55">
           The grid uses your computer's time ({timeZoneLabel(BROWSER_TIME_ZONE)}). Post times elsewhere show in the
@@ -92,7 +92,7 @@ export default function Calendar() {
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 border-t border-l border-hair md:grid-cols-7">
+      <div className="mt-6 grid grid-cols-1 border-t border-l border-hair @2xl:grid-cols-7">
         {days.map((day, i) => {
           const dayEnd = addDays(day, 1)
           const isToday = day.toDateString() === today.toDateString()
@@ -120,8 +120,7 @@ export default function Calendar() {
                   </div>
                 ))}
                 {byDay[i]
-                  .slice()
-                  .sort((a, b) => (a.run_at ?? "").localeCompare(b.run_at ?? ""))
+                  .toSorted((a, b) => (a.run_at ?? "").localeCompare(b.run_at ?? ""))
                   .map((e) => {
                     const ch = channels.get(e.channel)
                     return (

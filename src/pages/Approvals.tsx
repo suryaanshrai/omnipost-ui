@@ -1,6 +1,6 @@
 import { Navigate } from "react-router"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
+import { toast } from "@/lib/toast"
 import { ChannelChip } from "@/components/app/ChannelChip"
 import MediaBand from "@/components/app/MediaBand"
 import { kindLabel } from "@/components/compose/compose-context"
@@ -13,6 +13,7 @@ import { useChannelMap } from "@/lib/queries"
 import { useSectionEyebrow } from "@/lib/nav"
 import { useWorkspace } from "@/lib/workspace"
 import type { Channel, Post } from "@/types/api"
+import ListSkeleton from "@/components/app/ListSkeleton"
 
 /**
  * Posts waiting on a reviewer. Only reachable while the workspace has the
@@ -35,8 +36,8 @@ export default function Approvals() {
 
   return (
     <div className="max-w-[760px]">
-      <SectionHeader eyebrow={eyebrow} title="Approvals" aside={`${list.length} in review`} />
-      {inReview.isLoading && <p className="eyebrow mt-10">Loading…</p>}
+      <SectionHeader eyebrow={eyebrow} title="Approvals" aside={`${inReview.isSuccess ? list.length : "—"} in review`} />
+      {inReview.isLoading && <ListSkeleton className="mt-4" />}
       {inReview.isSuccess && list.length === 0 && (
         <p className="mt-10 text-[15px] text-ink-55">Nothing to review. Drafts submitted for review wait here.</p>
       )}
@@ -70,7 +71,7 @@ function ReviewEntry({ post, channels }: { post: Post; channels: Map<number, Cha
         {post.scheduled_for && <span className="eyebrow">· for {formatStamp(post.scheduled_for)}</span>}
       </div>
       {!!post.base_media?.length && <MediaBand mediaId={post.base_media[0]} className="mt-6" />}
-      <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty whitespace-pre-line text-ink">
+      <p className="mt-5 max-w-[600px] text-[17px] leading-[1.6] text-pretty user-text text-ink">
         {post.base_text || <span className="text-ink-45 italic">No caption.</span>}
       </p>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -85,7 +86,7 @@ function ReviewEntry({ post, channels }: { post: Post; channels: Map<number, Cha
             .map((t) => (
               <li key={t.id} className="text-[14px] leading-[1.6]">
                 <span className="eyebrow block">{channels.get(t.channel)?.display_name ?? "Channel"} version</span>
-                <span className="whitespace-pre-line text-ink-55">{t.text_override}</span>
+                <span className="user-text text-ink-55">{t.text_override}</span>
               </li>
             ))}
         </ul>
