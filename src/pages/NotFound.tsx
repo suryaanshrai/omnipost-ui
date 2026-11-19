@@ -1,7 +1,9 @@
 import { Link } from "react-router"
 import Wordmark from "@/components/editorial/Wordmark"
+import { useDocumentTitle } from "@/lib/page"
 
 export default function NotFoundPage() {
+  useDocumentTitle("Not found")
   return (
     <div className="flex min-h-screen flex-col justify-between bg-page px-4 py-8 text-ink sm:px-12 sm:py-11">
       <Link to="/" className="self-start">

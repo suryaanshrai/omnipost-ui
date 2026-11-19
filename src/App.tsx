@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react"
-import { Outlet } from "react-router"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { Outlet, useLocation } from "react-router"
 import NotificationBell from "@/components/app/NotificationBell"
 import Sidebar from "@/components/app/Sidebar"
 import { useCompose } from "@/components/compose/compose-context"
@@ -7,6 +7,7 @@ import { ComposeProvider } from "@/components/compose/ComposeProvider"
 import FilmGrain from "@/components/editorial/FilmGrain"
 import NativeDialog from "@/components/editorial/NativeDialog"
 import Wordmark from "@/components/editorial/Wordmark"
+import { requestHeadingFocus } from "@/lib/page"
 import { WorkspaceProvider } from "@/lib/workspace"
 
 /**
@@ -17,6 +18,21 @@ import { WorkspaceProvider } from "@/lib/workspace"
  */
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const mainRef = useRef<HTMLElement>(null)
+  const { pathname } = useLocation()
+  const firstPath = useRef(pathname)
+
+  // The content pane is the scroller, not the window, so the router can't
+  // restore it: a new screen starts at its top, and its heading takes focus
+  // (not on the first load, where focus belongs to the page itself).
+  useLayoutEffect(() => {
+    mainRef.current?.scrollTo({ top: 0 })
+    if (pathname !== firstPath.current) {
+      firstPath.current = ""
+      requestHeadingFocus()
+    }
+  }, [pathname])
+
   // Widening past md while the menu is open drops straight into the docked
   // sidebar, and the menu stays closed when narrowing again.
   useEffect(() => {
@@ -29,10 +45,17 @@ export default function App() {
   return (
     <WorkspaceProvider>
       <ComposeProvider>
-        <div className="flex h-screen flex-col overflow-hidden bg-page text-ink md:flex-row">
+        {/* dvh: the full visible height on phones, whatever the browser toolbars are doing. */}
+        <div className="flex h-dvh flex-col overflow-hidden bg-page text-ink md:flex-row">
+          <a
+            href="#main"
+            className="sr-only z-10 bg-ink px-4 py-3 text-[11px] font-bold tracking-[0.18em] text-page uppercase focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+          >
+            Skip to content
+          </a>
           <FilmGrain opacity={0.26} />
 
-          <aside className="hidden w-[252px] shrink-0 border-r border-hair md:block">
+          <aside className="app-sidebar hidden w-[252px] shrink-0 border-r border-hair md:block">
             <Sidebar />
           </aside>
 
@@ -69,7 +92,7 @@ export default function App() {
             </button>
           </NativeDialog>
 
-          <main className="min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-16 sm:px-8 md:px-14 md:pt-[52px] md:pb-[90px]">
+          <main id="main" ref={mainRef} tabIndex={-1} className="min-w-0 flex-1 overflow-y-auto px-4 pt-8 pb-16 sm:px-8 md:px-14 md:pt-[52px] md:pb-[90px] md:[scrollbar-gutter:stable] focus:outline-none">
             <Outlet />
           </main>
         </div>

@@ -83,6 +83,7 @@ export default function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             key={item.to}
             to={item.to}
             end={item.end}
+            viewTransition
             onClick={onNavigate}
             className="group grid grid-cols-[26px_1fr_auto] items-center border-b border-hair px-0.5 py-[15px]"
           >

@@ -594,3 +594,18 @@ html.cursor-none * {
     animation: skeleton-pulse 1.6s ease-in-out infinite;
   }
 }
+
+/* In-app navigation cross-fades through a view transition (the sidebar's
+   links use React Router's `viewTransition`); the sidebar itself stays put
+   as its own layer. Only when motion is welcome; elsewhere an instant
+   switch, as before. modern-web-guidance same-document-transitions. */
+.app-sidebar {
+  view-transition-name: app-sidebar;
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

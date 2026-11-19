@@ -9,6 +9,7 @@ import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError, isSignedIn, safeNextPath, setSignedIn } from "@/lib/api"
 import { cn } from "@/lib/utils"
 import type { Token } from "@/types/api"
+import { useDocumentTitle } from "@/lib/page"
 
 type Mode = "login" | "register"
 
@@ -23,6 +24,7 @@ const COPY: Record<Mode, { eyebrow: string; title: [string, string, string]; sub
  * shareable/bookmarkable on its own.
  */
 export default function Auth({ mode }: { mode: Mode }) {
+  useDocumentTitle(mode === "login" ? "Sign in" : "Create account")
   const navigate = useNavigate()
   const location = useLocation()
   const [params] = useSearchParams()

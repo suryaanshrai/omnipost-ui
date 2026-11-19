@@ -20,8 +20,14 @@ export default function BioPage() {
     retry: (count, err) => !(err instanceof ApiError && err.status === 404) && count < 2,
   })
 
+  // The page's own name, restored when leaving it.
   useEffect(() => {
-    if (page.data) document.title = page.data.name
+    if (!page.data) return
+    const previous = document.title
+    document.title = page.data.name
+    return () => {
+      document.title = previous
+    }
   }, [page.data])
 
   if (page.isPending) {

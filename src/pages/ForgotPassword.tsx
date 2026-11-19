@@ -6,8 +6,10 @@ import { PrimaryButton } from "@/components/editorial/Buttons"
 import Field from "@/components/editorial/Field"
 import { apiFetch, ApiError } from "@/lib/api"
 import FormError from "@/components/editorial/FormError"
+import { useDocumentTitle } from "@/lib/page"
 
 export default function ForgotPassword() {
+  useDocumentTitle("Forgot password")
   const [email, setEmail] = useState("")
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
